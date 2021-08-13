@@ -15,30 +15,40 @@ def integrateGillespie(reactionModel, tfinal = None):
     time_for_percentage = - 1 * percentage_resolution
     # Begins Gillespie algorithm
     t = 0.0
-    i = 0
     Xtraj = [reactionModel.X]
     times = [t]
     while t <= tfinal:
-        r1 = np.random.rand()
-        r2 = np.random.rand()
-        lambda0 = np.sum(reactionModel.propensities)
-        ratescumsum = np.cumsum(reactionModel.propensities)
-        # Gillespie, time and transition (reaction index)
-        lagtime = np.log(1.0 / r1) / lambda0
-        reactionIndex = int(sum(r2 * lambda0 > ratescumsum))
-        nextX = Xtraj[i] + reactionModel.reactionVectors[reactionIndex]
+        lagtime, deltaX = integrateGillespieOne(reactionModel)
+        nextX = Xtraj[-1] + deltaX
         # Update variables
         Xtraj.append(nextX)
         reactionModel.X = nextX
         reactionModel.updatePropensities()
         t += lagtime
-        i += 1
-        times.append(t)
+        times.append(times[-1]+lagtime)
         # Print integration percentage
         if (t - time_for_percentage >= percentage_resolution):
             time_for_percentage = 1 * t
             print("Percentage complete ", round(100*t/tfinal,1), "%           ", end="\r")
     return times, Xtraj
+
+
+def integrateGillespieOne(reactionModel, returnReactionIndex = False):
+    '''
+    One iteration of the Gillespie algorithm
+    '''
+    r1 = np.random.rand()
+    r2 = np.random.rand()
+    lambda0 = np.sum(reactionModel.propensities)
+    ratescumsum = np.cumsum(reactionModel.propensities)
+    # Gillespie, time and transition (reaction index)
+    lagtime = np.log(1.0 / r1) / lambda0
+    reactionIndex = int(sum(r2 * lambda0 > ratescumsum))
+    deltaX = reactionModel.reactionVectors[reactionIndex]
+    if returnReactionIndex:
+        return lagtime, deltaX, reactionIndex
+    else:
+        return lagtime, deltaX
 
 
 def integrateTauLeap(reactionModel, tfinal = None):

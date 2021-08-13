@@ -18,7 +18,7 @@ class schlogl(reactionModel):
         self.k2 = 1.0
         self.k3 = 230.0
         self.k4 = 1000.0
-        self.vol = 8.0
+        self.volume = 8.0
         self.nreactions = 4
         self.reactionVectors = np.zeros([self.nreactions, len(self.X)])
         self.propensities = np.zeros(self.nreactions)
@@ -28,14 +28,14 @@ class schlogl(reactionModel):
         # Define default simulation parameters
         self.setSimulationParameters(dt = 0.0001, stride = 1, tfinal = 1000, datasize = 2560)
         
-    def setModelParameters(self, concA, concB, k1, k2, k3, k4, vol):
+    def setModelParameters(self, concA, concB, k1, k2, k3, k4, volume):
         self.concA = concA
         self.concB = concB
         self.k1 = k1
         self.k2 = k2
         self.k3 = k3
         self.k4 = k4
-        self.vol = vol
+        self.volume = volume
 
     def populateReactionVectors(self):
         self.reactionVectors[0] = [1]   # A + 2X -k1-> 3X
@@ -45,9 +45,9 @@ class schlogl(reactionModel):
 
     def updatePropensities(self):
         x = self.X[0]
-        self.propensities[0] = self.k1 * self.concA * x * (x-1)/self.vol
-        self.propensities[1] = self.k2 * x * (x-1) * (x-2)/ (self.vol**2)
-        self.propensities[2] = self.k3 * self.concB * self.vol
+        self.propensities[0] = self.k1 * self.concA * x * (x-1)/self.volume
+        self.propensities[1] = self.k2 * x * (x-1) * (x-2)/ (self.volume**2)
+        self.propensities[2] = self.k3 * self.concB * self.volume
         self.propensities[3] = self.k4 * x
 
 
@@ -59,12 +59,12 @@ class schlogl(reactionModel):
     def lambdan(self):
         '''Define CME birth rate '''
         x = self.X[0]
-        return self.concA*self.k1*x*(x-1)/self.vol + self.concB*self.k3*self.vol
+        return self.concA*self.k1*x*(x-1)/self.volume + self.concB*self.k3*self.volume
 
     def mun(self):
         '''Define CME death rate '''
         x = self.X[0]
-        return self.k2*x*(x-1)*(x-2)/self.vol**2 + x*self.k4
+        return self.k2*x*(x-1)*(x-2)/self.volume**2 + x*self.k4
 
     def ODE_func(self, x,k1,k2,k3,k4,a,b):
         '''Define ODE (LMA) function to explore parameters '''
