@@ -1,12 +1,17 @@
 import numpy as np
+from ..reactionModel import reactionModel
 
-class geneticFeedback:
+class geneticFeedback(reactionModel):
     
     def __init__(self, G, Gstar, M, P):
-        # Define default initial conditions
-        self.X = np.array([G, Gstar, M, P])
+        # inherit all methods from parent class
+        super().__init__()
 
-        # Define default model paramters
+        # Define default initial conditions and names
+        self.X = np.array([G, Gstar, M, P])
+        self.names = ['gene', 'gene*', 'mRNA', 'protein']
+
+        # Define default model parameters
         self.rhou = 2.5
         self.rhob = 10**(-1)
         self.sigmau = 10**5
@@ -16,19 +21,13 @@ class geneticFeedback:
         self.k = 1.0
         self.vol = 10.0
         self.nreactions = 7
-        self.lambdas = np.zeros(self.nreactions)
         self.reactionVectors = np.zeros([self.nreactions, len(self.X)])
-        self.updatePropensities()
+        self.propensities = np.zeros(self.nreactions)
         self.populateReactionVectors()
+        self.updatePropensities()
 
         # Define default simulation parameters
-        self.setDataParameters(0.0001, 10, 1000, 2560)
-        self.dt = 0.0001
-        self.stride = 1
-        self.tfinal = 1000
-        self.datasize = 2560
-        self.filename =  "data/genetic_feedback_data_vol" + str(self.vol) + "_ndata" + str(self.datasize) + ".dat"
-        self.timesteps = int(self.tfinal/self.dt)
+        self.setSimulationParameters(dt = 0.0001, stride = 1, tfinal = 1000, datasize = 2560)
 
     def setModelParameters(self, rhou, rhob, sigmau, sigmab, dm, dp, k, vol):
         self.rhou = rhou
@@ -39,14 +38,6 @@ class geneticFeedback:
         self.dp = dp
         self.k = k
         self.vol = vol
-
-
-    def setDataParameters(self, dt, stride, tfinal, datasize):
-        self.dt = dt
-        self.stride = stride
-        self.tfinal = tfinal
-        self.datasize = datasize
-        self.timesteps = int(tfinal/dt)
 
     def populateReactionVectors(self):
         self.reactionVectors[0] = [0, 0, 1, 0]   # G -rhou-> G+M
@@ -62,10 +53,10 @@ class geneticFeedback:
         Gstar = self.X[1]
         M = self.X[2]
         P = self.X[3]
-        self.lambdas[0] = self.rhou * G
-        self.lambdas[1] = self.rhob * Gstar
-        self.lambdas[2] = self.k * M
-        self.lambdas[3] = self.sigmab * G * P / self.vol
-        self.lambdas[4] = self.sigmau * Gstar
-        self.lambdas[5] = self.dm * M
-        self.lambdas[6] = self.dp * P
+        self.propensities[0] = self.rhou * G
+        self.propensities[1] = self.rhob * Gstar
+        self.propensities[2] = self.k * M
+        self.propensities[3] = self.sigmab * G * P / self.vol
+        self.propensities[4] = self.sigmau * Gstar
+        self.propensities[5] = self.dm * M
+        self.propensities[6] = self.dp * P
