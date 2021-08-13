@@ -51,6 +51,7 @@ class schlogl(reactionModel):
         self.propensities[3] = self.k4 * x
 
 
+
     '''
     Additional functions specific to the Schlogl model
     '''
