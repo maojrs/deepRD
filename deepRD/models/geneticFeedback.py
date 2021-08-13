@@ -1,5 +1,6 @@
 import numpy as np
 from ..reactionModel import reactionModel
+from ..integrators import integrateGillespieOne
 
 class geneticFeedback(reactionModel):
     
@@ -13,13 +14,13 @@ class geneticFeedback(reactionModel):
 
         # Define default model parameters
         self.rhou = 2.5
-        self.rhob = 0.0 #10**(-1)
+        self.rhob = 10**(-1)
         self.sigmau = 10**5
         self.sigmab = 10**3
         self.dm = 10.0
         self.dp = 1.0
         self.k = 1.0
-        self.vol = 10.0
+        self.volume = 10.0
         self.nreactions = 7
         self.reactionVectors = np.zeros([self.nreactions, len(self.X)])
         self.propensities = np.zeros(self.nreactions)
@@ -29,7 +30,7 @@ class geneticFeedback(reactionModel):
         # Define default simulation parameters
         self.setSimulationParameters(dt = 0.0001, stride = 1, tfinal = 1000, datasize = 2560)
 
-    def setModelParameters(self, rhou, rhob, sigmau, sigmab, dm, dp, k, vol):
+    def setModelParameters(self, rhou, rhob, sigmau, sigmab, dm, dp, k, volume):
         self.rhou = rhou
         self.rhob = rhob
         self.sigmau = sigmau
@@ -37,7 +38,7 @@ class geneticFeedback(reactionModel):
         self.dm = dm
         self.dp = dp
         self.k = k
-        self.vol = vol
+        self.volume = volume
 
     def populateReactionVectors(self):
         self.reactionVectors[0] = [0, 0, 1, 0]   # G -rhou-> G+M
@@ -56,7 +57,42 @@ class geneticFeedback(reactionModel):
         self.propensities[0] = self.rhou * G
         self.propensities[1] = self.rhob * Gstar
         self.propensities[2] = self.k * M
-        self.propensities[3] = self.sigmab * G * P / self.vol
+        self.propensities[3] = self.sigmab * G * P / self.volume
         self.propensities[4] = self.sigmau * Gstar
         self.propensities[5] = self.dm * M
         self.propensities[6] = self.dp * P
+
+    '''
+    Additional functions specific to the genetic feedback model
+    '''
+
+    def oneCycleFPTs(self, numSamples, G, Gstar, M, P):
+        '''
+        Calculates first passage times (FPTs) from the first creation of an
+        mRNA (M) to the second creation of an mRNA.
+        '''
+        FPTs = np.zeros(numSamples)
+        for i in range(numSamples):
+            self.X = np.array([G, Gstar, M, P])
+            self.updatePropensities()
+            firstMRNAproduction = False
+            secondMRNAproduction = False
+            t = 0
+            while(not secondMRNAproduction):
+                # On iteration of Gillespie algorithm
+                lagtime, deltaX, reactionIndex = integrateGillespieOne(self, returnReactionIndex = True)
+                nextX = self.X + deltaX
+
+                if firstMRNAproduction == True:
+                    t += lagtime
+                    if reactionIndex == 0:
+                        secondMRNAproduction = True
+
+                if reactionIndex == 0:
+                    firstMRNAproduction = True
+
+                # Update variables
+                self.X = nextX
+                self.updatePropensities()
+            FPTs[i] = t
+        return FPTs

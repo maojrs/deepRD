@@ -19,3 +19,11 @@ def plotTrajectories(times, xtrajs, names = [], indexes = "all"):
                 plt.legend()
     plt.xlabel("time")
     plt.ylabel("Copy number")
+
+
+def plotFPTs(FPTs, bins = 50, name = "FPT distribution"):
+    plt.hist(FPTs, bins = bins, label = name, density = True, alpha = 0.6)
+    plt.xlim([0,max(FPTs)])
+    plt.legend()
+    plt.xlabel("time")
+    plt.ylabel("probability")
