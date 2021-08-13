@@ -1,6 +1,4 @@
 from setuptools import setup
-from setuptools.extension import Extension
-
 
 setup(name='deepRD',
       version='0.1',
