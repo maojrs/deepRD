@@ -1,3 +1,8 @@
+'''
+Integrators of reaction dynamics. The integrators would generally take a reactionModel
+as input (see models/reactionModel abstract class).
+'''
+
 import numpy as np
 
 def integrateGillespie(reactionModel, tfinal = None):

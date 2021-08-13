@@ -13,7 +13,7 @@ class geneticFeedback(reactionModel):
 
         # Define default model parameters
         self.rhou = 2.5
-        self.rhob = 10**(-1)
+        self.rhob = 0.0 #10**(-1)
         self.sigmau = 10**5
         self.sigmab = 10**3
         self.dm = 10.0
