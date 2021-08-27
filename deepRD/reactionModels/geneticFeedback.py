@@ -1,6 +1,6 @@
 import numpy as np
-from ..reactionModel import reactionModel
-from ..integrators import integrateGillespieOne
+from .reactionModel import reactionModel
+from ..integrators import gillespie
 
 class geneticFeedback(reactionModel):
     
@@ -80,8 +80,7 @@ class geneticFeedback(reactionModel):
             t = 0
             while(not secondMRNAproduction):
                 # On iteration of Gillespie algorithm
-                lagtime, deltaX, reactionIndex = integrateGillespieOne(self, returnReactionIndex = True)
-                nextX = self.X + deltaX
+                lagtime, nextX, reactionIndex = gillespie.integrateOne(self, returnReactionIndex = True)
 
                 if firstMRNAproduction == True:
                     t += lagtime

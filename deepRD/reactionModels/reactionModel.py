@@ -1,18 +1,22 @@
-'''
-Parent (abstract) method for all reaction models
-'''
+try:
+    from joblib import Parallel, delayed
+    import multiprocessing
+except:
+    print("Multiprocessing libraries not found, parallel data generation will not work.")
 
 class reactionModel:
+    '''
+    Parent (abstract) class for all reaction models
+    '''
 
     def __init__(self):
         # Define default simulation parameters
         self.dt = 0.0001
         self.stride = 1
         self.tfinal = 1000
-        self.datasize = 2560
         self.timesteps = int(self.tfinal/self.dt)
 
-    def setSimulationParameters(self, dt, stride, tfinal, datasize):
+    def setSimulationParameters(self, dt, stride, tfinal):
         '''
         Function to set simulation parameters. This will be inherited
         and used by child classes
@@ -20,7 +24,6 @@ class reactionModel:
         self.dt = dt
         self.stride = stride
         self.tfinal = tfinal
-        self.datasize = datasize
         self.timesteps = int(self.tfinal/self.dt)
 
     def populateReactionVectors(self):
