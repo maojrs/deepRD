@@ -6,7 +6,7 @@ setup(name='deepRD',
       author='Mauricio J. del Razo',
       author_email='maojrs@gmail.com',
       url='',
-      packages=['deepRD', 'deepRD.models'],
+      packages=['deepRD', 'deepRD.reactionModels', 'deepRD.integrators'],
       test_suite='nose.collector',
       tests_require=['nose']
       )

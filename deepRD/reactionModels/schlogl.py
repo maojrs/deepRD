@@ -1,5 +1,5 @@
 import numpy as np
-from ..reactionModel import reactionModel
+from .reactionModel import reactionModel
 
 class schlogl(reactionModel):
     
