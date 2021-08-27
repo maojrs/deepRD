@@ -27,9 +27,6 @@ class geneticFeedback(reactionModel):
         self.populateReactionVectors()
         self.updatePropensities()
 
-        # Define default simulation parameters
-        self.setSimulationParameters(dt = 0.0001, stride = 1, tfinal = 1000, datasize = 2560)
-
     def setModelParameters(self, rhou, rhob, sigmau, sigmab, dm, dp, k, volume):
         self.rhou = rhou
         self.rhob = rhob
@@ -71,6 +68,7 @@ class geneticFeedback(reactionModel):
         Calculates first passage times (FPTs) from the first creation of an
         mRNA (M) to the second creation of an mRNA.
         '''
+        integrator = gillespie(0,1)
         FPTs = np.zeros(numSamples)
         for i in range(numSamples):
             self.X = np.array([G, Gstar, M, P])
@@ -80,7 +78,7 @@ class geneticFeedback(reactionModel):
             t = 0
             while(not secondMRNAproduction):
                 # On iteration of Gillespie algorithm
-                lagtime, nextX, reactionIndex = gillespie.integrateOne(self, returnReactionIndex = True)
+                lagtime, nextX, reactionIndex = integrator.integrateOne(self, returnReactionIndex = True)
 
                 if firstMRNAproduction == True:
                     t += lagtime

@@ -10,7 +10,7 @@ class integrator:
     Parent (abstract) class for all integrators
     '''
 
-    def __init__(self, dt, stride, tfinal):
+    def __init__(self, dt=0.0001, stride=1, tfinal=1000):
         # Define default simulation parameters
         self.setSimulationParameters(dt, stride, tfinal)
 
@@ -22,7 +22,11 @@ class integrator:
         self.dt = dt
         self.stride = stride
         self.tfinal = tfinal
-        self.timesteps = int(self.tfinal/self.dt)
+        if self.dt == 0:
+            # In case of no fixed timestepping, like Gillespie, these variables are useless
+            self.timesteps  = 0
+        else:
+            self.timesteps = int(self.tfinal/self.dt)
 
     def integrateOne(self, reactionModel):
         '''
