@@ -9,23 +9,6 @@ class reactionModel:
     Parent (abstract) class for all reaction models
     '''
 
-    def __init__(self):
-        # Define default simulation parameters
-        self.dt = 0.0001
-        self.stride = 1
-        self.tfinal = 1000
-        self.timesteps = int(self.tfinal/self.dt)
-
-    def setSimulationParameters(self, dt, stride, tfinal):
-        '''
-        Function to set simulation parameters. This will be inherited
-        and used by child classes
-        '''
-        self.dt = dt
-        self.stride = stride
-        self.tfinal = tfinal
-        self.timesteps = int(self.tfinal/self.dt)
-
     def populateReactionVectors(self):
         '''
         'Abstract' method needed to populates reaction vectors
