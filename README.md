@@ -1,3 +1,3 @@
 # deepRD
 
-Tools for reaction dynamics and deep learning in a python package
+Deep learning tools for reaction-diffusion dynamics in a python package

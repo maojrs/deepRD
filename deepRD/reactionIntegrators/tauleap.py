@@ -1,7 +1,7 @@
 import numpy as np
-from .integrator import integrator
+from .reactionIntegrator import reactionIntegrator
 
-class tauleap(integrator):
+class tauleap(reactionIntegrator):
 
     def __init__(self, dt, stride, tfinal):
         # inherit all methods from parent class
