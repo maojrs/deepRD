@@ -1,6 +1,6 @@
 import numpy as np
 from .reactionModel import reactionModel
-from ..integrators import gillespie
+from ..reactionIntegrators import gillespie
 
 class geneticFeedback(reactionModel):
     

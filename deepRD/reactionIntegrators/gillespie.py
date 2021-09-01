@@ -1,7 +1,7 @@
 import numpy as np
-from .integrator import integrator
+from .reactionIntegrator import reactionIntegrator
 
-class gillespie(integrator):
+class gillespie(reactionIntegrator):
 
     def __init__(self, stride, tfinal):
         # inherit all methods from parent class

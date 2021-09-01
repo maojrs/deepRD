@@ -1,13 +1,13 @@
 '''
-Integrators of reaction dynamics. The integrators would generally take a reactionModel
+Parent class of reaction dynamics integrators. The integrators would generally take a reactionModel
 as input (see models/reactionModel abstract class).
 '''
 
 import numpy as np
 
-class integrator:
+class reactionIntegrator:
     '''
-    Parent (abstract) class for all integrators
+    Parent (abstract) class for all reaction integrators
     '''
 
     def __init__(self, dt=0.0001, stride=1, tfinal=1000):
