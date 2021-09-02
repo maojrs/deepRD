@@ -11,11 +11,11 @@ class diffusionIntegrator:
     Parent (abstract) class for all diffusion integrators
     '''
 
-    def __init__(self, dt=0.0001, stride=1, tfinal=1000):
+    def __init__(self, dt=0.0001, stride=1, tfinal=1000, boxsize = None, boundary = 'periodic'):
         # Define default simulation parameters
-        self.setSimulationParameters(dt, stride, tfinal)
+        self.setSimulationParameters(dt, stride, tfinal, boxsize, boundary)
 
-    def setSimulationParameters(self, dt, stride, tfinal):
+    def setSimulationParameters(self, dt, stride, tfinal, boxsize, boundary):
         '''
         Function to set simulation parameters. This will be inherited
         and used by child classes
@@ -24,6 +24,10 @@ class diffusionIntegrator:
         self.stride = stride
         self.tfinal = tfinal
         self.timesteps = int(self.tfinal/self.dt)
+        self.boxsize = boxsize
+        if np.isscalar(boxsize):
+            self.boxsize = [boxsize, boxsize, boxsize]
+        self.boundary = boundary
 
     def integrateOne(self, particleList):
         '''
@@ -39,3 +43,11 @@ class diffusionIntegrator:
         '''
         raise NotImplementedError("Please Implement propagate method")
 
+    def enforceBoundary(self, particleList):
+        if self.boundary == 'periodic' and self.boxsize != None:
+            for particle in particleList:
+                for j in range(particleList.dimension):
+                    if (particle.position[j] >= self.boxsize[j]/2):
+                        particle.position[j] -= self.boxsize[j]
+                    if (particle.position[j] <= - self.boxsize[j] / 2):
+                        particle.position[j] += self.boxsize[j]

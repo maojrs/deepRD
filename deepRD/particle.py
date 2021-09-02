@@ -20,6 +20,7 @@ class particleList:
     def __init__(self, particleList):
         self.particleList = particleList
         self.numParticles = len(particleList)
+        self.dimension = particleList[0].dimension
 
     def __getitem__(self, i):
         return self.particleList[i]
