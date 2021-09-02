@@ -4,6 +4,7 @@ as input (see particle class)
 '''
 
 import numpy as np
+from ..particle import particle
 
 class diffusionIntegrator:
     '''
@@ -24,14 +25,14 @@ class diffusionIntegrator:
         self.tfinal = tfinal
         self.timesteps = int(self.tfinal/self.dt)
 
-    def integrateOne(self, reactionModel):
+    def integrateOne(self, particleList):
         '''
         'Abstract' method used to integrate one time step or iteration of the
         current algorithm
         '''
         raise NotImplementedError("Please Implement integrateOne method")
 
-    def propagate(self, reactionModel):
+    def propagate(self, particleList):
         '''
         'Abstract' method used to integrate propagate the algorithm up to
         tfinal.
