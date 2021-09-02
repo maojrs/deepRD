@@ -2,6 +2,9 @@ import numpy as np
 from .reactionIntegrator import reactionIntegrator
 
 class tauleap(reactionIntegrator):
+    '''
+    Integrator class to integrate a well-mixed reaction model using the tau-leap algorithm
+    '''
 
     def __init__(self, dt, stride, tfinal):
         # inherit all methods from parent class
