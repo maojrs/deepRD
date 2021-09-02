@@ -5,7 +5,8 @@ class overdampedLangevin(diffusionIntegrator):
 
     def __init__(self, dt, stride, tfinal, boxsize = None, boundary = 'periodic'):
         # inherit all methods from parent class
-        super().__init__(dt, stride, tfinal, boxsize, boundary)
+        kBT = 1
+        super().__init__(dt, stride, tfinal, kBT, boxsize, boundary)
 
 
     def integrateOne(self, particleList):
