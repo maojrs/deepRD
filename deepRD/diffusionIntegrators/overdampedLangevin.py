@@ -2,6 +2,9 @@ import numpy as np
 from .diffusionIntegrator import diffusionIntegrator
 
 class overdampedLangevin(diffusionIntegrator):
+    '''
+    Integrator class to integrate the diffusive dynamics of a standard Brownian particle (overdamped Lanegvin regime)
+    '''
 
     def __init__(self, dt, stride, tfinal, boxsize = None, boundary = 'periodic'):
         # inherit all methods from parent class

@@ -2,6 +2,9 @@ import numpy as np
 from .reactionIntegrator import reactionIntegrator
 
 class gillespie(reactionIntegrator):
+    '''
+    Integrator class to integrate a well-mixed reaction model using the gillespie or SSA algorithm
+    '''
 
     def __init__(self, stride, tfinal):
         # inherit all methods from parent class

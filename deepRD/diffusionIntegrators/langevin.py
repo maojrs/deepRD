@@ -2,6 +2,9 @@ import numpy as np
 from .diffusionIntegrator import diffusionIntegrator
 
 class langevin(diffusionIntegrator):
+    '''
+    Integrator class to integrate the diffusive dynamics of a Brownian particle (full Langevin dynamics)
+    '''
 
     def __init__(self, dt, stride, tfinal, kBT=1, boxsize = None, boundary = 'periodic'):
         # inherit all methods from parent class
