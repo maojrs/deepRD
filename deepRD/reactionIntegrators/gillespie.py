@@ -49,6 +49,7 @@ class gillespie(reactionIntegrator):
             if (t - time_for_percentage >= percentage_resolution):
                 time_for_percentage = 1 * t
                 print("Percentage complete ", round(100 * t / self.tfinal, 1), "%           ", end="\r")
+        print("Percentage complete 100%       ", end="\r")
         return times, Xtraj
 
 

@@ -40,4 +40,5 @@ class tauleap(reactionIntegrator):
             if (times[i] - time_for_percentage >= percentage_resolution):
                 time_for_percentage = 1 * times[i]
                 print("Percentage complete ", round(100 * times[i] / self.tfinal, 1), "%           ", end="\r")
+        print("Percentage complete 100%       ", end="\r")
         return times, Xtraj
