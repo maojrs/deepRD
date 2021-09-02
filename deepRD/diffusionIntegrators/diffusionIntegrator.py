@@ -11,11 +11,11 @@ class diffusionIntegrator:
     Parent (abstract) class for all diffusion integrators
     '''
 
-    def __init__(self, dt=0.0001, stride=1, tfinal=1000, boxsize = None, boundary = 'periodic'):
+    def __init__(self, dt=0.0001, stride=1, tfinal=1000, kBT = 1, boxsize = None, boundary = 'periodic'):
         # Define default simulation parameters
-        self.setSimulationParameters(dt, stride, tfinal, boxsize, boundary)
+        self.setSimulationParameters(dt, stride, tfinal, kBT, boxsize, boundary)
 
-    def setSimulationParameters(self, dt, stride, tfinal, boxsize, boundary):
+    def setSimulationParameters(self, dt, stride, tfinal, kBT, boxsize, boundary):
         '''
         Function to set simulation parameters. This will be inherited
         and used by child classes
@@ -23,6 +23,7 @@ class diffusionIntegrator:
         self.dt = dt
         self.stride = stride
         self.tfinal = tfinal
+        self.kBT = kBT
         self.timesteps = int(self.tfinal/self.dt)
         self.boxsize = boxsize
         if np.isscalar(boxsize):
