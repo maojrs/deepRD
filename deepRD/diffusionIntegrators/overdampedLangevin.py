@@ -3,9 +3,9 @@ from .diffusionIntegrator import diffusionIntegrator
 
 class overdampedLangevin(diffusionIntegrator):
 
-    def __init__(self, dt, stride, tfinal):
+    def __init__(self, dt, stride, tfinal, boxsize = None, boundary = 'periodic'):
         # inherit all methods from parent class
-        super().__init__(dt, stride, tfinal)
+        super().__init__(dt, stride, tfinal, boxsize, boundary)
 
 
     def integrateOne(self, particleList):
@@ -26,6 +26,8 @@ class overdampedLangevin(diffusionIntegrator):
             # Update variables
             Xtraj.append(nextPositions)
             particleList.positions = nextPositions
+            # Enforce boundary conditions
+            self.enforceBoundary(particleList)
             times[i + 1] = times[i] + self.dt
             # Print integration percentage
             if (times[i] - time_for_percentage >= percentage_resolution):
