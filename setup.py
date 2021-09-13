@@ -7,10 +7,12 @@ setup(name='deepRD',
       author_email='maojrs@gmail.com',
       url='',
       packages=[
-      'deepRD', 
-      'deepRD.reactionModels', 
+      'deepRD',
+      'deepRD.diffusionIntegrators',
+      'deepRD.noiseSampler',
       'deepRD.reactionIntegrators',
-      'deepRD.diffusionIntegrators'],
+      'deepRD.reactionModels'
+      ],
       test_suite='nose.collector',
       tests_require=['nose']
       )
