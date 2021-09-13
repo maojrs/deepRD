@@ -1,4 +1,6 @@
 import numpy as np
+import random
+from scipy import spatial
 from itertools import product
 
 '''
@@ -19,6 +21,9 @@ class binnedData:
         self.dimension = dimension
         self.posIndex = 1  # Position of x coordinate in trajectory files
         self.rIndex = 5  # Position of x coordinate of r in trajectory files
+        self.neighborsDictionary = {}
+        self.dataTree = None # dataTree structure to find nearest neighbors
+        self.occupiedTuplesArray = None # array of tuples corresponding to occupied bins
 
         if isinstance(boxsize, (list, tuple, np.ndarray)):
             if len(boxsize) != dimension:
@@ -42,28 +47,62 @@ class binnedData:
         self.data = {}
 
     def getBinIndex(self, conditionedVars):
+        '''
+        If conditioned variables are out of domain of bins, it
+        will return the closest possible bin
+        '''
         indexes = [None]*self.dimension
-        try:
-            for i in range(self.dimension):
-                indexes[i] = np.max(np.where(self.bins[i] < conditionedVars[i]))
-        except:
-            print(conditionedVars)
-            #raise Exception('Boxsize inadequate for data. Data range exceeds box size')
-            for i in range(self.dimension):
-                indexes[i] = -1
+        for i in range(self.dimension):
+            try:
+                indexes[i] = np.max(np.where(self.bins[i] <= conditionedVars[i]))
+            except:
+                indexes[i] = 0
         return tuple(indexes)
 
     def createEmptyDictionary(self):
         '''
-        Create dictionary with all possible keys but empty values
+        Creates dictionary with all possible keys but empty values. Useful for
+        possible applications. Note it also creates the trash index
+        tuple [-1]*self.dimension
         '''
+        emptyDict = {}
         iterable = (range(n) for n in self.numbins)
         for ijk in product(*iterable):  # ijk is a tuple
-            self.data[ijk] = []
+            emptyDict[ijk] = []
         trash = tuple([-1]*self.dimension)
-        self.data[trash] = []
+        emptyDict[trash] = []
+        return emptyDict
 
+    def updateDataStructures(self):
+        '''
+        Needs to be called after loading data so nearest neighbor
+        searches and other functions work.
+        '''
+        self.occupiedTuplesArray = []
+        for key in self.data:
+            self.occupiedTuplesArray.append(np.array(key))
+        self.dataTree = spatial.cKDTree(self.occupiedTuplesArray)
 
+    def nearestOccupiedNeighbour(self, referenceTupleIndex):
+        '''
+        Given the tuple index of a bin, finds nearest non-empty neighbor in bin space
+        and return it as a tuple. It returns itself if occupied.
+        '''
+        referencePoint = np.array(referenceTupleIndex)
+        nearestNeighborIndex = self.dataTree.query(referencePoint)[1]
+        nearestPoint = self.occupiedTuplesArray[nearestNeighborIndex]
+        return tuple(nearestPoint)
+
+    def sample(self, conditionedVars):
+        '''
+        Given conditioned variables, calculates the coprresponding bin ,
+        finds the closest non-empty bin (including itself) and samples one
+        value randomly from all those available in that bin.
+        '''
+        binIndex = self.getBinIndex(conditionedVars)
+        occupiedBinIndex = self.nearestOccupiedNeighbour(binIndex)
+        availableData = self.data[occupiedBinIndex]
+        return random.choice(availableData)
 
 
 class binnedData_qi(binnedData):
@@ -82,15 +121,21 @@ class binnedData_qi(binnedData):
         '''
         Loads data into binning class
         '''
-        self.createEmptyDictionary()
+        #self.createEmptyDictionary()
         # Loop over all data and load into dictionary
         for k, traj in enumerate(trajs):
             for i in range(len(traj) - timestepMultiplier):
                 qi = traj[i][self.posIndex:self.posIndex + 3]
                 riplus = traj[i + timestepMultiplier][self.rIndex:]
                 ijk = self.getBinIndex(qi)
-                self.data[ijk].append(riplus)
+                try:
+                    self.data[ijk].append(riplus)
+                except KeyError:
+                    self.data[ijk] = [riplus]
             print("File ", k + 1, " of ", len(trajs), " done.", end="\r")
+        self.updateDataStructures()
+
+
 
 
 class binnedData_ri(binnedData):
@@ -136,7 +181,12 @@ class binnedData_ri(binnedData):
                 ri = traj[i][self.rIndex:]  #
                 riplus = traj[i + timestepMultiplier][self.rIndex:]
                 ijk = self.getBinIndex(ri)
-                self.data[ijk].append(riplus)
+                try:
+                    self.data[ijk].append(riplus)
+                except KeyError:
+                    self.data[ijk] = [riplus]
             print("File ", k + 1, " of ", len(trajs), " done.", end="\r")
+        self.updateDataStructures()
+
 
 
