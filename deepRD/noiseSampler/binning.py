@@ -123,6 +123,7 @@ class binnedData_qi(binnedData):
         '''
         #self.createEmptyDictionary()
         # Loop over all data and load into dictionary
+        print("Binning data ...")
         for k, traj in enumerate(trajs):
             for i in range(len(traj) - timestepMultiplier):
                 qi = traj[i][self.posIndex:self.posIndex + 3]
@@ -175,6 +176,7 @@ class binnedData_ri(binnedData):
         '''
         self.adjustBoxLimits(trajs)
         self.createEmptyDictionary()
+        print("Binning data ...")
         # Loop over all data and load into dictionary
         for k, traj in enumerate(trajs):
             for i in range(len(traj) - timestepMultiplier):

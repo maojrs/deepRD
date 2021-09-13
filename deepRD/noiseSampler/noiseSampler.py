@@ -6,8 +6,8 @@ class noiseSampler:
     conditionedVariables as input. This is a list with all the relevant variable for
     a given implementation
     '''
-    def __init__(self, dimension = 3):
-        self.dimension = dimension
+    def __init__(self, sampleDimension = 3):
+        self.sampleDimension = sampleDimension
 
     def sample(self, conditionedVariables):
-        return np.random.normal(0., 1, self.dimension)
+        return np.random.normal(0., 1, self.sampleDimension)

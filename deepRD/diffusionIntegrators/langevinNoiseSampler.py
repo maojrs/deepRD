@@ -1,7 +1,7 @@
 import numpy as np
 from .langevin import langevin
 
-class langevinAux(langevin):
+class langevinNoiseSampler(langevin):
     '''
     Integrator class to integrate the diffusive dynamics of a Brownian particle following the Langevin equation,
     where the noise term and interaction terms in the velocity equation are sampled from an alternate data-based
