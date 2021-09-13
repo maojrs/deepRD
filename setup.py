@@ -11,7 +11,8 @@ setup(name='deepRD',
       'deepRD.diffusionIntegrators',
       'deepRD.noiseSampler',
       'deepRD.reactionIntegrators',
-      'deepRD.reactionModels'
+      'deepRD.reactionModels',
+      'deepRD.tools'
       ],
       test_suite='nose.collector',
       tests_require=['nose']
