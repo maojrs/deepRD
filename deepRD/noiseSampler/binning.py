@@ -24,6 +24,7 @@ class binnedData:
         self.neighborsDictionary = {}
         self.dataTree = None # dataTree structure to find nearest neighbors
         self.occupiedTuplesArray = None # array of tuples corresponding to occupied bins
+        self.parameterDictionary = {}
 
         if isinstance(boxsize, (list, tuple, np.ndarray)):
             if len(boxsize) != dimension:
