@@ -15,31 +15,24 @@ class langevinNoiseSampler(langevin):
         self.noiseSampler = noiseSampler
         self.prevNoiseTerm = np.zeros(3)
 
-    def getConditionedVars(self, currentPosition, currentVelocity, particle):
-        return [currentPosition]
+    def getConditionedVars(self, particle):
+        return [particle.nextPosition]
 
     def integrateOne(self, particleList):
-        nextPositions = [None] * len(particleList)
-        nextVelocities = [None] * len(particleList)
-        for i, particle in enumerate(particleList):
-            position = particle.position
-            velocity = particle.velocity
             # Integrate BAOAB
-            position, velocity = self.integrateB(position, velocity, particle.mass)
-            position, velocity = self.integrateA(position, velocity)
-            conditionedVars = self.getConditionedVars(position, velocity, particle)
-            position, velocity = self.integrateO(position, velocity, particle.D, particle.mass, particle.dimension, conditionedVars)
-            position, velocity = self.integrateA(position, velocity)
-            position, velocity = self.integrateB(position, velocity, particle.mass)
-            nextPositions[i] = position
-            nextVelocities[i] = velocity
-        return nextPositions, nextVelocities
+            self.integrateB(particleList)
+            self.integrateA(particleList)
+            self.integrateO(particleList)
+            self.integrateA(particleList)
+            self.integrateB(particleList)
+            particleList.updatePositionsVelocities()
 
-    def integrateO(self, position, velocity, D, mass, dimension, conditionedVars):
+    def integrateO(self, particleList):
         '''Integrates velocity full time step given friction and noise term'''
-        eta = self.kBT / D # friction coefficient
-        xi = np.sqrt(self.kBT * (1 - np.exp(-2 * eta * self.dt)))
-        noiseTerm = self.noiseSampler.sample(conditionedVars)
-        self.prevNoiseTerm = noiseTerm
-        velocity = (np.exp(-self.dt * eta) / mass) * velocity + noiseTerm/mass
-        return position, velocity
+        for particle in particleList:
+            conditionedVars = self.getConditionedVars(particle)
+            eta = self.kBT / particle.D # friction coefficient
+            noiseTerm = self.noiseSampler.sample(conditionedVars)
+            self.prevNoiseTerm = noiseTerm
+            frictionTerm = (np.exp(-self.dt * eta) / particle.mass) * particle.nextVelocity
+            particle.nextVelocity = frictionTerm + noiseTerm/particle.mass

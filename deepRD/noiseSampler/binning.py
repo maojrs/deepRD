@@ -96,7 +96,7 @@ class binnedData:
 
     def sample(self, conditionedVars):
         '''
-        Given conditioned variables, calculates the coprresponding bin ,
+        Given conditioned variables, calculates the corresponding bin ,
         finds the closest non-empty bin (including itself) and samples one
         value randomly from all those available in that bin.
         '''
@@ -118,7 +118,7 @@ class binnedData_qi(binnedData):
         super().__init__(boxsize, numbins, dimension)
 
 
-    def loadData(self, trajs, timestepMultiplier = 1):
+    def loadData(self, trajs, lagtimesteps = 1):
         '''
         Loads data into binning class
         '''
@@ -126,9 +126,9 @@ class binnedData_qi(binnedData):
         # Loop over all data and load into dictionary
         print("Binning data ...")
         for k, traj in enumerate(trajs):
-            for i in range(len(traj) - timestepMultiplier):
+            for i in range(len(traj) - lagtimesteps):
                 qi = traj[i][self.posIndex:self.posIndex + 3]
-                riplus = traj[i + timestepMultiplier][self.rIndex:]
+                riplus = traj[i + lagtimesteps][self.rIndex:]
                 ijk = self.getBinIndex(qi)
                 try:
                     self.data[ijk].append(riplus)
@@ -171,7 +171,7 @@ class binnedData_ri(binnedData):
             self.bins[i] = np.arange(rmin[i], rmax[i], rvoxeledge[i])
 
 
-    def loadData(self, trajs, timestepMultiplier = 1):
+    def loadData(self, trajs, lagtimesteps = 1):
         '''
         Loads data into binning class
         '''
@@ -180,9 +180,9 @@ class binnedData_ri(binnedData):
         print("Binning data ...")
         # Loop over all data and load into dictionary
         for k, traj in enumerate(trajs):
-            for i in range(len(traj) - timestepMultiplier):
+            for i in range(len(traj) - lagtimesteps):
                 ri = traj[i][self.rIndex:]  #
-                riplus = traj[i + timestepMultiplier][self.rIndex:]
+                riplus = traj[i + lagtimesteps][self.rIndex:]
                 ijk = self.getBinIndex(ri)
                 try:
                     self.data[ijk].append(riplus)
