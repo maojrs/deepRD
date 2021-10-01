@@ -12,6 +12,8 @@ class particle:
         self.mass = mass
         self.state = state
         self.dimension = len(position)
+        self.nextPosition = np.array(position)
+        self.nextVelocity = np.array(velocity)
 
 
 class particleList:
@@ -52,3 +54,8 @@ class particleList:
     def velocities(self, newVelocities):
         for i, particle in enumerate(self.particleList):
             particle.velocity = newVelocities[i]
+
+    def updatePositionsVelocities(self):
+        for particle in self.particleList:
+            particle.position = 1.0 * particle.nextPosition
+            particle.velocity = 1.0 * particle.nextVelocity

@@ -11,20 +11,14 @@ class langevin(diffusionIntegrator):
         super().__init__(dt, stride, tfinal, kBT, boxsize, boundary)
 
     def integrateOne(self, particleList):
-        nextPositions = [None] * len(particleList)
-        nextVelocities = [None] * len(particleList)
-        for i, particle in enumerate(particleList):
-            position = particle.position
-            velocity = particle.velocity
-            # Integrate BAOAB
-            position, velocity = self.integrateB(position, velocity, particle.mass)
-            position, velocity = self.integrateA(position, velocity)
-            position, velocity = self.integrateO(position, velocity, particle.D, particle.mass, particle.dimension)
-            position, velocity = self.integrateA(position, velocity)
-            position, velocity = self.integrateB(position, velocity, particle.mass)
-            nextPositions[i] = position
-            nextVelocities[i] = velocity
-        return nextPositions, nextVelocities
+        ''' Integrates one time step '''
+        # Integrate BAOAB
+        self.integrateB(particleList)
+        self.integrateA(particleList)
+        self.integrateO(particleList)
+        self.integrateA(particleList)
+        self.integrateB(particleList)
+        particleList.updatePositionsVelocities()
 
     def propagate(self, particleList):
         percentage_resolution = self.tfinal / 100.0
@@ -34,12 +28,10 @@ class langevin(diffusionIntegrator):
         Vtraj = [particleList.velocities]
         times = np.zeros(self.timesteps + 1)
         for i in range(self.timesteps):
-            nextPositions, nextVelocities = self.integrateOne(particleList)
+            self.integrateOne(particleList)
             # Update variables
-            Xtraj.append(nextPositions)
-            Vtraj.append(nextVelocities)
-            particleList.positions = nextPositions
-            particleList.positions = nextVelocities
+            Xtraj.append(particleList.positions)
+            Vtraj.append(particleList.velocities)
             # Enforce boundary conditions
             self.enforceBoundary(particleList)
             times[i + 1] = times[i] + self.dt
@@ -50,23 +42,28 @@ class langevin(diffusionIntegrator):
         print("Percentage complete 100%       ", end="\r")
         return times, np.array(Xtraj), np.array(Vtraj)
 
-    def integrateA(self, position, velocity):
+    def integrateA(self, particleList):
         '''Integrates position half a time step given velocity term'''
-        position = position + self.dt/2 * velocity
-        return position, velocity
+        for particle in particleList:
+            particle.nextPosition = particle.nextPosition + self.dt/2 * particle.nextVelocity
 
-    def integrateB(self, position, velocity, mass):
+    def integrateB(self, particleList):
         '''Integrates velocity half a time step given potential or force term. Note this does
-        nothing in its current implementation. Left force term here for future more general
-        implementations. '''
-        force = 0.0 * velocity
-        velocity = velocity + self.dt / 2 * force / mass
-        return position, velocity
+        nothing in its current implementation.  '''
+        for i, particle in enumerate(particleList):
+            force = self.calculateForce(particleList, i)
+            particle.nextVelocity = particle.nextVelocity + (self.dt / 2) * (force / particle.mass)
 
-    def integrateO(self, position, velocity, D, mass, dimension):
+    def integrateO(self, particleList):
         '''Integrates velocity full time step given friction and noise term'''
-        eta = self.kBT / D # friction coefficient
-        xi = np.sqrt(self.kBT * (1 - np.exp(-2 * eta * self.dt)))
-        velocity = (np.exp(-self.dt * eta) / mass) * velocity + xi / mass * np.random.normal(0., 1, dimension)
-        return position, velocity
+        for particle in particleList:
+            eta = self.kBT / particle.D # friction coefficient
+            xi = np.sqrt(self.kBT * (1 - np.exp(-2 * eta * self.dt)))
+            frictionTerm = (np.exp(-self.dt * eta) / particle.mass) * particle.nextVelocity
+            particle.nextVelocity = frictionTerm + xi / particle.mass * np.random.normal(0., 1, particle.dimension)
+
+    def calculateForce(self, particleList, particleIndex):
+        ''' Default force term is zero. General force calculations can be implemented here. It should
+        output the force exterted into particle indexed by particleIndex'''
+        return 0.0 * particleList[0].velocity
 
