@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 from .diffusionIntegrator import diffusionIntegrator
 
 class langevin(diffusionIntegrator):
@@ -27,19 +28,20 @@ class langevin(diffusionIntegrator):
         Xtraj = [particleList.positions]
         Vtraj = [particleList.velocities]
         times = np.zeros(self.timesteps + 1)
+        particleList.resetNextPositionsVelocities()
         for i in range(self.timesteps):
             self.integrateOne(particleList)
+            # Enforce boundary conditions
+            self.enforceBoundary(particleList)
             # Update variables
             Xtraj.append(particleList.positions)
             Vtraj.append(particleList.velocities)
-            # Enforce boundary conditions
-            self.enforceBoundary(particleList)
             times[i + 1] = times[i] + self.dt
             # Print integration percentage
             if (times[i] - time_for_percentage >= percentage_resolution):
                 time_for_percentage = 1 * times[i]
-                print("Percentage complete ", round(100 * times[i] / self.tfinal, 1), "%           ", end="\r")
-        print("Percentage complete 100%       ", end="\r")
+                sys.stdout.write("Percentage complete " + str(round(100 * times[i] / self.tfinal, 1)) + "% " + "\r")
+        sys.stdout.write("Percentage complete 100% \r")
         return times, np.array(Xtraj), np.array(Vtraj)
 
     def integrateA(self, particleList):

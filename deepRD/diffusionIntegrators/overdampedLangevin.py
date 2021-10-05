@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 from .diffusionIntegrator import diffusionIntegrator
 
 class overdampedLangevin(diffusionIntegrator):
@@ -36,6 +37,6 @@ class overdampedLangevin(diffusionIntegrator):
             # Print integration percentage
             if (times[i] - time_for_percentage >= percentage_resolution):
                 time_for_percentage = 1 * times[i]
-                print("Percentage complete ", round(100 * times[i] / self.tfinal, 1), "%           ", end="\r")
-        print("Percentage complete 100%       ", end="\r")
+                sys.stdout.write("Percentage complete " + str(round(100 * times[i] / self.tfinal, 1)) + "% " + "\r")
+        sys.stdout.write("Percentage complete 100% \r")
         return times, np.array(Xtraj)

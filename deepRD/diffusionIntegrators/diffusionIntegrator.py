@@ -4,6 +4,7 @@ as input (see particle class)
 '''
 
 import numpy as np
+import sys
 from ..particle import particle
 
 class diffusionIntegrator:

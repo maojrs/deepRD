@@ -59,3 +59,8 @@ class particleList:
         for particle in self.particleList:
             particle.position = 1.0 * particle.nextPosition
             particle.velocity = 1.0 * particle.nextVelocity
+
+    def resetNextPositionsVelocities(self):
+        for particle in self.particleList:
+            particle.nextPosition = 1.0 * particle.position
+            particle.nextVelocity = 1.0 * particle.velocity

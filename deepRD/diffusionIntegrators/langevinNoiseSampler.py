@@ -16,16 +16,8 @@ class langevinNoiseSampler(langevin):
         self.prevNoiseTerm = np.zeros(3)
 
     def getConditionedVars(self, particle):
-        return [particle.nextPosition]
-
-    def integrateOne(self, particleList):
-            # Integrate BAOAB
-            self.integrateB(particleList)
-            self.integrateA(particleList)
-            self.integrateO(particleList)
-            self.integrateA(particleList)
-            self.integrateB(particleList)
-            particleList.updatePositionsVelocities()
+        return (particle.nextPosition)
+        #return np.concatenate((particle.nextPosition, particle.nextVelocity))
 
     def integrateO(self, particleList):
         '''Integrates velocity full time step given friction and noise term'''
@@ -33,6 +25,6 @@ class langevinNoiseSampler(langevin):
             conditionedVars = self.getConditionedVars(particle)
             eta = self.kBT / particle.D # friction coefficient
             noiseTerm = self.noiseSampler.sample(conditionedVars)
-            self.prevNoiseTerm = noiseTerm
-            frictionTerm = (np.exp(-self.dt * eta) / particle.mass) * particle.nextVelocity
-            particle.nextVelocity = frictionTerm + noiseTerm/particle.mass
+            self.prevNoiseTerm = 1.0 * noiseTerm
+            frictionTerm = np.exp(-self.dt * eta/ particle.mass) * particle.nextVelocity
+            particle.nextVelocity = frictionTerm + noiseTerm/(particle.mass)

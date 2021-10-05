@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import sys
 from scipy import spatial
 from itertools import product
 
@@ -17,7 +18,7 @@ class binnedData:
     would have dimension 6, 3 for qi and 3 for ri.
     '''
 
-    def __init__(self, boxsize, numbins = 100, dimension = 3):
+    def __init__(self, boxsize, numbins = 100, lagTimesteps = 1, dimension = 3):
         self.dimension = dimension
         self.posIndex = 1  # Position of x coordinate in trajectory files
         self.rIndex = 5  # Position of x coordinate of r in trajectory files
@@ -25,6 +26,10 @@ class binnedData:
         self.dataTree = None # dataTree structure to find nearest neighbors
         self.occupiedTuplesArray = None # array of tuples corresponding to occupied bins
         self.parameterDictionary = {}
+
+        if not isinstance(lagTimesteps, (int)):
+            raise Exception('lagTimesteps should be an integer.')
+        self.lagTimesteps = lagTimesteps # number of data timesteps to look back into data (integer)
 
         if isinstance(boxsize, (list, tuple, np.ndarray)):
             if len(boxsize) != dimension:
@@ -113,12 +118,12 @@ class binnedData_qi(binnedData):
     using ri+1|qi
     '''
 
-    def __init__(self, boxsize, numbins=100):
+    def __init__(self, boxsize, numbins=100, lagTimesteps = 1,):
         dimension = 3
-        super().__init__(boxsize, numbins, dimension)
+        super().__init__(boxsize, numbins, lagTimesteps, dimension)
 
 
-    def loadData(self, trajs, lagtimesteps = 1):
+    def loadData(self, trajs):
         '''
         Loads data into binning class
         '''
@@ -126,15 +131,15 @@ class binnedData_qi(binnedData):
         # Loop over all data and load into dictionary
         print("Binning data ...")
         for k, traj in enumerate(trajs):
-            for i in range(len(traj) - lagtimesteps):
+            for i in range(len(traj) - self.lagTimesteps):
                 qi = traj[i][self.posIndex:self.posIndex + 3]
-                riplus = traj[i + lagtimesteps][self.rIndex:]
+                riplus = traj[i + self.lagTimesteps][self.rIndex:]
                 ijk = self.getBinIndex(qi)
                 try:
                     self.data[ijk].append(riplus)
                 except KeyError:
                     self.data[ijk] = [riplus]
-            print("File ", k + 1, " of ", len(trajs), " done.", end="\r")
+            sys.stdout.write("File " + str(k + 1) + " of " + str(len(trajs)) + " done." + "\r")
         self.updateDataStructures()
 
 
@@ -146,9 +151,9 @@ class binnedData_ri(binnedData):
     simulate the stochastic closure model of Mori-Zwanzig dynamics using ri+1|ri.
     Uses as base the binnedData_qi class
     '''
-    def __init__(self, numbins=100):
+    def __init__(self, numbins=100, lagTimesteps = 1,):
         dimension = 3
-        super().__init__(1, numbins, dimension)
+        super().__init__(1, numbins, lagTimesteps, dimension)
 
     def adjustBoxLimits(self,trajs):
         '''
@@ -171,7 +176,7 @@ class binnedData_ri(binnedData):
             self.bins[i] = np.arange(rmin[i], rmax[i], rvoxeledge[i])
 
 
-    def loadData(self, trajs, lagtimesteps = 1):
+    def loadData(self, trajs):
         '''
         Loads data into binning class
         '''
@@ -180,15 +185,16 @@ class binnedData_ri(binnedData):
         print("Binning data ...")
         # Loop over all data and load into dictionary
         for k, traj in enumerate(trajs):
-            for i in range(len(traj) - lagtimesteps):
+            for i in range(len(traj) - self.lagTimesteps):
                 ri = traj[i][self.rIndex:]  #
-                riplus = traj[i + lagtimesteps][self.rIndex:]
+                riplus = traj[i + self.lagTimesteps][self.rIndex:]
                 ijk = self.getBinIndex(ri)
                 try:
                     self.data[ijk].append(riplus)
                 except KeyError:
                     self.data[ijk] = [riplus]
-            print("File ", k + 1, " of ", len(trajs), " done.", end="\r")
+            sys.stdout.write("File " + str(k + 1) + " of " + str(len(trajs)) + " done." + "\r")
+
         self.updateDataStructures()
 
 
