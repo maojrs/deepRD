@@ -61,7 +61,7 @@ class langevin(diffusionIntegrator):
         for particle in particleList:
             eta = self.kBT / particle.D # friction coefficient
             xi = np.sqrt(self.kBT * (1 - np.exp(-2 * eta * self.dt)))
-            frictionTerm = (np.exp(-self.dt * eta) / particle.mass) * particle.nextVelocity
+            frictionTerm = np.exp(-self.dt * eta/particle.mass) * particle.nextVelocity
             particle.nextVelocity = frictionTerm + xi / particle.mass * np.random.normal(0., 1, particle.dimension)
 
     def calculateForce(self, particleList, particleIndex):
