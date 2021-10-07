@@ -79,8 +79,3 @@ class langevin(diffusionIntegrator):
         for particle in particleList:
             particle.nextPosition = particle.nextPosition + self.dt * particle.nextVelocity
 
-    def calculateForce(self, particleList, particleIndex):
-        ''' Default force term is zero. General force calculations can be implemented here. It should
-        output the force exterted into particle indexed by particleIndex'''
-        return 0.0 * particleList[0].velocity
-
