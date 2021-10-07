@@ -15,6 +15,8 @@ class diffusionIntegrator:
     def __init__(self, dt=0.0001, stride=1, tfinal=1000, kBT = 1, boxsize = None, boundary = 'periodic'):
         # Define default simulation parameters
         self.setSimulationParameters(dt, stride, tfinal, kBT, boxsize, boundary)
+        self.externalPotential = None
+        self.pairPotential = None
 
     def setSimulationParameters(self, dt, stride, tfinal, kBT, boxsize, boundary):
         '''
@@ -53,3 +55,23 @@ class diffusionIntegrator:
                         particle.position[j] -= self.boxsize[j]
                     if (particle.position[j] <= - self.boxsize[j] / 2):
                         particle.position[j] += self.boxsize[j]
+
+
+    def calculateForce(self, particleList, particleIndex):
+        ''' Default force term is zero. General force calculations can be implemented here. It should
+        output the force exterted into particle indexed by particleIndex'''
+        force = 0.0 * particleList[particleIndex].velocity
+        if self.externalPotential != None:
+            force += self.externalPotential.calculateForce(particleList[particleIndex])
+        if self.pairPotential != None:
+            ''' Could be implemented more efficiently, at the moment calculating twice every interaction'''
+            for i, part in enumerate(particleList):
+                if i != particleIndex:
+                    force += self.pairPotential.calculateForce(particleList[particleIndex])
+        return force
+
+    def setExternalPotential(self, externalPot):
+        self.externalPotential = externalPot
+
+    def setPairPotential(self, pairPot):
+        self.pairPotential = pairPot
