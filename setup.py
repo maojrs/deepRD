@@ -10,6 +10,7 @@ setup(name='deepRD',
       'deepRD',
       'deepRD.diffusionIntegrators',
       'deepRD.noiseSampler',
+      'deepRD.potentials',
       'deepRD.reactionIntegrators',
       'deepRD.reactionModels',
       'deepRD.tools'
