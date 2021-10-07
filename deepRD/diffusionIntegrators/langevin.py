@@ -56,8 +56,9 @@ class langevin(diffusionIntegrator):
     def integrateB(self, particleList):
         '''Integrates velocity half a time step given potential or force term. Note this does
         nothing in its current implementation.  '''
+        forceField = self.calculateForceField(particleList)
         for i, particle in enumerate(particleList):
-            force = self.calculateForce(particleList, i)
+            force = forceField[i]
             particle.nextVelocity = particle.nextVelocity + (self.dt / 2) * (force / particle.mass)
 
     def integrateO(self, particleList):
@@ -69,8 +70,9 @@ class langevin(diffusionIntegrator):
             particle.nextVelocity = frictionTerm + xi / particle.mass * np.random.normal(0., 1, particle.dimension)
 
     def integrateOneSymplecticEuler(self, particleList):
+        forceField = self.calculateForceField(particleList)
         for i, particle in enumerate(particleList):
-            force = self.calculateForce(particleList, i)
+            force = forceField[i]
             eta = self.kBT / particle.D  # friction coefficient
             xi = np.sqrt(2 * self.kBT * eta * self.dt )
             frictionTerm = -(self.dt * eta / particle.mass) * particle.nextVelocity
