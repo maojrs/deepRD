@@ -15,9 +15,11 @@ class overdampedLangevin(diffusionIntegrator):
 
     def integrateOne(self, particleList):
         nextPositions = [None] * len(particleList)
+        forceField = self.calculateForceField(particleList)
         for i, particle in enumerate(particleList):
             sigma = np.sqrt(2 * self.dt * particle.D)
-            nextPositions[i] = particle.position + sigma * np.random.normal(0., 1, particle.dimension)
+            force = forceField[i]
+            nextPositions[i] = particle.position + force * self.dt * particle.D / self.KbT + sigma * np.random.normal(0., 1, particle.dimension)
         return nextPositions
 
     def propagate(self, particleList):

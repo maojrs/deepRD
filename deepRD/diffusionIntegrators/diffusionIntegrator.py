@@ -57,18 +57,22 @@ class diffusionIntegrator:
                         particle.position[j] += self.boxsize[j]
 
 
-    def calculateForce(self, particleList, particleIndex):
+    def calculateForceField(self, particleList):
         ''' Default force term is zero. General force calculations can be implemented here. It should
         output the force exterted into particle indexed by particleIndex'''
-        force = 0.0 * particleList[particleIndex].velocity
+        dim = len(particleList[0].velocity)
+        forceField = [np.zeros(dim)]*len(particleList)
         if self.externalPotential != None:
-            force += self.externalPotential.calculateForce(particleList[particleIndex])
+            for i, particle in enumerate(particleList):
+                forceField[i] += self.externalPotential.calculateForce(particle)
         if self.pairPotential != None:
             ''' Could be implemented more efficiently, at the moment calculating twice every interaction'''
-            for i, part in enumerate(particleList):
-                if i != particleIndex:
-                    force += self.pairPotential.calculateForce(particleList[particleIndex])
-        return force
+            for ij in list(itertools.combinations(range(len(particleList)), 2)):
+                i= ij[0]
+                j = ij[1]
+                forceField[i] += self.pairPotential.calculateForce(particleList[i], particleList[j])
+                forceField[j] -= 1.0 * forceField[i]
+        return forceField
 
     def setExternalPotential(self, externalPot):
         self.externalPotential = externalPot
