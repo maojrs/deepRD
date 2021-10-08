@@ -20,10 +20,24 @@ class langevin(diffusionIntegrator):
             self.integrateA(particleList)
             self.integrateO(particleList)
             self.integrateA(particleList)
+            self.enforceBoundary(particleList)
+            particleList.updatePositions()
             self.integrateB(particleList)
+            particleList.updateVelocities()
+        elif self.integratorType == "ABOBA":
+            self.integrateA(particleList)
+            particleList.updatePositions()
+            self.integrateB(particleList)
+            self.integrateO(particleList)
+            self.integrateB(particleList)
+            self.integrateA(particleList)
+            self.enforceBoundary(particleList)
+            particleList.updatePositions()
+            particleList.updateVelocities()
         elif self.integratorType == "symplecticEuler":
             self.integrateOneSymplecticEuler(particleList)
-        particleList.updatePositionsVelocities()
+            self.enforceBoundary(particleList)
+            particleList.updatePositionsVelocities()
 
     def propagate(self, particleList):
         percentage_resolution = self.tfinal / 100.0
@@ -35,8 +49,6 @@ class langevin(diffusionIntegrator):
         particleList.resetNextPositionsVelocities()
         for i in range(self.timesteps):
             self.integrateOne(particleList)
-            # Enforce boundary conditions
-            self.enforceBoundary(particleList)
             # Update variables
             Xtraj.append(particleList.positions)
             Vtraj.append(particleList.velocities)

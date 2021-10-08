@@ -5,6 +5,7 @@ as input (see particle class)
 
 import numpy as np
 import sys
+import itertools
 from ..particle import particle
 
 class diffusionIntegrator:

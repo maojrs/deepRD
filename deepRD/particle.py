@@ -55,6 +55,14 @@ class particleList:
         for i, particle in enumerate(self.particleList):
             particle.velocity = newVelocities[i]
 
+    def updatePositions(self):
+        for particle in self.particleList:
+            particle.position = 1.0 * particle.nextPosition
+
+    def updateVelocities(self):
+        for particle in self.particleList:
+            particle.velocity = 1.0 * particle.nextVelocity
+
     def updatePositionsVelocities(self):
         for particle in self.particleList:
             particle.position = 1.0 * particle.nextPosition
