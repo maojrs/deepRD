@@ -32,8 +32,7 @@ class langevin(diffusionIntegrator):
             self.integrateB(particleList)
             self.integrateA(particleList)
             self.enforceBoundary(particleList)
-            particleList.updatePositions()
-            particleList.updateVelocities()
+            particleList.updatePositionsVelocities()
         elif self.integratorType == "symplecticEuler":
             self.integrateOneSymplecticEuler(particleList)
             self.enforceBoundary(particleList)

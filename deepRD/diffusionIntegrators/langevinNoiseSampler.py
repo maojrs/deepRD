@@ -20,25 +20,49 @@ class langevinNoiseSampler(langevin):
         return (particle.nextPosition)
         #return np.concatenate((particle.nextPosition, particle.nextVelocity))
 
-    def integrateO(self, particleList):
-        '''Integrates velocity full time step given friction and noise term'''
-        for particle in particleList:
-            conditionedVars = self.getConditionedVars(particle)
-            eta = self.kBT / particle.D # friction coefficient
-            noiseTerm = self.noiseSampler.sample(conditionedVars)
-            self.prevNoiseTerm = 1.0 * noiseTerm
-            frictionTerm = np.exp(-self.dt * eta/ particle.mass) * particle.nextVelocity
-            particle.nextVelocity = frictionTerm + noiseTerm/particle.mass
+    def integrateOne(self, particleList):
+        ''' Integrates one time step of ABOBA '''
+        self.integrateA(particleList)
+        particleList.updatePositions()
+        self.integrateBOB(particleList)
+        self.integrateA(particleList)
+        self.enforceBoundary(particleList)
+        particleList.updatePositionsVelocities()
 
-    def integrateOneSymplecticEuler(self, particleList):
+    def integrateBOB(self, particleList):
+        '''Integrates BOB integrations step at once. This is required to separate the noise Sampler from the
+        external potential. '''
+        externalForceField = self.calculateForceField(particleList)
         for i, particle in enumerate(particleList):
-            conditionedVars = self.getConditionedVars(particle)
-            force = self.calculateForce(particleList, i)
+            # Calculate friction term and external potential term
             eta = self.kBT / particle.D  # friction coefficient
-            frictionTerm = -(self.dt * eta / particle.mass) * particle.nextVelocity
-            noiseTerm = self.noiseSampler.sample(conditionedVars)
-            self.prevNoiseTerm = 1.0 * noiseTerm
-            particle.nextVelocity = particle.nextVelocity + self.dt * (force / particle.mass) + \
-                                    frictionTerm + noiseTerm/particle.mass
-        for particle in particleList:
-            particle.nextPosition = particle.nextPosition + self.dt * particle.nextVelocity
+            expterm = np.exp(-self.dt * eta / particle.mass)
+            frictionForceTerm = particle.nextVelocity * expterm
+            frictionForceTerm += (1 + expterm) * externalForceField[i] * self.dt/(2*particle.mass)
+            # Calculate interaction and noise term from noise sampler
+            conditionedVars = self.getConditionedVars(particle)
+            interactionNoiseTerm = self.noiseSampler.sample(conditionedVars)
+            particle.nextVelocity = frictionForceTerm + interactionNoiseTerm
+
+    # def integrateO(self, particleList):
+    #     '''Integrates velocity full time step given friction and noise term'''
+    #     for particle in particleList:
+    #         conditionedVars = self.getConditionedVars(particle)
+    #         eta = self.kBT / particle.D # friction coefficient
+    #         noiseTerm = self.noiseSampler.sample(conditionedVars)
+    #         self.prevNoiseTerm = 1.0 * noiseTerm
+    #         frictionTerm = np.exp(-self.dt * eta/ particle.mass) * particle.nextVelocity
+    #         particle.nextVelocity = frictionTerm + noiseTerm/particle.mass
+
+    # def integrateOneSymplecticEuler(self, particleList):
+    #     for i, particle in enumerate(particleList):
+    #         conditionedVars = self.getConditionedVars(particle)
+    #         force = self.calculateForce(particleList, i)
+    #         eta = self.kBT / particle.D  # friction coefficient
+    #         frictionTerm = -(self.dt * eta / particle.mass) * particle.nextVelocity
+    #         noiseTerm = self.noiseSampler.sample(conditionedVars)
+    #         self.prevNoiseTerm = 1.0 * noiseTerm
+    #         particle.nextVelocity = particle.nextVelocity + self.dt * (force / particle.mass) + \
+    #                                 frictionTerm + noiseTerm/particle.mass
+    #     for particle in particleList:
+    #         particle.nextPosition = particle.nextPosition + self.dt * particle.nextVelocity
