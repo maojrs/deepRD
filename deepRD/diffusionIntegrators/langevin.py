@@ -7,10 +7,12 @@ class langevin(diffusionIntegrator):
     Integrator class to integrate the diffusive dynamics of a Brownian particle (full Langevin dynamics)
     '''
 
-    def __init__(self, dt, stride, tfinal, kBT=1, boxsize = None, boundary = 'periodic', integratorType="BAOAB"):
+    def __init__(self, dt, stride, tfinal, kBT=1, boxsize = None, boundary = 'periodic',
+                 integratorType="BAOAB", equilibrationSteps = 0):
         # inherit all methods from parent class
         super().__init__(dt, stride, tfinal, kBT, boxsize, boundary)
         self.integratorType = integratorType
+        self.equilibrationSteps = equilibrationSteps
 
     def integrateOne(self, particleList):
         ''' Integrates one time step '''
@@ -39,25 +41,30 @@ class langevin(diffusionIntegrator):
             particleList.updatePositionsVelocities()
 
     def propagate(self, particleList):
-        percentage_resolution = self.tfinal / 100.0
-        time_for_percentage = - 1 * percentage_resolution
-        # Begins Euler-Maruyama algorithm
-        Xtraj = [particleList.positions]
-        Vtraj = [particleList.velocities]
-        times = np.zeros(self.timesteps + 1)
+        #percentage_resolution = self.tfinal / 100.0
+        #time_for_percentage = - 1 * percentage_resolution
+        # Begin equilbration
         particleList.resetNextPositionsVelocities()
+        for i in range(self.equilibrationSteps):
+            self.integrateOne(particleList)
+        # Begins integration
+        time = 0.0
+        xTraj = [particleList.positions]
+        vTraj = [particleList.velocities]
+        tTraj = [time]
         for i in range(self.timesteps):
             self.integrateOne(particleList)
             # Update variables
-            Xtraj.append(particleList.positions)
-            Vtraj.append(particleList.velocities)
-            times[i + 1] = times[i] + self.dt
-            # Print integration percentage
-            if (times[i] - time_for_percentage >= percentage_resolution):
-                time_for_percentage = 1 * times[i]
-                sys.stdout.write("Percentage complete " + str(round(100 * times[i] / self.tfinal, 1)) + "% " + "\r")
+            time = time + self.dt
+            if i % self.stride == 0 and i > 0:
+                xTraj.append(particleList.positions)
+                vTraj.append(particleList.velocities)
+                tTraj.append(time)
+            if i % 50 == 0:
+                # Print integration percentage
+                sys.stdout.write("Percentage complete " + str(round(100 * time/ self.tfinal, 1)) + "% " + "\r")
         sys.stdout.write("Percentage complete 100% \r")
-        return times, np.array(Xtraj), np.array(Vtraj)
+        return np.array(tTraj), np.array(xTraj), np.array(vTraj)
 
     def integrateA(self, particleList):
         '''Integrates position half a time step given velocity term'''
