@@ -10,20 +10,31 @@ class langevinNoiseSampler(langevin):
     '''
 
     def __init__(self, dt, stride, tfinal, noiseSampler, kBT=1, boxsize = None,
-                 boundary = 'periodic', integratorType="BAOAB"):
+                 boundary = 'periodic', equilibrationSteps = 0, conditionedOn = 'qi'):
         # inherit all methods from parent class
-        super().__init__(dt, stride, tfinal, kBT, boxsize, boundary,integratorType)
+        integratorType = "ABOBA"
+        super().__init__(dt, stride, tfinal, kBT, boxsize, boundary,integratorType, equilibrationSteps)
         self.noiseSampler = noiseSampler
         self.prevNoiseTerm = np.zeros(3)
+        self.prevprevNoiseTerm = np.zeros(3)
 
     def getConditionedVars(self, particle):
-        return (particle.nextPosition)
-        #return np.concatenate((particle.nextPosition, particle.nextVelocity))
+        if self.conditionedOn == 'qi':
+            return (particle.nextPosition)
+        elif self.conditioneOn == 'qivi':
+            return np.concatenate((particle.nextPosition, particle.nextVelocity))
+        elif self.conditionedOn == 'qiri':
+            return np.concatenate((particle.nextPosition, self.prevNoiseTerm))
+        elif self.conditionedOn == 'qiririm':
+            return np.concatenate((particle.nextPosition, self.prevNoiseTerm, self.prevprevNoiseTerm))
+
 
     def integrateOne(self, particleList):
         ''' Integrates one time step of ABOBA '''
         self.integrateA(particleList)
         particleList.updatePositions()
+        self.enforceBoundary(particleList)
+        particleList.resetNextPositionsVelocities()
         self.integrateBOB(particleList)
         self.integrateA(particleList)
         self.enforceBoundary(particleList)
@@ -42,6 +53,8 @@ class langevinNoiseSampler(langevin):
             # Calculate interaction and noise term from noise sampler
             conditionedVars = self.getConditionedVars(particle)
             interactionNoiseTerm = self.noiseSampler.sample(conditionedVars)
+            self.prevprevNoiseTerm = 1.0 * self.prevNoiseTerm
+            self.prevNoiseTerm = 1.0 * interactionNoiseTerm
             particle.nextVelocity = frictionForceTerm + interactionNoiseTerm
 
     # def integrateO(self, particleList):
