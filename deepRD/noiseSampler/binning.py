@@ -55,7 +55,7 @@ class binnedData:
     def adjustBoxLimits(self,trajs, indexes = None):
         '''
         Calculate boxlimits from trajectories for binning and adjust boxsize accordingly. It assumes
-        conditoned avriables are saved in the trajectory in the succesive order. For more complicated
+        conditoned variables are saved in the trajectory in the succesive order. For more complicated
         implementations, this fucntion needs to be overriden.
         '''
         minvec = [0]*self.dimension
@@ -150,7 +150,6 @@ class binnedData_qi(binnedData):
         dimension = 3
         super().__init__(boxsize, numbins, lagTimesteps, dimension)
 
-
     def loadData(self, trajs):
         '''
         Loads data into binning class
@@ -225,10 +224,69 @@ class binnedData_qiri(binnedData):
         for k, traj in enumerate(trajs):
             for i in range(len(traj) - self.lagTimesteps):
                 qi = traj[i][self.posIndex:self.posIndex + 3]
-                ri = traj[i][self.rIndex:]
+                ri = traj[i][self.rIndex:self.rIndex:self.rIndex + 3]
                 qiri = np.concatenate([qi,ri])
                 riplus = traj[i + self.lagTimesteps][self.rIndex:self.rIndex + 3]
                 ijk = self.getBinIndex(qiri)
+                try:
+                    self.data[ijk].append(riplus)
+                except KeyError:
+                    self.data[ijk] = [riplus]
+            sys.stdout.write("File " + str(k + 1) + " of " + str(len(trajs)) + " done." + "\r")
+        self.updateDataStructures()
+
+
+class binnedData_qiriri(binnedData):
+    '''
+    Class to bin data of positions, auxiliary variable r, and auixiliary
+    variable at a previous time (nine-dimensional).
+    Useful to simulate the stochastic closure model of Mori-Zwanzig dynamics
+    using (ri+1|qi,ri,ri-1)
+    '''
+
+    def __init__(self, boxsize, numbins=100, lagTimesteps = 1,):
+        dimension = 9
+        super().__init__(boxsize, numbins, lagTimesteps, dimension)
+
+    def adjustBoxLimits(self,trajs):
+        '''
+        Calculate boxlimits from trajectories for binning and adjust boxsize accordingly. It only
+        adjusts the r variables. It uses the same limits for ri and ri-1.
+        '''
+        minvec = [0., 0., 0.]
+        maxvec = [0., 0., 0.]
+        for traj in trajs:
+            for i in range(len(traj)):
+                condVar = traj[i][self.rIndex: self.rIndex + 3]
+                for j in range(3):
+                    minvec[j] = min(minvec[j], condVar[j])
+                    maxvec[j] = max(maxvec[j], condVar[j])
+        condVarMin = np.floor(minvec)
+        condVarMax = np.ceil(maxvec)
+        # Adjust boxsize and bins accordingly
+        for index in [3,4,5]:
+            self.boxsize[index] = (condVarMax[index] - condVarMin[index])
+            self.boxsize[index + 3] = (condVarMax[index] - condVarMin[index])
+            voxeledge = self.boxsize[index] / self.numbins[index]
+            self.bins[index] = np.arange(condVarMin[index], condVarMax[index], voxeledge[index])
+            self.bins[index + 3] = np.arange(condVarMin[index], condVarMax[index], voxeledge[index])
+
+    def loadData(self, trajs):
+        '''
+        Loads data into binning class
+        '''
+        # Loop over all data and load into dictionary
+        self.adjustBoxLimits(trajs) # Just adjust box limits for r variables
+        print("Binning data ...")
+        for k, traj in enumerate(trajs):
+            for j in range(len(traj) - 2 * self.lagTimesteps):
+                i = j + self.lagTimesteps
+                qi = traj[i][self.posIndex:self.posIndex + 3]
+                ri = traj[i][self.rIndex:self.rIndex + 3]
+                ri_minus = traj[i - self.lagTimesteps][self.rIndex:self.rIndex + 3]
+                qiriri = np.concatenate([qi,ri,ri_minus])
+                riplus = traj[i + self.lagTimesteps][self.rIndex:self.rIndex + 3]
+                ijk = self.getBinIndex(qiriri)
                 try:
                     self.data[ijk].append(riplus)
                 except KeyError:
