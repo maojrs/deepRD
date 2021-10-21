@@ -17,6 +17,7 @@ class langevinNoiseSampler(langevin):
         self.noiseSampler = noiseSampler
         self.prevNoiseTerm = np.zeros(3)
         self.prevprevNoiseTerm = np.zeros(3)
+        self.conditionedOn = conditionedOn
 
     def getConditionedVars(self, particle):
         if self.conditionedOn == 'qi':

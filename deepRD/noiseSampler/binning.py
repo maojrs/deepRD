@@ -52,6 +52,34 @@ class binnedData:
         self.bins = bins
         self.data = {}
 
+    def adjustBoxLimits(self,trajs, indexes = None):
+        '''
+        Calculate boxlimits from trajectories for binning and adjust boxsize accordingly. It assumes
+        conditoned avriables are saved in the trajectory in the succesive order. For more complicated
+        implementations, this fucntion needs to be overriden.
+        '''
+        minvec = [0]*self.dimension
+        maxvec = [0]*self.dimension
+        for traj in trajs:
+            for i in range(len(traj)):
+                condVar = traj[i][self.posIndex: self.posIndex + self.dimension]
+                for j in range(3):
+                    minvec[j] = min(minvec[j], condVar[j])
+                    maxvec[j] = max(maxvec[j], condVar[j])
+        condVarMin = np.floor(minvec)
+        condVarMax = np.ceil(maxvec)
+        # Adjust boxsize and bins accordingly
+        if indexes == None:
+            self.boxsize = (condVarMax - condVarMin)
+            voxeledge = self.boxsize / self.numbins
+            for i in range(self.dimension):
+                self.bins[i] = np.arange(condVarMin[i], condVarMax[i], voxeledge[i])
+        else:
+            for index in indexes:
+                self.boxsize[index] = (condVarMax[index] - condVarMin[index])
+                voxeledge = self.boxsize[index] / self.numbins[index]
+                self.bins[index] = np.arange(condVarMin[index], condVarMax[index], voxeledge[index])
+
     def getBinIndex(self, conditionedVars):
         '''
         If conditioned variables are out of domain of bins, it
@@ -155,39 +183,17 @@ class binnedData_ri(binnedData):
         dimension = 3
         super().__init__(1, numbins, lagTimesteps, dimension)
 
-    def adjustBoxLimits(self,trajs):
-        '''
-        Calculate boxlimits from trajectories for binning and adjust boxsize accordingly
-        '''
-        rminvec = [0., 0., 0.]
-        rmaxvec = [0., 0., 0.]
-        for traj in trajs:
-            for i in range(len(traj)):
-                ri = traj[i][self.rIndex:]
-                for j in range(3):
-                    rminvec[j] = min(rminvec[j], ri[j])
-                    rmaxvec[j] = max(rmaxvec[j], ri[j])
-        rmin = np.floor(rminvec)
-        rmax = np.ceil(rmaxvec)
-        # Adjust boxsize and bins accordingly
-        self.boxsize = (rmax - rmin)
-        rvoxeledge = self.boxsize / self.numbins
-        for i in range(self.dimension):
-            self.bins[i] = np.arange(rmin[i], rmax[i], rvoxeledge[i])
-
-
     def loadData(self, trajs):
         '''
         Loads data into binning class
         '''
         self.adjustBoxLimits(trajs)
-        self.createEmptyDictionary()
         print("Binning data ...")
         # Loop over all data and load into dictionary
         for k, traj in enumerate(trajs):
             for i in range(len(traj) - self.lagTimesteps):
-                ri = traj[i][self.rIndex:]  #
-                riplus = traj[i + self.lagTimesteps][self.rIndex:]
+                ri = traj[i][self.rIndex:self.rIndex + 3]  #
+                riplus = traj[i + self.lagTimesteps][self.rIndex:self.rIndex + 3]
                 ijk = self.getBinIndex(ri)
                 try:
                     self.data[ijk].append(riplus)
@@ -198,4 +204,34 @@ class binnedData_ri(binnedData):
         self.updateDataStructures()
 
 
+class binnedData_qiri(binnedData):
+    '''
+    Class to bin data of positions auxiliary variable r (six-dimensional).
+    Useful to simulate the stochastic closure model of Mori-Zwanzig dynamics
+    using (ri+1|qi,ri)
+    '''
 
+    def __init__(self, boxsize, numbins=100, lagTimesteps = 1,):
+        dimension = 6
+        super().__init__(boxsize, numbins, lagTimesteps, dimension)
+
+    def loadData(self, trajs):
+        '''
+        Loads data into binning class
+        '''
+        # Loop over all data and load into dictionary
+        self.adjustBoxLimits(trajs, indexes = [3,4,5]) # Just adjust box limits for r variables
+        print("Binning data ...")
+        for k, traj in enumerate(trajs):
+            for i in range(len(traj) - self.lagTimesteps):
+                qi = traj[i][self.posIndex:self.posIndex + 3]
+                ri = traj[i][self.rIndex:]
+                qiri = np.concatenate([qi,ri])
+                riplus = traj[i + self.lagTimesteps][self.rIndex:self.rIndex + 3]
+                ijk = self.getBinIndex(qiri)
+                try:
+                    self.data[ijk].append(riplus)
+                except KeyError:
+                    self.data[ijk] = [riplus]
+            sys.stdout.write("File " + str(k + 1) + " of " + str(len(trajs)) + " done." + "\r")
+        self.updateDataStructures()
