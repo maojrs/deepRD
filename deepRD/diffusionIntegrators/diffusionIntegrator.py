@@ -41,7 +41,7 @@ class diffusionIntegrator:
         '''
         raise NotImplementedError("Please Implement integrateOne method")
 
-    def propagate(self, particleList):
+    def propagate(self, particleList, outputFormat = 'trajectory'):
         '''
         'Abstract' method used to integrate propagate the algorithm up to
         tfinal.

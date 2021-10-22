@@ -33,8 +33,8 @@ class langevinNoiseSampler(langevin):
     def integrateOne(self, particleList):
         ''' Integrates one time step of ABOBA '''
         self.integrateA(particleList)
-        particleList.updatePositions()
         self.enforceBoundary(particleList)
+        particleList.updatePositions()
         particleList.resetNextPositionsVelocities()
         self.integrateBOB(particleList)
         self.integrateA(particleList)
