@@ -15,6 +15,6 @@ class harmonic(externalPotential):
 
     def calculateForce(self, particle):
         '''
-        Calculates potential
+        Calculates force due to potential
         '''
         return -2 * self.kconstant * particle.position
