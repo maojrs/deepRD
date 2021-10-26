@@ -53,9 +53,9 @@ class diffusionIntegrator:
         if self.boundary == 'periodic' and self.boxsize != None:
             for particle in particleList:
                 for j in range(particleList.dimension):
-                    while (particle.position[j] >= self.boxsize[j]/2):
+                    if (particle.position[j] >= self.boxsize[j]/2):
                         particle.position[j] -= self.boxsize[j]
-                    while (particle.position[j] <= - self.boxsize[j] / 2):
+                    if (particle.position[j] <= - self.boxsize[j] / 2):
                         particle.position[j] += self.boxsize[j]
 
 

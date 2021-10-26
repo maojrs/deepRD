@@ -80,9 +80,9 @@ boundaryType = parameters['boundaryType']
 kconstant = 0.3
 
 # Integrator parameters
-integratorStride = 50
+integratorStride = 150
 tfinal = 10000
-equilibrationSteps = 10000
+equilibrationSteps = 20000
 
 # Create parameter dictionary to write to parameters reference file
 parameterfilename = os.path.join(outputDataDirectory, "parameters")
