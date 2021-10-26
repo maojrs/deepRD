@@ -68,7 +68,6 @@ class binnedData:
                     maxvec[j] = max(maxvec[j], condVar[j])
         condVarMin = np.floor(minvec)
         condVarMax = np.ceil(maxvec)
-        print(condVarMin, condVarMax)
         # Adjust boxsize and bins accordingly
         if indexes == None:
             self.boxsize = (condVarMax - condVarMin)
