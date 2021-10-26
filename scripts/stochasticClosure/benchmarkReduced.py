@@ -56,10 +56,12 @@ except OSError as error:
         sys.exit()
 
 # Load binning sampling models
+print("Loading binned data ...")
 binnedDataFilename = localDataDirectory + 'binnedData/' + conditionedOn + 'BinnedData.pickle'
 #binnedDataFilename = localDataDirectory + 'binnedData/riBinnedData.pickle'
 binnedData = pickle.load(open(binnedDataFilename, "rb" ))
 parameters = binnedData.parameterDictionary
+print('Binned data loaded')
 #print(parameters)
 
 # Extract basic parameters
@@ -121,6 +123,7 @@ def runParallelSims(simnumber):
 
 
 # Runs several simulations in parallel
+print("Simulation begins ...")
 num_cores = multiprocessing.cpu_count() - 1
 pool = Pool(processes=num_cores)
 iterator = [i for i in range(numSimulations)]
