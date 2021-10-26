@@ -10,7 +10,7 @@ from deepRD.noiseSampler import binnedData_qi, binnedData_ri, binnedData_qiri, b
 
 parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/benchmark/'
 fnamebase = parentDirectory + 'simMoriZwanzig_'
-binningDataDirectory = '../../data/stochasticClosure/binnedData'
+binningDataDirectory = '../../data/stochasticClosure/binnedData/'
 
 # Load parameters from parameters file
 parameterDictionary = analysisTools.readParameters(parentDirectory + "parameters")
@@ -41,12 +41,14 @@ boxsizeBinning = boxsize
 qiBinnedData = binnedData_qi(boxsizeBinning, numbins, lagTimesteps)
 qiBinnedData.loadData(trajs)
 qiBinnedData.parameterDictionary = parameterDictionary
+print("All data loaded.")
 
 # Dump qi binned data into pickle file and free memory
+print("Dumping data into pickle file ...")
 qiBinnedDataFilename = binningDataDirectory + 'qiBinnedData.pickle'
 pickle.dump(qiBinnedData, open(qiBinnedDataFilename, "wb" ))
 del qiBinnedData
-print("Binning for ri+1|1i (1/4) done")
+print("Binning for ri+1|qi done (1/4).")
 
 # ----------------Binning for ri+1|ri--------------------------
 
@@ -56,10 +58,11 @@ riBinnedData.loadData(trajs)
 riBinnedData.parameterDictionary = parameterDictionary
 
 # Dump ri binned data into pickle file and free memory
+print("Dumping data into pickle file ...")
 riBinnedDataFilename = binningDataDirectory + 'riBinnedData.pickle'
 pickle.dump(riBinnedData, open(riBinnedDataFilename, "wb" ))
 del riBinnedData
-print("Binning for ri+1|ri (2/4) done")
+print("Binning for ri+1|ri done (2/4).")
 
 # ----------------Binning for ri+1|qi,ri--------------------------
 
@@ -69,10 +72,11 @@ qiriBinnedData.loadData(trajs)
 qiriBinnedData.parameterDictionary = parameterDictionary
 
 # Dump ri binned data into pickle file and free memory
+print("Dumping data into pickle file ...")
 qiriBinnedDataFilename = binningDataDirectory + 'qiriBinnedData.pickle'
 pickle.dump(qiriBinnedData, open(qiriBinnedDataFilename, "wb" ))
 del qiriBinnedData
-print("Binning for ri+1|qi,ri (3/4) done")
+print("Binning for ri+1|qi,ri done (3/4).")
 
 # ----------------Binning for ri+1|qi,ri,ri-1 --------------------------
 
@@ -82,7 +86,8 @@ qiririmBinnedData.loadData(trajs)
 qiririmBinnedData.parameterDictionary = parameterDictionary
 
 # Dump ri binned data into pickle file and free memory
+print("Dumping data into pickle file ...")
 qiririmBinnedDataFilename = binningDataDirectory + 'qiririmBinnedData.pickle'
 pickle.dump(qiririmBinnedData, open(qiririmBinnedDataFilename, "wb" ))
 del qiririmBinnedData
-print("Binning for ri+1|qi,ri,ri-1 (4/4) done")
+print("Binning for ri+1|qi,ri,ri-1 done (4/4).")

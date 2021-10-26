@@ -156,7 +156,7 @@ class binnedData_qi(binnedData):
         '''
         #self.createEmptyDictionary()
         # Loop over all data and load into dictionary
-        print("Binning data ...")
+        print("Binning data for ri+1|qi ...")
         for k, traj in enumerate(trajs):
             for i in range(len(traj) - self.lagTimesteps):
                 qi = traj[i][self.posIndex:self.posIndex + 3]
@@ -187,7 +187,7 @@ class binnedData_ri(binnedData):
         Loads data into binning class
         '''
         self.adjustBoxLimits(trajs)
-        print("Binning data ...")
+        print("Binning data for ri+1|ri ...")
         # Loop over all data and load into dictionary
         for k, traj in enumerate(trajs):
             for i in range(len(traj) - self.lagTimesteps):
@@ -220,7 +220,7 @@ class binnedData_qiri(binnedData):
         '''
         # Loop over all data and load into dictionary
         self.adjustBoxLimits(trajs, indexes = [3,4,5]) # Just adjust box limits for r variables
-        print("Binning data ...")
+        print("Binning data for ri+1|qi,ri ...")
         for k, traj in enumerate(trajs):
             for i in range(len(traj) - self.lagTimesteps):
                 qi = traj[i][self.posIndex:self.posIndex + 3]
@@ -277,7 +277,7 @@ class binnedData_qiririm(binnedData):
         '''
         # Loop over all data and load into dictionary
         self.adjustBoxLimits(trajs) # Just adjust box limits for r variables
-        print("Binning data ...")
+        print("Binning data for ri+1|qi,ri,ri-1 ...")
         for k, traj in enumerate(trajs):
             for j in range(len(traj) - 2 * self.lagTimesteps):
                 i = j + self.lagTimesteps
