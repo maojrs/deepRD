@@ -41,9 +41,11 @@ from functools import partial
 # Simulation parameters
 localDataDirectory = '../../data/stochasticClosure/'
 numSimulations = 100 #100
+conditionedOn = 'qi' # Available conditionings: qi, ri, qiri, qiririm
+
 
 # Load binning sampling models
-binnedDataFilename = localDataDirectory + 'binnedData/qiBinnedData.pickle'
+binnedDataFilename = localDataDirectory + 'binnedData/' + conditionedOn + 'BinnedData.pickle'
 #binnedDataFilename = localDataDirectory + 'binnedData/riBinnedData.pickle'
 binnedData = pickle.load(open(binnedDataFilename, "rb" ))
 parameters = binnedData.parameterDictionary
@@ -64,7 +66,6 @@ kconstant = 0.3
 integratorStride = 50
 tfinal = 10000
 equilibrationSteps = 10000
-conditionedOn = 'qi' # Available conditionings: qi, ri, qiri, qiririm
 
 # Output data directory
 foldername = 'benchmarkReduced_' + conditionedOn
