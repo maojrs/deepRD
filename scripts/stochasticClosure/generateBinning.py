@@ -29,19 +29,19 @@ for i in range(nfiles):
     traj = trajectoryTools.loadTrajectory(fnamebase, i)
     trajs.append(traj)
     sys.stdout.write("File " + str(i+1) + " of " + str(nfiles) + " done." + "\r")
+print("All data loaded.")
 
 # Parameters used for all binnings:
 numbins = 50
 lagTimesteps = 1  # Number of timesteps (from data) to look back in time
+boxsizeBinning = boxsize
 
 # ----------------Binning for ri+1|qi--------------------------
 
 # Load binned data for ri+1|qi. Note one timestep from data equal parameters['dt'] * parameters['stride']
-boxsizeBinning = boxsize
 qiBinnedData = binnedData_qi(boxsizeBinning, numbins, lagTimesteps)
 qiBinnedData.loadData(trajs)
 qiBinnedData.parameterDictionary = parameterDictionary
-print("All data loaded.")
 
 # Dump qi binned data into pickle file and free memory
 print("Dumping data into pickle file ...")
