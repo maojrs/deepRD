@@ -40,7 +40,7 @@ class langevin(diffusionIntegrator):
             self.enforceBoundary(particleList)
             particleList.updatePositionsVelocities()
 
-    def propagate(self, particleList):
+    def propagate(self, particleList, showProgress = False):
         #percentage_resolution = self.tfinal / 100.0
         #time_for_percentage = - 1 * percentage_resolution
         # Begin equilbration
@@ -60,10 +60,11 @@ class langevin(diffusionIntegrator):
                 xTraj.append(particleList.positions)
                 vTraj.append(particleList.velocities)
                 tTraj.append(time)
-            if i % 50 == 0:
+            if showProgress and (i % 50 == 0):
                 # Print integration percentage
                 sys.stdout.write("Percentage complete " + str(round(100 * time/ self.tfinal, 1)) + "% " + "\r")
-        sys.stdout.write("Percentage complete 100% \r")
+        if showProgress:
+            sys.stdout.write("Percentage complete 100% \r")
         return np.array(tTraj), np.array(xTraj), np.array(vTraj)
 
     def integrateA(self, particleList):

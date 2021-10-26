@@ -41,10 +41,11 @@ class diffusionIntegrator:
         '''
         raise NotImplementedError("Please Implement integrateOne method")
 
-    def propagate(self, particleList, outputFormat = 'trajectory'):
+    def propagate(self, particleList, showProgress = False):
         '''
         'Abstract' method used to integrate propagate the algorithm up to
-        tfinal.
+        tfinal. If showProgress ==  True, prints percentage of integration
+        completed.
         '''
         raise NotImplementedError("Please Implement propagate method")
 

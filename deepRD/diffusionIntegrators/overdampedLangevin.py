@@ -22,7 +22,7 @@ class overdampedLangevin(diffusionIntegrator):
             nextPositions[i] = particle.position + force * self.dt * particle.D / self.KbT + sigma * np.random.normal(0., 1, particle.dimension)
         return nextPositions
 
-    def propagate(self, particleList):
+    def propagate(self, particleList, showProgress = False):
         percentage_resolution = self.tfinal / 100.0
         time_for_percentage = - 1 * percentage_resolution
         # Begins Euler-Maruyama algorithm
@@ -37,8 +37,9 @@ class overdampedLangevin(diffusionIntegrator):
             self.enforceBoundary(particleList)
             times[i + 1] = times[i] + self.dt
             # Print integration percentage
-            if (times[i] - time_for_percentage >= percentage_resolution):
+            if (showProgress and times[i] - time_for_percentage >= percentage_resolution):
                 time_for_percentage = 1 * times[i]
                 sys.stdout.write("Percentage complete " + str(round(100 * times[i] / self.tfinal, 1)) + "% " + "\r")
-        sys.stdout.write("Percentage complete 100% \r")
+        if showProgress:
+            sys.stdout.write("Percentage complete 100% \r")
         return times, np.array(Xtraj)
