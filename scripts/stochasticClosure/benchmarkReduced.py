@@ -43,6 +43,17 @@ localDataDirectory = '../../data/stochasticClosure/'
 numSimulations = 100 #100
 conditionedOn = 'qi' # Available conditionings: qi, ri, qiri, qiririm
 
+# Output data directory
+foldername = 'benchmarkReduced_' + conditionedOn
+outputDataDirectory = os.path.join(localDataDirectory, foldername)
+# Create folder for data
+try:
+    os.mkdir(outputDataDirectory)
+except OSError as error:
+    print('Folder ' + foldername + ' already exists. Previous data files might be overwritten. Continue, y/n?')
+    proceed = input()
+    if proceed != 'y':
+        sys.exit()
 
 # Load binning sampling models
 binnedDataFilename = localDataDirectory + 'binnedData/' + conditionedOn + 'BinnedData.pickle'
@@ -66,19 +77,6 @@ kconstant = 0.3
 integratorStride = 50
 tfinal = 10000
 equilibrationSteps = 10000
-
-# Output data directory
-foldername = 'benchmarkReduced_' + conditionedOn
-outputDataDirectory = os.path.join(localDataDirectory, foldername)
-# Create folder for data
-try:
-    os.mkdir(outputDataDirectory)
-except OSError as error:
-    print('Folder ' + foldername + ' already exists. Previous data files might be overwritten. Continue, y/n?')
-    proceed = input()
-    if proceed != 'y':
-        sys.exit()
-
 
 # Create parameter dictionary to write to parameters reference file
 parameterfilename = os.path.join(outputDataDirectory, "parameters")
