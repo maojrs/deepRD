@@ -56,18 +56,19 @@ class binnedData:
         '''
         Calculate boxlimits from trajectories for binning and adjust boxsize accordingly. It assumes
         conditoned variables are saved in the trajectory in the succesive order. For more complicated
-        implementations, this fucntion needs to be overriden.
+        implementations, this function needs to be overriden.
         '''
         minvec = [0]*self.dimension
         maxvec = [0]*self.dimension
         for traj in trajs:
             for i in range(len(traj)):
                 condVar = traj[i][self.posIndex: self.posIndex + self.dimension]
-                for j in range(3):
+                for j in range(self.dimension):
                     minvec[j] = min(minvec[j], condVar[j])
                     maxvec[j] = max(maxvec[j], condVar[j])
         condVarMin = np.floor(minvec)
         condVarMax = np.ceil(maxvec)
+        print(condVarMin, condVarMax)
         # Adjust boxsize and bins accordingly
         if indexes == None:
             self.boxsize = (condVarMax - condVarMin)
@@ -78,7 +79,7 @@ class binnedData:
             for index in indexes:
                 self.boxsize[index] = (condVarMax[index] - condVarMin[index])
                 voxeledge = self.boxsize[index] / self.numbins[index]
-                self.bins[index] = np.arange(condVarMin[index], condVarMax[index], voxeledge[index])
+                self.bins[index] = np.arange(condVarMin[index], condVarMax[index], voxeledge)
 
     def getBinIndex(self, conditionedVars):
         '''
@@ -263,13 +264,13 @@ class binnedData_qiririm(binnedData):
                     maxvec[j] = max(maxvec[j], condVar[j])
         condVarMin = np.floor(minvec)
         condVarMax = np.ceil(maxvec)
-        # Adjust boxsize and bins accordingly
-        for index in [3,4,5]:
-            self.boxsize[index] = (condVarMax[index] - condVarMin[index])
+        # Adjust boxsize and bins accordingly of ri and ri-1
+        for index in range(3):
             self.boxsize[index + 3] = (condVarMax[index] - condVarMin[index])
+            self.boxsize[index + 6] = (condVarMax[index] - condVarMin[index])
             voxeledge = self.boxsize[index] / self.numbins[index]
-            self.bins[index] = np.arange(condVarMin[index], condVarMax[index], voxeledge[index])
-            self.bins[index + 3] = np.arange(condVarMin[index], condVarMax[index], voxeledge[index])
+            self.bins[index + 3] = np.arange(condVarMin[index], condVarMax[index], voxeledge)
+            self.bins[index + 6] = np.arange(condVarMin[index], condVarMax[index], voxeledge)
 
     def loadData(self, trajs):
         '''
