@@ -93,7 +93,7 @@ parameterDictionary = {'numFiles' : numSimulations, 'dt' : dt, 'D' : D, 'KbT' : 
 analysisTools.writeParameters(parameterfilename, parameterDictionary)
 
 # Provides base filename (folder must exist (and preferably empty), otherwise H5 might fail)
-basefilename = os.path.join(outputDataDirectory, "simMoriZwanzigReduced")
+basefilename = os.path.join(outputDataDirectory, "simMoriZwanzigReduced_")
 
 # Simulation wrapper for parallel runs
 def runParallelSims(simnumber):

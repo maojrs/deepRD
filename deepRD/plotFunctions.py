@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from .tools import trajectoryTools
 
 def plotTrajectories(times, xtrajs, names = [], indexes = "all"):
     xtrajs = np.array(xtrajs)
@@ -27,3 +28,9 @@ def plotFPTs(FPTs, bins = 50, name = "FPT distribution"):
     plt.legend()
     plt.xlabel("time")
     plt.ylabel("probability")
+
+def plotDistribution(trajs, variableIndex, numbins= 50, label = None):
+    variableArray = trajectoryTools.extractVariableFromTrajectory(trajs, variableIndex)
+    plt.hist(variableArray, bins=numbins, density=True, alpha=0.5, label=label)
+    plt.legend()
+    plt.show()
