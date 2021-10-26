@@ -236,7 +236,7 @@ class binnedData_qiri(binnedData):
         self.updateDataStructures()
 
 
-class binnedData_qiriri(binnedData):
+class binnedData_qiririm(binnedData):
     '''
     Class to bin data of positions, auxiliary variable r, and auixiliary
     variable at a previous time (nine-dimensional).

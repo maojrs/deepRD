@@ -6,7 +6,7 @@ from itertools import product
 import matplotlib.pyplot as plt
 import deepRD.tools.trajectoryTools as trajectoryTools
 import deepRD.tools.analysisTools as analysisTools
-from deepRD.noiseSampler import binnedData_qi, binnedData_ri, binnedData_qiri, binnedData_qiriri
+from deepRD.noiseSampler import binnedData_qi, binnedData_ri, binnedData_qiri, binnedData_qiririm
 
 parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/benchmark/'
 fnamebase = parentDirectory + 'simMoriZwanzig_'
@@ -77,12 +77,12 @@ print("Binning for ri+1|qi,ri (3/4) done")
 # ----------------Binning for ri+1|qi,ri,ri-1 --------------------------
 
 # Load binned data for ri+1|qi,ri,ri-1
-qiririBinnedData = binnedData_qiriri(boxsizeBinning, numbins, lagTimesteps)
-qiririBinnedData.loadData(trajs)
-qiririBinnedData.parameterDictionary = parameterDictionary
+qiririmBinnedData = binnedData_qiririm(boxsizeBinning, numbins, lagTimesteps)
+qiririmBinnedData.loadData(trajs)
+qiririmBinnedData.parameterDictionary = parameterDictionary
 
 # Dump ri binned data into pickle file and free memory
-qiririBinnedDataFilename = binningDataDirectory + 'riqiBinnedData.pickle'
-pickle.dump(qiririBinnedData, open(qiririBinnedDataFilename, "wb" ))
-del qiririBinnedData
+qiririmBinnedDataFilename = binningDataDirectory + 'qiririmBinnedData.pickle'
+pickle.dump(qiririmBinnedData, open(qiririmBinnedDataFilename, "wb" ))
+del qiririmBinnedData
 print("Binning for ri+1|qi,ri,ri-1 (4/4) done")

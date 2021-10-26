@@ -49,18 +49,6 @@ binnedData = pickle.load(open(binnedDataFilename, "rb" ))
 parameters = binnedData.parameterDictionary
 #print(parameters)
 
-# Output data directory
-foldername = "benchmarkReduced"
-outputDataDirectory = os.path.join(localDataDirectory, foldername)
-# Create folder for data
-try:
-    os.mkdir(outputDataDirectory)
-except OSError as error:
-    print('Folder ' + foldername + ' already exists. Previous data files might be overwritten. Continue, y/n?')
-    proceed = input()
-    if proceed != 'y':
-        sys.exit()
-
 # Extract basic parameters
 dt = parameters['dt']
 D = parameters['D']
@@ -74,8 +62,21 @@ kconstant = 0.3
 
 # Integrator parameters
 integratorStride = 50
-tfinal = 1000
+tfinal = 10000
 equilibrationSteps = 10000
+conditionedOn = 'qi' # Available conditionings: qi, ri, qiri, qiririm
+
+# Output data directory
+foldername = 'benchmarkReduced_' + conditionedOn
+outputDataDirectory = os.path.join(localDataDirectory, foldername)
+# Create folder for data
+try:
+    os.mkdir(outputDataDirectory)
+except OSError as error:
+    print('Folder ' + foldername + ' already exists. Previous data files might be overwritten. Continue, y/n?')
+    proceed = input()
+    if proceed != 'y':
+        sys.exit()
 
 
 # Create parameter dictionary to write to parameters reference file
