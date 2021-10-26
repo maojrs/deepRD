@@ -173,3 +173,14 @@ def convert2trajectory(timeArray, variableArrayList):
                 trajElement.append(variableArray[i][j])
             traj.append(np.concatenate((trajElement)))
     return np.array(traj)
+
+
+def extractVariableFromTrajectory(trajs, variableIndex):
+    '''
+    Extracts the variable with index variableIndex from trajectories into an array
+    '''
+    variableArray = []
+    for traj in trajs:
+        for i in range(len(traj)):
+            variableArray.append(traj[i][variableIndex])
+    return np.array(variableArray)
