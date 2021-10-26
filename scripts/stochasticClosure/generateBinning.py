@@ -8,6 +8,11 @@ import deepRD.tools.trajectoryTools as trajectoryTools
 import deepRD.tools.analysisTools as analysisTools
 from deepRD.noiseSampler import binnedData_qi, binnedData_ri, binnedData_qiri, binnedData_qiririm
 
+'''
+Generates binned data structures on several different conditionings for the stochastic closure model.
+Currently implemented for ri+1|qi; ri+1|ri; ri+1|qi,ri; ri+1|qi,ri,ri-1
+'''
+
 parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/benchmark/'
 fnamebase = parentDirectory + 'simMoriZwanzig_'
 binningDataDirectory = '../../data/stochasticClosure/binnedData/'

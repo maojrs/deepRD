@@ -14,6 +14,10 @@ import multiprocessing
 from multiprocessing import Pool
 from functools import partial
 
+'''
+Runs reduced model by stochastic closure with same parameters as benchmark for comparison.
+'''
+
 ## Units
 
 # ### Boltzman constant
