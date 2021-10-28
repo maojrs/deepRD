@@ -56,18 +56,22 @@ class binnedData:
 
     def adjustBoxLimits(self,trajs, indexes = None):
         '''
-        Calculate boxlimits from trajectories for binning and adjust boxsize accordingly. It assumes
-        conditoned variables are saved in the trajectory in the succesive order. For more complicated
+        Calculate boxlimits from trajectories for binning and adjust boxsize accordingly. Assumes
+        'r' has dimension: self.dimension - 3; the other three correspond to position. For more complicated
         implementations, this function needs to be overriden.
         '''
         minvec = [0]*self.dimension
         maxvec = [0]*self.dimension
         for traj in trajs:
             for i in range(len(traj)):
-                condVar = traj[i][self.posIndex: self.posIndex + self.dimension]
-                for j in range(self.dimension):
+                condVar = traj[i][self.posIndex: self.posIndex + 3]
+                condVar2 = traj[i][self.rIndex: self.rIndex + self.dimension - 3]
+                for j in range(3):
                     minvec[j] = min(minvec[j], condVar[j])
                     maxvec[j] = max(maxvec[j], condVar[j])
+                for j in range(self.dimension - 3):
+                    minvec[j+3] = min(minvec[j+3], condVar[j+3])
+                    maxvec[j+3] = max(maxvec[j+3], condVar[j+3])
         condVarMin = np.array(minvec)
         condVarMax = np.array(maxvec)
         # Adjust boxsize and bins accordingly
@@ -269,9 +273,10 @@ class binnedData_qiririm(binnedData):
         for index in range(3):
             self.boxsize[index + 3] = (condVarMax[index] - condVarMin[index])
             self.boxsize[index + 6] = (condVarMax[index] - condVarMin[index])
-            voxeledge = self.boxsize[index] / self.numbins[index]
-            self.bins[index + 3] = np.arange(condVarMin[index], condVarMax[index], voxeledge)
-            self.bins[index + 6] = np.arange(condVarMin[index], condVarMax[index], voxeledge)
+            voxeledge1 = self.boxsize[index + 3] / self.numbins[index + 3]
+            voxeledge2 = self.boxsize[index + 6] / self.numbins[index + 6]
+            self.bins[index + 3] = np.arange(condVarMin[index], condVarMax[index], voxeledge1)
+            self.bins[index + 6] = np.arange(condVarMin[index], condVarMax[index], voxeledge2)
 
     def loadData(self, trajs):
         '''
