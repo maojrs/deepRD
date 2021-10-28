@@ -70,8 +70,8 @@ class binnedData:
                     minvec[j] = min(minvec[j], condVar[j])
                     maxvec[j] = max(maxvec[j], condVar[j])
                 for j in range(self.dimension - 3):
-                    minvec[j+3] = min(minvec[j+3], condVar[j+3])
-                    maxvec[j+3] = max(maxvec[j+3], condVar[j+3])
+                    minvec[j+3] = min(minvec[j+3], condVar2[j])
+                    maxvec[j+3] = max(maxvec[j+3], condVar2[j])
         condVarMin = np.array(minvec)
         condVarMax = np.array(maxvec)
         # Adjust boxsize and bins accordingly
