@@ -251,7 +251,7 @@ def calculateAutoCorrelation(trajs, lagtimesteps, stride = 1, var = 'position', 
             devFromMean = traj[i][index:index+3] - mean
             devFromMean2 = traj[i + lagtimesteps*stride][index:index+3] - mean
             AC += np.dot(devFromMean, devFromMean2)
-        totalSamples += len(traj)
+        totalSamples += len(traj) - lagtimesteps*stride
     AC = AC/totalSamples
     AC = AC/variance
     return AC
