@@ -30,6 +30,8 @@ class langevinNoiseSampler(langevin):
             return (self.prevNoiseTerm)
         elif self.conditionedOn == 'qiri':
             return np.concatenate((particle.nextPosition, self.prevNoiseTerm))
+        elif self.conditionedOn == 'ririm':
+            return np.concatenate((self.prevNoiseTerm, self.prevprevNoiseTerm))
         elif self.conditionedOn == 'qiririm':
             return np.concatenate((particle.nextPosition, self.prevNoiseTerm, self.prevprevNoiseTerm))
         #elif self.conditioneOn == 'qivi':
