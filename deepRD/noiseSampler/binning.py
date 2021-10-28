@@ -1,3 +1,5 @@
+from typing import List, Any, Union
+
 import numpy as np
 import random
 import sys
@@ -66,8 +68,8 @@ class binnedData:
                 for j in range(self.dimension):
                     minvec[j] = min(minvec[j], condVar[j])
                     maxvec[j] = max(maxvec[j], condVar[j])
-        condVarMin = minvec
-        condVarMax = maxvec
+        condVarMin = np.array(minvec)
+        condVarMax = np.array(maxvec)
         # Adjust boxsize and bins accordingly
         if indexes == None:
             self.boxsize = (condVarMax - condVarMin)
@@ -261,8 +263,8 @@ class binnedData_qiririm(binnedData):
                 for j in range(3):
                     minvec[j] = min(minvec[j], condVar[j])
                     maxvec[j] = max(maxvec[j], condVar[j])
-        condVarMin = minvec
-        condVarMax = maxvec
+        condVarMin = np.array(minvec)
+        condVarMax = np.array(maxvec)
         # Adjust boxsize and bins accordingly of ri and ri-1
         for index in range(3):
             self.boxsize[index + 3] = (condVarMax[index] - condVarMin[index])
