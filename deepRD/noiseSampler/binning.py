@@ -66,8 +66,8 @@ class binnedData:
                 for j in range(self.dimension):
                     minvec[j] = min(minvec[j], condVar[j])
                     maxvec[j] = max(maxvec[j], condVar[j])
-        condVarMin = np.floor(minvec)
-        condVarMax = np.ceil(maxvec)
+        condVarMin = minvec
+        condVarMax = maxvec
         # Adjust boxsize and bins accordingly
         if indexes == None:
             self.boxsize = (condVarMax - condVarMin)
@@ -224,7 +224,7 @@ class binnedData_qiri(binnedData):
         for k, traj in enumerate(trajs):
             for i in range(len(traj) - self.lagTimesteps):
                 qi = traj[i][self.posIndex:self.posIndex + 3]
-                ri = traj[i][self.rIndex:self.rIndex:self.rIndex + 3]
+                ri = traj[i][self.rIndex:self.rIndex + 3]
                 qiri = np.concatenate([qi,ri])
                 riplus = traj[i + self.lagTimesteps][self.rIndex:self.rIndex + 3]
                 ijk = self.getBinIndex(qiri)
@@ -261,8 +261,8 @@ class binnedData_qiririm(binnedData):
                 for j in range(3):
                     minvec[j] = min(minvec[j], condVar[j])
                     maxvec[j] = max(maxvec[j], condVar[j])
-        condVarMin = np.floor(minvec)
-        condVarMax = np.ceil(maxvec)
+        condVarMin = minvec
+        condVarMax = maxvec
         # Adjust boxsize and bins accordingly of ri and ri-1
         for index in range(3):
             self.boxsize[index + 3] = (condVarMax[index] - condVarMin[index])
