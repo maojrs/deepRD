@@ -184,3 +184,101 @@ def extractVariableFromTrajectory(trajs, variableIndex):
         for i in range(len(traj)):
             variableArray.append(traj[i][variableIndex])
     return np.array(variableArray)
+
+
+def calculateMean(trajs, var = 'position'):
+    '''
+    Calculates mean of trajectories, var can be 'position' or 'velocity', assuming indexing in each element
+    of a trajectory be (t,position,velocity).
+    '''
+    if var == 'position':
+        index = 1
+    elif var == 'velocity':
+        index = 4
+    meanPosition = np.zeros(3)
+    totalSamples = 0
+    for traj in trajs:
+        for i in range(len(traj)):
+            meanPosition += traj[i][index:index+3]
+        totalSamples += len(traj)
+    meanPosition = meanPosition/totalSamples
+    return meanPosition
+
+def calculateVariance(trajs, var = 'position', mean = None):
+    '''
+    Calculates variance of trajectories, var can be 'position' or 'velocity', assuming indexing in each element
+    of a trajectory be (t,position,velocity). If mean is not given, it calls calulate mean.
+    '''
+    if var == 'position':
+        index = 1
+    elif var == 'velocity':
+        index = 4
+    if mean.any() == None:
+        mean = calculateMean(trajs)
+    variance = np.zeros(3)
+    totalSamples = 0
+    for traj in trajs:
+        for i in range(len(traj)):
+            devFromMean = traj[i][index:index+3] - mean
+            variance += devFromMean*devFromMean
+        totalSamples += len(traj)
+    variance = variance/totalSamples
+    return variance
+
+def calculateStdDev(trajs, var = 'position', mean = None):
+    variance = calculateVariance(trajs, var, mean)
+    stddev = np.sqrt(variance)
+    return stddev
+
+def calculateAutoCorrelation(trajs, lagtimesteps, stride = 1, var = 'position', mean = None, variance = None):
+    '''
+    Calculates autocorrelation of trajectories, for a given stride. Variable var can be 'position' or 'velocity',
+    assuming indexing in each element of a trajectory be (t,position,velocity). If mean and variance are not given,
+    it calls calulate mean and calculate variance.
+    '''
+    if var == 'position':
+        index = 1
+    elif var == 'velocity':
+        index = 4
+    if mean.any() == None:
+        mean = calculateMean(trajs)
+    if variance.any() == None:
+        variance = calculateVariance(trajs, mean)
+    totalSamples = 0
+    AC = 0.0
+    for traj in trajs:
+        for i in range(len(traj)-lagtimesteps*stride):
+            devFromMean = traj[i][index:index+3] - mean
+            devFromMean2 = traj[i + lagtimesteps*stride][index:index+3] - mean
+            AC += np.dot(devFromMean, devFromMean2)
+        totalSamples += len(traj)
+    AC = AC/totalSamples
+    AC = AC/variance
+    return AC
+
+def calculateAutoCorrelationFunction(trajs, lagtimesteps, stride = 1, var = 'position'):
+    '''
+    Calculates autocorrelation function of trajectories, for a given lagtimesteps (length of time interval in
+    timesteps) and stride. Variable var can be 'position' or 'velocity', assuming indexing in each element of a
+    trajectory be (t,position,velocity).
+    '''
+    ACF = []
+    mean = calculateMean(trajs, var)
+    # Calculate one dimensional variance
+    if var == 'position':
+        index = 1
+    elif var == 'velocity':
+        index = 4
+    variance = 0
+    totalSamples = 0
+    for traj in trajs:
+        for i in range(len(traj)):
+            devFromMean = traj[i][index:index+3] - mean
+            variance += np.dot(devFromMean,devFromMean)
+        totalSamples += len(traj)
+    variance = variance/totalSamples
+    for lagtime in range(lagtimesteps):
+        ACF.append(calculateAutoCorrelation(trajs, lagtime, stride, var, mean, variance))
+        print('Computing ACF:', 100*(lagtime+1)/lagtimesteps , '% complete   ', end="\r")
+    ACF = np.array(ACF)
+    return ACF
