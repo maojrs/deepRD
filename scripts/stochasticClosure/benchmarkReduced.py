@@ -89,7 +89,7 @@ parameterfilename = os.path.join(outputDataDirectory, "parameters")
 parameterDictionary = {'numFiles' : numSimulations, 'dt' : dt, 'D' : D, 'KbT' : KbT,
                        'mass' : mass, 'tfinal' : tfinal, 'stride' : integratorStride,
                        'boxsize' : boxsize, 'boundaryType' : boundaryType,
-                       'equilibrationSteps' : equilibrationSteps}
+                       'equilibrationSteps' : equilibrationSteps, 'conditionedOn': conditionedOn}
 analysisTools.writeParameters(parameterfilename, parameterDictionary)
 
 # Provides base filename (folder must exist (and preferably empty), otherwise H5 might fail)
@@ -113,7 +113,7 @@ def runParallelSims(simnumber):
     harmonicPotential = harmonic(kconstant)
 
     diffIntegrator = langevinNoiseSampler(dt, integratorStride, tfinal, nSampler, KbT,
-                                          boxsize, boundaryType, equilibrationSteps)
+                                          boxsize, boundaryType, equilibrationSteps, conditionedOn)
     diffIntegrator.setExternalPotential(harmonicPotential)
 
     # Integrate dynamics
