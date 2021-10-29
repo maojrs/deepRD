@@ -20,34 +20,48 @@ class binnedData:
     would have dimension 6, 3 for qi and 3 for ri.
     '''
 
-    def __init__(self, boxsize, numbins = 100, lagTimesteps = 1, dimension = 3, adjustBox = False):
-        self.dimension = dimension
-        self.adjustBox = False # If true adjust box limit for position and velocities variables
+    def __init__(self, boxsize, numbins = 100, lagTimesteps = 1, binPosition = False,
+                 binVelocity = False, numBinnedAuxVars = 1, adjustPosVelBox = False):
+        self.binPosition = binPosition
+        self.binVelocity = binVelocity
+        self.numBinnedAuxVars = numBinnedAuxVars
+        self.adjustPosVelBox = adjustPosVelBox # If true adjust box limit for position and velocities variables
+        self.dimension = None
+        self.binningLabel = ''
+        self.binningLabel2 = ''
+
+        # Calculate dimension and binning label
+        self.calculateDimensionAndBinningLabel()
+
+        # Other important variables
         self.posIndex = 1  # Index of x position coordinate in trajectory files
         self.velIndex = 4  # Index of x velocity coordinate in trajectory files
-        self.rauxIndex = 8  # Position of x coordinate of r in trajectory files
+        self.auxIndex = 5 #8  # Position of x coordinate of r in trajectory files
         self.neighborsDictionary = {}
         self.dataTree = None # dataTree structure to find nearest neighbors
         self.occupiedTuplesArray = None # array of tuples corresponding to occupied bins
         self.parameterDictionary = {}
+
+        # Obtain indexes in box array
+        self.posBoxIndex, self.velBoxIndex, self.auxBoxIndex = self.calculateBoxIndexes()
 
         if not isinstance(lagTimesteps, (int)):
             raise Exception('lagTimesteps should be an integer.')
         self.lagTimesteps = lagTimesteps # number of data timesteps to look back into data (integer)
 
         if isinstance(boxsize, (list, tuple, np.ndarray)):
-            if len(boxsize) != dimension:
+            if len(boxsize) != self.dimension:
                 raise Exception('Boxsize should be a scalar or an array matching the chosen dimension')
             self.boxsize = boxsize
         else:
-            self.boxsize = [boxsize]*dimension
+            self.boxsize = [boxsize]*self.dimension
 
         if isinstance(numbins, (list, tuple, np.ndarray)):
-            if len(numbins) != dimension:
+            if len(numbins) != self.dimension:
                 raise Exception('Numbins should be a scalar or an array matching the chosen dimension')
             self.numbins = numbins
         else:
-            self.numbins = [numbins]*dimension
+            self.numbins = [numbins]*self.dimension
 
         # Create bins
         bins = [None]*self.dimension
@@ -56,47 +70,79 @@ class binnedData:
         self.bins = bins
         self.data = {}
 
-    def adjustBoxPosition(self, trajs, posBoxIndex):
+    def calculateBoxIndexes(self):
         '''
-        Calculate boxlimits of position variables from trajectories for binning and
+        Determines the indexes correspo0nding to which variable in the box array. It assumes the
+        variable are ordered first position, then velocity then aux variables.
+        '''
+        if self.binPosition and self.binVelocity:
+            posBoxIndex = 0
+            velBoxIndex = 3
+            auxBoxIndex = 6
+        if not self.binPosition and self.binVelocity:
+            posBoxIndex = None
+            velBoxIndex = 0
+            auxBoxIndex = 3
+        if self.binPosition and not self.binVelocity:
+            posBoxIndex = 0
+            velBoxIndex = None
+            auxBoxIndex = 3
+        if not self.binPosition and not self.binVelocity:
+            posBoxIndex = None
+            velBoxIndex = None
+            auxBoxIndex = 0
+        return posBoxIndex, velBoxIndex, auxBoxIndex
+
+    def calculateDimensionAndBinningLabel(self):
+        self.binningLabel = 'ri+1|'
+        self.binningLabel2 = ''
+        self.dimension = 0
+        if self.binPosition:
+            self.binningLabel += 'qi,'
+            self.binningLabel2 += 'qi'
+            self.dimension +=3
+        if self.binVelocity:
+            self.binningLabel += 'pi,'
+            self.binningLabel2 += 'pi'
+            self.dimension +=3
+        for i in range(self.numBinnedAuxVars):
+            self.dimension +=3
+            if i == 0:
+                self.binningLabel += 'ri,'
+                self.binningLabel2 += 'ri'
+            else:
+                self.binningLabel += 'ri-' +str(i) +','
+                self.binningLabel2 += 'ri' + 'm'*i
+
+    def adjustBox(self, trajs, variable = 'position'):
+        '''
+        Calculate boxlimits of position or velocity variables from trajectories for binning and
         adjust boxsize accordingly. The variable posBoxIndex correspond to the index
         of the x-position in the boxsize array.
         '''
+        if variable == 'position':
+            trajIndex = self.posIndex
+            boxIndex = self.posBoxIndex
+        elif variable == 'velocity':
+            trajIndex = self.velIndex
+            boxIndex = self.velBoxIndex
+        else:
+            print('Variable for adjustBox functions must be position or velocity')
         minvec = np.zeros(3)
         maxvec = np.zeros(3)
         for traj in trajs:
             for i in range(len(traj)):
-                condVar = traj[i][self.posIndex: self.posIndex + 3]
+                condVar = traj[i][trajIndex: trajIndex + 3]
                 for j in range(3):
                     minvec[j] = min(minvec[j], condVar[j])
                     maxvec[j] = max(maxvec[j], condVar[j])
         # Adjust boxsize and bins accordingly
         for k in range(3):
-            self.boxsize[posBoxIndex + k] = (maxvec[k] - minvec[k])
-            voxeledge = self.boxsize[posBoxIndex + k] / self.numbins[posBoxIndex + k]
-            self.bins[posBoxIndex + k] = np.arange(minvec[k], maxvec[k], voxeledge)
+            self.boxsize[boxIndex + k] = (maxvec[k] - minvec[k])
+            voxeledge = self.boxsize[boxIndex + k] / self.numbins[boxIndex + k]
+            self.bins[boxIndex + k] = np.arange(minvec[k], maxvec[k], voxeledge)
 
-    def adjustBoxVelocity(self, trajs, velBoxIndex):
-        '''
-        Calculate boxlimits of velocity variables from trajectories for binning and
-        adjust boxsize accordingly. The variable velBoxIndex correspond to the index
-        of the x-velocity in the boxsize array.
-        '''
-        minvec = np.zeros(3)
-        maxvec = np.zeros(3)
-        for traj in trajs:
-            for i in range(len(traj)):
-                condVar = traj[i][self.velIndex: self.velIndex + 3]
-                for j in range(3):
-                    minvec[j] = min(minvec[j], condVar[j])
-                    maxvec[j] = max(maxvec[j], condVar[j])
-        # Adjust boxsize and bins accordingly
-        for k in range(3):
-            self.boxsize[velBoxIndex + k] = (maxvec[k] - minvec[k])
-            voxeledge = self.boxsize[velBoxIndex + k] / self.numbins[velBoxIndex + k]
-            self.bins[velBoxIndex + k] = np.arange(minvec[k], maxvec[k], voxeledge)
-
-    def adjustBoxAux(self, trajs, auxBoxIndex, numAuxVars):
+    def adjustBoxAux(self, trajs):
         '''
         Calculate boxlimits of auxiliary variables from trajectories for binning and
         adjust boxsize accordingly. The variable auxBoxIndex correspond to the index
@@ -108,49 +154,17 @@ class binnedData:
         maxvec = np.zeros(3)
         for traj in trajs:
             for i in range(len(traj)):
-                condVar = traj[i][self.rauxIndex: self.rauxIndex + 3]
+                condVar = traj[i][self.auxIndex: self.auxIndex + 3]
                 for j in range(3):
                     minvec[j] = min(minvec[j], condVar[j])
                     maxvec[j] = max(maxvec[j], condVar[j])
         # Adjust boxsize and bins accordingly
-        for m in range(numAuxVars):
+        for m in range(self.numBinnedAuxVars):
             for k in range(3):
-                boxIndex = auxBoxIndex + k + 3*m
+                boxIndex = self.auxBoxIndex + k + 3*m
                 self.boxsize[boxIndex] = (maxvec[k] - minvec[k])
                 voxeledge = self.boxsize[boxIndex] / self.numbins[boxIndex]
                 self.bins[boxIndex] = np.arange(minvec[k], maxvec[k], voxeledge)
-
-    # def adjustBox(self,trajs, indexes = None):
-    #     '''
-    #     Calculate boxlimits from trajectories for binning and adjust boxsize accordingly. Assumes
-    #     'r' has dimension: self.dimension - 3; the other three correspond to position. For more complicated
-    #     implementations, this function needs to be overriden.
-    #     '''
-    #     minvec = [0]*self.dimension
-    #     maxvec = [0]*self.dimension
-    #     for traj in trajs:
-    #         for i in range(len(traj)):
-    #             condVar = traj[i][self.posIndex: self.posIndex + 3]
-    #             condVar2 = traj[i][self.rIndex: self.rIndex + self.dimension - 3]
-    #             for j in range(3):
-    #                 minvec[j] = min(minvec[j], condVar[j])
-    #                 maxvec[j] = max(maxvec[j], condVar[j])
-    #             for j in range(self.dimension - 3):
-    #                 minvec[j+3] = min(minvec[j+3], condVar2[j])
-    #                 maxvec[j+3] = max(maxvec[j+3], condVar2[j])
-    #     condVarMin = np.array(minvec)
-    #     condVarMax = np.array(maxvec)
-    #     # Adjust boxsize and bins accordingly
-    #     if indexes == None:
-    #         self.boxsize = (condVarMax - condVarMin)
-    #         voxeledge = self.boxsize / self.numbins
-    #         for i in range(self.dimension):
-    #             self.bins[i] = np.arange(condVarMin[i], condVarMax[i], voxeledge[i])
-    #     else:
-    #         for index in indexes:
-    #             self.boxsize[index] = (condVarMax[index] - condVarMin[index])
-    #             voxeledge = self.boxsize[index] / self.numbins[index]
-    #             self.bins[index] = np.arange(condVarMin[index], condVarMax[index], voxeledge)
 
     def getBinIndex(self, conditionedVars):
         '''
@@ -210,31 +224,35 @@ class binnedData:
         availableData = self.data[occupiedBinIndex]
         return random.choice(availableData)
 
-
-class binnedData_qi(binnedData):
-    '''
-    Class to bin data of positions (three-dimensional). Useful to
-    simulate the stochastic closure model using ri+1|qi
-    '''
-
-    def __init__(self, boxsize, numbins=100, lagTimesteps = 1, adjustBox = False):
-        dimension = 3
-        super().__init__(boxsize, numbins, lagTimesteps, dimension, adjustBox)
-
     def loadData(self, trajs):
         '''
         Loads data into binning class
         '''
-        #self.createEmptyDictionary()
+        # Adjust boxes size for binning
+        if self.adjustPosVelBox and self.binPosition:
+            self.adjustBox(trajs, 'position')
+        if self.adjustPosVelBox and self.binVelocity:
+            self.adjustBox(trajs, 'velocity')
+        if self.numBinnedAuxVars > 0:
+            self.adjustBoxAux(trajs) # Adjust box limits for r variables
         # Loop over all data and load into dictionary
-        print("Binning data for ri+1|qi ...")
-        if self.adjustBox:
-            self.adjustBoxPosition(trajs, posBoxIndex = 0)
+        print('Binning data for ' + self.binningLabel + ' ...')
         for k, traj in enumerate(trajs):
-            for i in range(len(traj) - self.lagTimesteps):
-                qi = traj[i][self.posIndex:self.posIndex + 3]
-                riplus = traj[i + self.lagTimesteps][self.rIndex:self.rIndex+3]
-                ijk = self.getBinIndex(qi)
+            for j in range(len(traj) - self.numBinnedAuxVars * self.lagTimesteps):
+                i = j + (self.numBinnedAuxVars - 1) * self.lagTimesteps
+                conditionedVars = []
+                if self.binPosition:
+                    qi = traj[i][self.posIndex:self.posIndex + 3]
+                    conditionedVars.append(qi)
+                if self.binVelocity:
+                    pi = traj[i][self.velIndex:self.velIndex + 3]
+                    conditionedVars.append(pi)
+                for m in range(self.numBinnedAuxVars):
+                    ri = traj[i - m * self.lagTimesteps][self.auxIndex:self.auxIndex + 3]
+                    conditionedVars.append(ri)
+                conditionedVars = np.concatenate(conditionedVars)
+                riplus = traj[i + self.lagTimesteps][self.auxIndex:self.auxIndex + 3]
+                ijk = self.getBinIndex(conditionedVars)
                 try:
                     self.data[ijk].append(riplus)
                 except KeyError:
@@ -242,242 +260,3 @@ class binnedData_qi(binnedData):
             sys.stdout.write("File " + str(k + 1) + " of " + str(len(trajs)) + " done." + "\r")
         self.updateDataStructures()
 
-class binnedData_qiri(binnedData):
-    '''
-    Class to bin data of positions auxiliary variable r (six-dimensional).
-    Useful to simulate the stochastic closure model using (ri+1|qi,ri)
-    '''
-
-    def __init__(self, boxsize, numbins=100, lagTimesteps = 1, adjustBox = False):
-        dimension = 6
-        super().__init__(boxsize, numbins, lagTimesteps, dimension, adjustBox)
-
-    def loadData(self, trajs):
-        '''
-        Loads data into binning class
-        '''
-        # Loop over all data and load into dictionary
-        if self.adjustBox:
-            self.adjustBoxPosition(trajs, posBoxIndex=0)
-        self.adjustBoxAux(trajs, auxBoxIndex=3, numAuxVars=1) # Adjust box limits for r variable
-        print("Binning data for ri+1|qi,ri ...")
-        for k, traj in enumerate(trajs):
-            for i in range(len(traj) - self.lagTimesteps):
-                qi = traj[i][self.posIndex:self.posIndex + 3]
-                ri = traj[i][self.rIndex:self.rIndex + 3]
-                qiri = np.concatenate([qi,ri])
-                riplus = traj[i + self.lagTimesteps][self.rIndex:self.rIndex + 3]
-                ijk = self.getBinIndex(qiri)
-                try:
-                    self.data[ijk].append(riplus)
-                except KeyError:
-                    self.data[ijk] = [riplus]
-            sys.stdout.write("File " + str(k + 1) + " of " + str(len(trajs)) + " done." + "\r")
-        self.updateDataStructures()
-
-
-class binnedData_qiririm(binnedData):
-    '''
-    Class to bin data of position and auxiliary variable r, and auxiliary
-    variable at a previous time (nine-dimensional).
-    Useful to simulate the stochastic closure model using (ri+1|qi,ri,ri-1)
-    '''
-
-    def __init__(self, boxsize, numbins=100, lagTimesteps = 1, adjustBox = False):
-        dimension = 9
-        super().__init__(boxsize, numbins, lagTimesteps, dimension, adjustBox)
-
-    def loadData(self, trajs):
-        '''
-        Loads data into binning class
-        '''
-        # Loop over all data and load into dictionary
-        if self.adjustBox:
-            self.adjustBoxPosition(trajs, posBoxIndex=0)
-        self.adjustBoxAux(trajs, auxBoxIndex=3, numAuxVars=2) # Adjust box limits for r variables
-        print("Binning data for ri+1|qi,ri,ri-1 ...")
-        for k, traj in enumerate(trajs):
-            for j in range(len(traj) - 2 * self.lagTimesteps):
-                i = j + self.lagTimesteps
-                qi = traj[i][self.posIndex:self.posIndex + 3]
-                ri = traj[i][self.rIndex:self.rIndex + 3]
-                ri_minus = traj[i - self.lagTimesteps][self.rIndex:self.rIndex + 3]
-                qiririm = np.concatenate([qi,ri,ri_minus])
-                riplus = traj[i + self.lagTimesteps][self.rIndex:self.rIndex + 3]
-                ijk = self.getBinIndex(qiririm)
-                try:
-                    self.data[ijk].append(riplus)
-                except KeyError:
-                    self.data[ijk] = [riplus]
-            sys.stdout.write("File " + str(k + 1) + " of " + str(len(trajs)) + " done." + "\r")
-        self.updateDataStructures()
-
-
-class binnedData_pi(binnedData):
-    '''
-    Class to bin data of velocities (three-dimensional). Useful to
-    simulate the stochastic closure model using ri+1|pi
-    '''
-
-    def __init__(self, boxsize, numbins=100, lagTimesteps = 1, adjustBox = False):
-        dimension = 3
-        super().__init__(boxsize, numbins, lagTimesteps, dimension, adjustBox)
-
-    def loadData(self, trajs):
-        '''
-        Loads data into binning class
-        '''
-        #self.createEmptyDictionary()
-        # Loop over all data and load into dictionary
-        print("Binning data for ri+1|qi ...")
-        if self.adjustBox:
-            self.adjustBoxVelocity(trajs, velBoxIndex = 0)
-        for k, traj in enumerate(trajs):
-            for i in range(len(traj) - self.lagTimesteps):
-                pi = traj[i][self.velIndex:self.velIndex + 3]
-                riplus = traj[i + self.lagTimesteps][self.rIndex:self.rIndex+3]
-                ijk = self.getBinIndex(pi)
-                try:
-                    self.data[ijk].append(riplus)
-                except KeyError:
-                    self.data[ijk] = [riplus]
-            sys.stdout.write("File " + str(k + 1) + " of " + str(len(trajs)) + " done." + "\r")
-        self.updateDataStructures()
-
-class binnedData_piri(binnedData):
-    '''
-    Class to bin data of velocity and auxiliary variable r (six-dimensional).
-    Useful to simulate the stochastic closure model using (ri+1|pi,ri)
-    '''
-
-    def __init__(self, boxsize, numbins=100, lagTimesteps = 1, adjustBox = False):
-        dimension = 6
-        super().__init__(boxsize, numbins, lagTimesteps, dimension, adjustBox)
-
-    def loadData(self, trajs):
-        '''
-        Loads data into binning class
-        '''
-        # Loop over all data and load into dictionary
-        if self.adjustBox:
-            self.adjustBoxVelocity(trajs, velBoxIndex=0)
-        self.adjustBoxAux(trajs, auxBoxIndex=3, numAuxVars=1) # Adjust box limits for r variable
-        print("Binning data for ri+1|pi,ri ...")
-        for k, traj in enumerate(trajs):
-            for i in range(len(traj) - self.lagTimesteps):
-                pi = traj[i][self.velIndex:self.velIndex + 3]
-                ri = traj[i][self.rIndex:self.rIndex + 3]
-                piri = np.concatenate([pi,ri])
-                riplus = traj[i + self.lagTimesteps][self.rIndex:self.rIndex + 3]
-                ijk = self.getBinIndex(piri)
-                try:
-                    self.data[ijk].append(riplus)
-                except KeyError:
-                    self.data[ijk] = [riplus]
-            sys.stdout.write("File " + str(k + 1) + " of " + str(len(trajs)) + " done." + "\r")
-        self.updateDataStructures()
-
-
-class binnedData_piririm(binnedData):
-    '''
-    Class to bin data of velocity, auxiliary variable r, and auxiliary
-    variable at a previous time (nine-dimensional).
-    Useful to simulate the stochastic closure model using (ri+1|pi,ri,ri-1)
-    '''
-
-    def __init__(self, boxsize, numbins=100, lagTimesteps = 1, adjustBox = False):
-        dimension = 9
-        super().__init__(boxsize, numbins, lagTimesteps, dimension, adjustBox)
-
-    def loadData(self, trajs):
-        '''
-        Loads data into binning class
-        '''
-        # Loop over all data and load into dictionary
-        if self.adjustBox:
-            self.adjustBoxVelocity(trajs, velBoxIndex=0)
-        self.adjustBoxAux(trajs, auxBoxIndex=3, numAuxVars=2) # Adjust box limits for r variables
-        print("Binning data for ri+1|pi,ri,ri-1 ...")
-        for k, traj in enumerate(trajs):
-            for j in range(len(traj) - 2 * self.lagTimesteps):
-                i = j + self.lagTimesteps
-                pi = traj[i][self.velIndex:self.velIndex + 3]
-                ri = traj[i][self.rIndex:self.rIndex + 3]
-                ri_minus = traj[i - self.lagTimesteps][self.rIndex:self.rIndex + 3]
-                piririm = np.concatenate([pi,ri,ri_minus])
-                riplus = traj[i + self.lagTimesteps][self.rIndex:self.rIndex + 3]
-                ijk = self.getBinIndex(piririm)
-                try:
-                    self.data[ijk].append(riplus)
-                except KeyError:
-                    self.data[ijk] = [riplus]
-            sys.stdout.write("File " + str(k + 1) + " of " + str(len(trajs)) + " done." + "\r")
-        self.updateDataStructures()
-
-class binnedData_ri(binnedData):
-    '''
-    Class to bin data of auxiliary variable r (three-dimensional). Useful to
-    simulate the stochastic closure model using ri+1|ri.
-    Uses as base the binnedData_qi class
-    '''
-
-    def __init__(self, numbins=100, lagTimesteps=1):
-        dimension = 3
-        adjustBox = False # No position or velocity variables to adjust box for
-        super().__init__(1, numbins, lagTimesteps, dimension, adjustBox)
-
-    def loadData(self, trajs):
-        '''
-        Loads data into binning class
-        '''
-        self.adjustBoxAux(trajs, auxBoxIndex=0, numAuxVars=1) # Adjust box limits for r variables
-        print("Binning data for ri+1|ri ...")
-        # Loop over all data and load into dictionary
-        for k, traj in enumerate(trajs):
-            for i in range(len(traj) - self.lagTimesteps):
-                ri = traj[i][self.rIndex:self.rIndex + 3]  #
-                riplus = traj[i + self.lagTimesteps][self.rIndex:self.rIndex + 3]
-                ijk = self.getBinIndex(ri)
-                try:
-                    self.data[ijk].append(riplus)
-                except KeyError:
-                    self.data[ijk] = [riplus]
-            sys.stdout.write("File " + str(k + 1) + " of " + str(len(trajs)) + " done." + "\r")
-        self.updateDataStructures()
-
-
-
-
-class binnedData_ririm(binnedData):
-    '''
-    Class to bin data of auxiliary variable r, and auxiliary variable at a previous
-    time (six-dimensional). Useful to simulate the stochastic closure model
-    using (ri+1|ri,ri-1)
-    '''
-
-    def __init__(self, numbins=100, lagTimesteps=1):
-        dimension = 6
-        adjustBox = False # No position or velocity variables to adjust box for
-        super().__init__(1, numbins, lagTimesteps, dimension, adjustBox)
-
-    def loadData(self, trajs):
-        '''
-        Loads data into binning class
-        '''
-        self.adjustBoxAux(trajs, auxBoxIndex=0, numAuxVars=2) # Adjust box limits for r variables
-        print("Binning data for ri+1|ri,ri-1 ...")
-        # Loop over all data and load into dictionary
-        for k, traj in enumerate(trajs):
-            for j in range(len(traj) - 2 * self.lagTimesteps):
-                i = j + self.lagTimesteps
-                ri = traj[i][self.rIndex:self.rIndex + 3]
-                ri_minus = traj[i - self.lagTimesteps][self.rIndex:self.rIndex + 3]
-                ririm = np.concatenate([ri,ri_minus])
-                riplus = traj[i + self.lagTimesteps][self.rIndex:self.rIndex + 3]
-                ijk = self.getBinIndex(ririm)
-                try:
-                    self.data[ijk].append(riplus)
-                except KeyError:
-                    self.data[ijk] = [riplus]
-            sys.stdout.write("File " + str(k + 1) + " of " + str(len(trajs)) + " done." + "\r")
-        self.updateDataStructures()
