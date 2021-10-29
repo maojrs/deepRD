@@ -36,7 +36,7 @@ class binnedData:
         # Other important variables
         self.posIndex = 1  # Index of x position coordinate in trajectory files
         self.velIndex = 4  # Index of x velocity coordinate in trajectory files
-        self.auxIndex = 5 #8  # Position of x coordinate of r in trajectory files
+        self.auxIndex = 8  # Position of x coordinate of r in trajectory files
         self.neighborsDictionary = {}
         self.dataTree = None # dataTree structure to find nearest neighbors
         self.occupiedTuplesArray = None # array of tuples corresponding to occupied bins
