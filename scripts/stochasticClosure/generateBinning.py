@@ -41,33 +41,33 @@ numbins = 50
 lagTimesteps = 1  # Number of timesteps (from data) to look back in time
 boxsizeBinning = boxsize
 
-# # ----------------Binning for ri+1|qi--------------------------
-#
-# # Load binned data for ri+1|qi. Note one timestep from data equal parameters['dt'] * parameters['stride']
-# qiBinnedData = binnedData_qi(boxsizeBinning, numbins, lagTimesteps)
-# qiBinnedData.loadData(trajs)
-# qiBinnedData.parameterDictionary = parameterDictionary
-#
-# # Dump qi binned data into pickle file and free memory
-# print("Dumping data into pickle file ...")
-# qiBinnedDataFilename = binningDataDirectory + 'qiBinnedData.pickle'
-# pickle.dump(qiBinnedData, open(qiBinnedDataFilename, "wb" ))
-# del qiBinnedData
-# print("Binning for ri+1|qi done (1/4).")
-#
-# # ----------------Binning for ri+1|ri--------------------------
-#
-# # Load binned data for ri+1|ri
-# riBinnedData = binnedData_ri(numbins, lagTimesteps)
-# riBinnedData.loadData(trajs)
-# riBinnedData.parameterDictionary = parameterDictionary
-#
-# # Dump ri binned data into pickle file and free memory
-# print("Dumping data into pickle file ...")
-# riBinnedDataFilename = binningDataDirectory + 'riBinnedData.pickle'
-# pickle.dump(riBinnedData, open(riBinnedDataFilename, "wb" ))
-# del riBinnedData
-# print("Binning for ri+1|ri done (2/4).")
+# ----------------Binning for ri+1|qi--------------------------
+
+# Load binned data for ri+1|qi. Note one timestep from data equal parameters['dt'] * parameters['stride']
+qiBinnedData = binnedData_qi(boxsizeBinning, numbins, lagTimesteps)
+qiBinnedData.loadData(trajs)
+qiBinnedData.parameterDictionary = parameterDictionary
+
+# Dump qi binned data into pickle file and free memory
+print("Dumping data into pickle file ...")
+qiBinnedDataFilename = binningDataDirectory + 'qiBinnedData.pickle'
+pickle.dump(qiBinnedData, open(qiBinnedDataFilename, "wb" ))
+del qiBinnedData
+print("Binning for ri+1|qi done (1/4).")
+
+# ----------------Binning for ri+1|ri--------------------------
+
+# Load binned data for ri+1|ri
+riBinnedData = binnedData_ri(numbins, lagTimesteps)
+riBinnedData.loadData(trajs)
+riBinnedData.parameterDictionary = parameterDictionary
+
+# Dump ri binned data into pickle file and free memory
+print("Dumping data into pickle file ...")
+riBinnedDataFilename = binningDataDirectory + 'riBinnedData.pickle'
+pickle.dump(riBinnedData, open(riBinnedDataFilename, "wb" ))
+del riBinnedData
+print("Binning for ri+1|ri done (2/4).")
 
 # ----------------Binning for ri+1|qi,ri--------------------------
 
