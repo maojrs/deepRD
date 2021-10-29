@@ -49,7 +49,6 @@ print("All data loaded.")
 numbins = 50
 lagTimesteps = 1  # Number of timesteps (from data) to look back in time
 boxsizeBinning = boxsize
-numBinnings = 6
 
 # List of possible combinations for binnings
 binPositionList = [True, False]
