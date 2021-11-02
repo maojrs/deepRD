@@ -10,12 +10,12 @@ from deepRD.noiseSampler import binnedData
 
 '''
 Generates binned data structures on several different conditionings for the stochastic closure model.
-Currently implemented for ri+1|qi; ri+1|ri; ri+1|qi,ri; ri+1|qi,ri,ri-1
+Currently implemented on conditioning ri+1 on all the combinations qi,pi,ri,ri-1
 '''
 
 parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/benchmark/'
 fnamebase = parentDirectory + 'simMoriZwanzig_'
-foldername = 'binnedDataTest/'
+foldername = 'binnedData/'
 binningDataDirectory = os.path.join('../../data/stochasticClosure/', foldername)
 
 try:
