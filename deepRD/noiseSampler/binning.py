@@ -10,18 +10,18 @@ from itertools import product
 Classes to bin trajectory data obtained from a particle/molecular simulation.
 The classes here assume the trajs object consist of an array/list 
 of trajectories, where trajectory consists of an array of points of 
-the form: (time, positionx, positiony, positionz, type, rx, ry, rz).  
+the form: (time, positionx, positiony, positionz, velocityx, velocityy, velocityz, type, rx, ry, rz).  
 '''
 
 class binnedData:
     '''
-    Parent class to bin data, just to be used as parent class. The dimension consists of the
+    Parent class to bin data. The dimension consists of the
     combined dimension of all the variable upon which one is conditioning, e.g (ri+1|qi,ri)
     would have dimension 6, 3 for qi and 3 for ri.
     '''
 
     def __init__(self, boxsize, numbins = 100, lagTimesteps = 1, binPosition = False,
-                 binVelocity = False, numBinnedAuxVars = 1, adjustPosVelBox = False):
+                 binVelocity = False, numBinnedAuxVars = 1, adjustPosVelBox = True):
         self.binPosition = binPosition
         self.binVelocity = binVelocity
         self.numBinnedAuxVars = numBinnedAuxVars
@@ -79,18 +79,22 @@ class binnedData:
             posBoxIndex = 0
             velBoxIndex = 3
             auxBoxIndex = 6
-        if not self.binPosition and self.binVelocity:
+        elif not self.binPosition and self.binVelocity:
             posBoxIndex = None
             velBoxIndex = 0
             auxBoxIndex = 3
-        if self.binPosition and not self.binVelocity:
+        elif self.binPosition and not self.binVelocity:
             posBoxIndex = 0
             velBoxIndex = None
             auxBoxIndex = 3
-        if not self.binPosition and not self.binVelocity:
+        elif not self.binPosition and not self.binVelocity:
             posBoxIndex = None
             velBoxIndex = None
             auxBoxIndex = 0
+        else:
+            posBoxIndex = None
+            velBoxIndex = None
+            auxBoxIndex = None
         return posBoxIndex, velBoxIndex, auxBoxIndex
 
     def calculateDimensionAndBinningLabel(self):
