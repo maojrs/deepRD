@@ -48,7 +48,7 @@ print("All data loaded.")
 # Parameters used for all binnings:
 numbins = 50
 lagTimesteps = 1  # Number of timesteps (from data) to look back in time
-boxsizeBinning = boxsize
+boxsizeBinning = boxsize # Overriden by default when loading trajectory data
 
 # List of possible combinations for binnings
 binPositionList = [True, False]
@@ -58,7 +58,7 @@ numBinnedAuxVarsList = [0,1,2]
 for parameterCombination in product(*[binPositionList, binVelocitiesList, numBinnedAuxVarsList]):
     if parameterCombination != (False,False,0):
         binPosition, binVelocity, numBinnedAuxVars = parameterCombination
-        dataOnBins = binnedData(boxsizeBinning, numbins, lagTimesteps, binPosition,binVelocity, numBinnedAuxVars)
+        dataOnBins = binnedData(boxsizeBinning, numbins, lagTimesteps, binPosition, binVelocity, numBinnedAuxVars)
         dataOnBins.loadData(trajs)
         dataOnBins.parameterDictionary = parameterDictionary
 
