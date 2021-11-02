@@ -132,8 +132,8 @@ class binnedData:
             boxIndex = self.velBoxIndex
         else:
             print('Variable for adjustBox functions must be position or velocity')
-        minvec = np.array(1.0*trajs[0][0][trajIndex: trajIndex + 3])
-        maxvec = np.array(1.0*trajs[0][0][trajIndex: trajIndex + 3])
+        minvec = np.array(trajs[0][0][trajIndex: trajIndex + 3])
+        maxvec = np.array(trajs[0][0][trajIndex: trajIndex + 3])
         for traj in trajs:
             for i in range(len(traj)):
                 condVar = traj[i][trajIndex: trajIndex + 3]
@@ -154,8 +154,8 @@ class binnedData:
         corresponds to the number of auxiliary variables, e.g. in ri+1|ri,ri-1, it would
         be two.
         '''
-        minvec = np.array(1.0*trajs[0][0][self.auxIndex: self.auxIndex + 3])
-        maxvec = np.array(1.0*trajs[0][0][self.auxIndex: self.auxIndex + 3])
+        minvec = np.array(trajs[0][0][self.auxIndex: self.auxIndex + 3])
+        maxvec = np.array(trajs[0][0][self.auxIndex: self.auxIndex + 3])
         for traj in trajs:
             for i in range(len(traj)):
                 condVar = traj[i][self.auxIndex: self.auxIndex + 3]
