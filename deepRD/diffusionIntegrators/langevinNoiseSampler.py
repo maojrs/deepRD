@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 from .langevin import langevin
 
 class langevinNoiseSampler(langevin):
@@ -24,18 +25,24 @@ class langevinNoiseSampler(langevin):
         Returns variable upon which the binning is conditioned for the integration. Can extend to
         incorporate conditioning on velocities.
         '''
-        if self.conditionedOn == 'qi':
-            return (particle.nextPosition)
         if self.conditionedOn == 'ri':
             return (self.prevNoiseTerm)
-        elif self.conditionedOn == 'qiri':
-            return np.concatenate((particle.nextPosition, self.prevNoiseTerm))
         elif self.conditionedOn == 'ririm':
             return np.concatenate((self.prevNoiseTerm, self.prevprevNoiseTerm))
+        elif self.conditionedOn == 'qi':
+            return (particle.nextPosition)
+        elif self.conditionedOn == 'qiri':
+            return np.concatenate((particle.nextPosition, self.prevNoiseTerm))
         elif self.conditionedOn == 'qiririm':
             return np.concatenate((particle.nextPosition, self.prevNoiseTerm, self.prevprevNoiseTerm))
-        #elif self.conditioneOn == 'qivi':
-        #    return np.concatenate((particle.nextPosition, particle.nextVelocity))
+        elif self.conditionedOn == 'pi':
+            return (particle.nextVelocity)
+        elif self.conditionedOn == 'piri':
+            return np.concatenate((particle.nextVelocity, self.prevNoiseTerm))
+        elif self.conditionedOn == 'piririm':
+            return np.concatenate((particle.nextVelocity, self.prevNoiseTerm, self.prevprevNoiseTerm))
+        else:
+            sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
 
 
     def integrateOne(self, particleList):
