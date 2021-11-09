@@ -49,14 +49,25 @@ class diffusionIntegrator:
         '''
         raise NotImplementedError("Please Implement propagate method")
 
-    def enforceBoundary(self, particleList):
+    def enforceBoundary(self, particleList, whichPosition = 'current'):
+        '''
+        The whichPosition variable can take values of 'current' or 'next'.
+        '''
         if self.boundary == 'periodic' and self.boxsize != None:
-            for particle in particleList:
-                for j in range(particleList.dimension):
-                    if (particle.position[j] >= self.boxsize[j]/2):
-                        particle.position[j] -= self.boxsize[j]
-                    if (particle.position[j] <= - self.boxsize[j] / 2):
-                        particle.position[j] += self.boxsize[j]
+            if whichPosition == 'current':
+                for particle in particleList:
+                    for j in range(particleList.dimension):
+                        if (particle.position[j] >= self.boxsize[j]/2):
+                            particle.position[j] -= self.boxsize[j]
+                        if (particle.position[j] <= - self.boxsize[j] / 2):
+                            particle.position[j] += self.boxsize[j]
+            else:
+                for particle in particleList:
+                    for j in range(particleList.dimension):
+                        if (particle.nextPosition[j] >= self.boxsize[j]/2):
+                            particle.nextPosition[j] -= self.boxsize[j]
+                        if (particle.nextPosition[j] <= - self.boxsize[j] / 2):
+                            particle.nextPosition[j] += self.boxsize[j]
 
 
     def calculateForceField(self, particleList):
