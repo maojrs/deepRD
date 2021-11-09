@@ -5,6 +5,7 @@ import random
 import sys
 from scipy import spatial
 from itertools import product
+from ..tools import trajectoryTools
 
 '''
 Classes to bin trajectory data obtained from a particle/molecular simulation.
@@ -117,11 +118,13 @@ class binnedData:
                 self.binningLabel += 'ri-' +str(i) +','
                 self.binningLabel2 += 'ri' + 'm'*i
 
-    def adjustBox(self, trajs, variable = 'position'):
+    def adjustBox(self, trajs, variable = 'position', nsigma=-1):
         '''
         Calculate boxlimits of position or velocity variables from trajectories for binning and
-        adjust boxsize accordingly. The variable posBoxIndex correspond to the index
-        of the x-position in the boxsize array.
+        adjust boxsize accordingly. If nsigma < 0, it creates a box around all data.
+        If it is a numerical value, it includes up to nsigma standard deviations around the mean.
+        The variable self.pos/velBoxIndex correspond to the index of the x-position/velocity in the
+        boxsize array.
         '''
         if variable == 'position':
             trajIndex = self.posIndex
@@ -131,36 +134,49 @@ class binnedData:
             boxIndex = self.velBoxIndex
         else:
             print('Variable for adjustBox functions must be position or velocity')
-        minvec = np.array(trajs[0][0][trajIndex: trajIndex + 3])
-        maxvec = np.array(trajs[0][0][trajIndex: trajIndex + 3])
-        for traj in trajs:
-            for i in range(len(traj)):
-                condVar = traj[i][trajIndex: trajIndex + 3]
-                for j in range(3):
-                    minvec[j] = min(minvec[j], condVar[j])
-                    maxvec[j] = max(maxvec[j], condVar[j])
+        if nsigma < 0:
+            minvec = np.array(trajs[0][0][trajIndex: trajIndex + 3])
+            maxvec = np.array(trajs[0][0][trajIndex: trajIndex + 3])
+            for traj in trajs:
+                for i in range(len(traj)):
+                    condVar = traj[i][trajIndex: trajIndex + 3]
+                    for j in range(3):
+                        minvec[j] = min(minvec[j], condVar[j])
+                        maxvec[j] = max(maxvec[j], condVar[j])
+        else:
+            mean = trajectoryTools.calculateMean(trajs, [trajIndex, trajIndex + 3])
+            stddev = trajectoryTools.calculateStdDev(trajs, [trajIndex, trajIndex + 3], mean)
+            minvec = mean - nsigma * stddev
+            maxvec = mean + nsigma * stddev
         # Adjust boxsize and bins accordingly
         for k in range(3):
             self.boxsize[boxIndex + k] = (maxvec[k] - minvec[k])
             voxeledge = self.boxsize[boxIndex + k] / self.numbins[boxIndex + k]
             self.bins[boxIndex + k] = np.arange(minvec[k], maxvec[k], voxeledge)
 
-    def adjustBoxAux(self, trajs):
+    def adjustBoxAux(self, trajs, nsigma=-1):
         '''
         Calculate boxlimits of auxiliary variables from trajectories for binning and
-        adjust boxsize accordingly. The variable auxBoxIndex correspond to the index
-        of the x-coordinate of the first aux variable in the boxsize array; numAuxVars
-        corresponds to the number of auxiliary variables, e.g. in ri+1|ri,ri-1, it would
-        be two.
+        adjust boxsize accordingly. If nsigma < 0, it creates a box around all data.
+        If it is a numerical value, it includes up to nsigma standard deviations around the mean.
+        The variable self.auxBoxIndex correspond to the index of the x-coordinate of the first
+        aux variable in the boxsize array; numAuxVars corresponds to the number of auxiliary
+        variables, e.g. in ri+1|ri,ri-1, it would be two.
         '''
-        minvec = np.array(trajs[0][0][self.auxIndex: self.auxIndex + 3])
-        maxvec = np.array(trajs[0][0][self.auxIndex: self.auxIndex + 3])
-        for traj in trajs:
-            for i in range(len(traj)):
-                condVar = traj[i][self.auxIndex: self.auxIndex + 3]
-                for j in range(3):
-                    minvec[j] = min(minvec[j], condVar[j])
-                    maxvec[j] = max(maxvec[j], condVar[j])
+        if nsigma < 0:
+            minvec = np.array(trajs[0][0][self.auxIndex: self.auxIndex + 3])
+            maxvec = np.array(trajs[0][0][self.auxIndex: self.auxIndex + 3])
+            for traj in trajs:
+                for i in range(len(traj)):
+                    condVar = traj[i][self.auxIndex: self.auxIndex + 3]
+                    for j in range(3):
+                        minvec[j] = min(minvec[j], condVar[j])
+                        maxvec[j] = max(maxvec[j], condVar[j])
+        else:
+            mean = trajectoryTools.calculateMean(trajs, [self.auxIndex,self.auxIndex + 3])
+            stddev = trajectoryTools.calculateStdDev(trajs, [self.auxIndex,self.auxIndex + 3], mean)
+            minvec = mean - nsigma*stddev
+            maxvec = mean + nsigma*stddev
         # Adjust boxsize and bins accordingly
         for m in range(self.numBinnedAuxVars):
             for k in range(3):
@@ -227,17 +243,18 @@ class binnedData:
         availableData = self.data[occupiedBinIndex]
         return random.choice(availableData)
 
-    def loadData(self, trajs):
+    def loadData(self, trajs, nsigma=-1):
         '''
-        Loads data into binning class
+        Loads data into binning class. If nsigma < 0, it creates a box around all data.
+        If it is a numerical value, it includes up to nsigma standard deviations around the mean.
         '''
         # Adjust boxes size for binning
         if self.adjustPosVelBox and self.binPosition:
-            self.adjustBox(trajs, 'position')
+            self.adjustBox(trajs, 'position', nsigma)
         if self.adjustPosVelBox and self.binVelocity:
-            self.adjustBox(trajs, 'velocity')
+            self.adjustBox(trajs, 'velocity', nsigma)
         if self.numBinnedAuxVars > 0:
-            self.adjustBoxAux(trajs) # Adjust box limits for r variables
+            self.adjustBoxAux(trajs, nsigma) # Adjust box limits for r variables
         # Loop over all data and load into dictionary
         print('Binning data for ' + self.binningLabel + ' ...')
         for k, traj in enumerate(trajs):
