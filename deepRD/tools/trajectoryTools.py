@@ -186,47 +186,60 @@ def extractVariableFromTrajectory(trajs, variableIndex):
     return np.array(variableArray)
 
 
-def calculateMean(trajs, var = 'position'):
+def calculateMean(trajs, varOrIndex = 'position'):
     '''
-    Calculates mean of trajectories, var can be 'position' or 'velocity', assuming indexing in each element
-    of a trajectory be (t,position,velocity).
+    Calculates mean of trajectories, varOrIndex can be 'position' or 'velocity', assuming indexing in each element
+    of a trajectory be (t,position,velocity), or it can be an index range, e.g. [1,4] for position
     '''
-    if var == 'position':
-        index = 1
-    elif var == 'velocity':
-        index = 4
-    meanPosition = np.zeros(3)
+    if varOrIndex == 'position':
+        indexl = 1
+        indexr = 4
+    elif varOrIndex == 'velocity':
+        indexl = 4
+        indexr = 7
+    else:
+        indexl = varOrIndex[0]
+        indexr = varOrIndex[1]
+    dimension = indexr - indexl
+    mean = np.zeros(dimension)
     totalSamples = 0
     for traj in trajs:
         for i in range(len(traj)):
-            meanPosition += traj[i][index:index+3]
+            mean += traj[i][indexl:indexr]
         totalSamples += len(traj)
-    meanPosition = meanPosition/totalSamples
-    return meanPosition
+    mean = mean/totalSamples
+    return mean
 
-def calculateVariance(trajs, var = 'position', mean = None):
+def calculateVariance(trajs, varOrIndex = 'position', mean = None):
     '''
     Calculates variance of trajectories, var can be 'position' or 'velocity', assuming indexing in each element
-    of a trajectory be (t,position,velocity). If mean is not given, it calls calulate mean.
+    of a trajectory be (t,position,velocity), or it can be an index range, e.g. [1,4] for position.
+    If mean is not given, it calls calculate mean.
     '''
-    if var == 'position':
-        index = 1
-    elif var == 'velocity':
-        index = 4
     if mean.any() == None:
-        mean = calculateMean(trajs)
-    variance = np.zeros(3)
+        mean = calculateMean(trajs, varOrIndex)
+    if varOrIndex == 'position':
+        indexl = 1
+        indexr = 4
+    elif varOrIndex == 'velocity':
+        indexl = 4
+        indexr = 7
+    else:
+        indexl = varOrIndex[0]
+        indexr = varOrIndex[1]
+    dimension = indexr - indexl
+    variance = np.zeros(dimension)
     totalSamples = 0
     for traj in trajs:
         for i in range(len(traj)):
-            devFromMean = traj[i][index:index+3] - mean
+            devFromMean = traj[i][indexl:indexr] - mean
             variance += devFromMean*devFromMean
         totalSamples += len(traj)
     variance = variance/totalSamples
     return variance
 
-def calculateStdDev(trajs, var = 'position', mean = None):
-    variance = calculateVariance(trajs, var, mean)
+def calculateStdDev(trajs, varOrIndex = 'position', mean = None):
+    variance = calculateVariance(trajs, varOrIndex, mean)
     stddev = np.sqrt(variance)
     return stddev
 
