@@ -16,8 +16,8 @@ class langevinNoiseSampler(langevin):
         integratorType = "ABOBA"
         super().__init__(dt, stride, tfinal, kBT, boxsize, boundary,integratorType, equilibrationSteps)
         self.noiseSampler = noiseSampler
-        self.prevNoiseTerm = np.zeros(3)
-        self.prevprevNoiseTerm = np.zeros(3)
+        self.prevNoiseTerm = np.zeros(3) # Needs fixing to work for particlelist larger than one
+        self.prevprevNoiseTerm = np.zeros(3) # Needs fixing to work for particlelist larger than one
         self.conditionedOn = conditionedOn
 
     def getConditionedVars(self, particle):

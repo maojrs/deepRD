@@ -49,7 +49,7 @@ numSimulations = 100 #100
 conditionedOn = 'ri' # Available conditionings: qi, ri, qiri, qiririm
 
 # Output data directory
-foldername = 'benchmarkReduced_' + conditionedOn
+foldername = 'benchmarkReducedTest_' + conditionedOn
 outputDataDirectory = os.path.join(localDataDirectory, foldername)
 # Create folder for data
 try:
@@ -62,7 +62,7 @@ except OSError as error:
 
 # Load binning sampling models
 print("Loading binned data ...")
-binnedDataFilename = localDataDirectory + 'binnedData/' + conditionedOn + 'BinnedData.pickle'
+binnedDataFilename = localDataDirectory + 'binnedDataTest/' + conditionedOn + 'BinnedData.pickle'
 #binnedDataFilename = localDataDirectory + 'binnedData/riBinnedData.pickle'
 dataOnBins = pickle.load(open(binnedDataFilename, "rb" ))
 parameters = dataOnBins.parameterDictionary

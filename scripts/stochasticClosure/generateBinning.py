@@ -15,7 +15,7 @@ Currently implemented on conditioning ri+1 on all the combinations qi,pi,ri,ri-1
 
 parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/benchmark/'
 fnamebase = parentDirectory + 'simMoriZwanzig_'
-foldername = 'binnedData/'
+foldername = 'binnedDataTest/'
 binningDataDirectory = os.path.join('../../data/stochasticClosure/', foldername)
 
 try:
@@ -46,7 +46,7 @@ for i in range(nfiles):
 print("All data loaded.")
 
 # Parameters used for all binnings:
-numbins = 10 #50
+numbins = 16 #50
 lagTimesteps = 1  # Number of timesteps (from data) to look back in time
 boxsizeBinning = boxsize # Overriden by default when loading trajectory data
 nsigma = 3 # Only include up to nsigma standard deviations around mean of data. If no value given, includes all.
