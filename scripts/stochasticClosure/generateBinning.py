@@ -49,6 +49,7 @@ print("All data loaded.")
 numbins = 50
 lagTimesteps = 1  # Number of timesteps (from data) to look back in time
 boxsizeBinning = boxsize # Overriden by default when loading trajectory data
+nsigma = 3 # Only include up to nsigma standard deviations around mean of data. If no value given, includes all.
 
 # List of possible combinations for binnings
 binPositionList = [True, False]
@@ -59,7 +60,7 @@ for parameterCombination in product(*[binPositionList, binVelocitiesList, numBin
     if parameterCombination != (False,False,0):
         binPosition, binVelocity, numBinnedAuxVars = parameterCombination
         dataOnBins = binnedData(boxsizeBinning, numbins, lagTimesteps, binPosition, binVelocity, numBinnedAuxVars)
-        dataOnBins.loadData(trajs)
+        dataOnBins.loadData(trajs, nsigma)
         dataOnBins.parameterDictionary = parameterDictionary
 
         # Dump qi binned data into pickle file and free memory
@@ -74,6 +75,20 @@ for parameterCombination in product(*[binPositionList, binVelocitiesList, numBin
 
 # Old routines, but syntax still works
 
+# from deepRD.noiseSampler import binnedData_ri
+# # Load binned data for ri+1|ri
+# riBinnedData = binnedData_ri(numbins, lagTimesteps)
+# riBinnedData.loadData(trajs)
+# riBinnedData.parameterDictionary = parameterDictionary
+#
+# # Dump ri binned data into pickle file and free memory
+# print('Dumping data into pickle file ...')
+# riBinnedDataFilename = binningDataDirectory + 'riBinnedData.pickle'
+# pickle.dump(riBinnedData, open(riBinnedDataFilename, "wb" ))
+# print('Binning for '+ riBinnedData.binningLabel + ' done (2/4).')
+# del riBinnedData
+
+
 # # ----------------Binning for ri+1|qi--------------------------
 #
 # # Load binned data for ri+1|qi. Note one timestep from data equal parameters['dt'] * parameters['stride']
@@ -86,8 +101,8 @@ for parameterCombination in product(*[binPositionList, binVelocitiesList, numBin
 # print('Dumping data into pickle file ...')
 # qiBinnedDataFilename = binningDataDirectory + 'qiBinnedData.pickle'
 # pickle.dump(qiBinnedData, open(qiBinnedDataFilename, "wb" ))
-# del qiBinnedData
 # print('Binning for '+ qiBinnedData.binningLabel + ' done (1/4).')
+# del qiBinnedData
 #
 # # ----------------Binning for ri+1|ri--------------------------
 #
@@ -101,8 +116,8 @@ for parameterCombination in product(*[binPositionList, binVelocitiesList, numBin
 # print('Dumping data into pickle file ...')
 # riBinnedDataFilename = binningDataDirectory + 'riBinnedData.pickle'
 # pickle.dump(riBinnedData, open(riBinnedDataFilename, "wb" ))
-# del riBinnedData
 # print('Binning for '+ riBinnedData.binningLabel + ' done (2/4).')
+# del riBinnedData
 #
 # # ----------------Binning for ri+1|qi,ri--------------------------
 #
@@ -116,8 +131,8 @@ for parameterCombination in product(*[binPositionList, binVelocitiesList, numBin
 # print('Dumping data into pickle file ...')
 # qiriBinnedDataFilename = binningDataDirectory + 'qiriBinnedData.pickle'
 # pickle.dump(qiriBinnedData, open(qiriBinnedDataFilename, "wb" ))
-# del qiriBinnedData
 # print('Binning for '+ qiriBinnedData.binningLabel + ' done (3/4).')
+# del qiriBinnedData
 #
 # # ----------------Binning for ri+1|qi,ri,ri-1 --------------------------
 #
@@ -131,5 +146,5 @@ for parameterCombination in product(*[binPositionList, binVelocitiesList, numBin
 # print('Dumping data into pickle file ...')
 # qiririmBinnedDataFilename = binningDataDirectory + 'qiririmBinnedData.pickle'
 # pickle.dump(qiririmBinnedData, open(qiririmBinnedDataFilename, "wb" ))
-# del qiririmBinnedData
 # print('Binning for '+ qiririmBinnedData.binningLabel + ' done (4/4).')
+# del qiririmBinnedData
