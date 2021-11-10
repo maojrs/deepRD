@@ -30,6 +30,7 @@ class binnedData:
         self.dimension = None
         self.binningLabel = ''
         self.binningLabel2 = ''
+        self.percentageOccupiedBins = None
 
         # Calculate dimension and binning label
         self.calculateDimensionAndBinningLabel()
@@ -70,6 +71,27 @@ class binnedData:
         self.bins = bins
         self.data = {}
 
+    def calculateDimensionAndBinningLabel(self):
+        self.binningLabel = 'ri+1|'
+        self.binningLabel2 = ''
+        self.dimension = 0
+        if self.binPosition:
+            self.binningLabel += 'qi,'
+            self.binningLabel2 += 'qi'
+            self.dimension +=3
+        if self.binVelocity:
+            self.binningLabel += 'pi,'
+            self.binningLabel2 += 'pi'
+            self.dimension +=3
+        for i in range(self.numBinnedAuxVars):
+            self.dimension +=3
+            if i == 0:
+                self.binningLabel += 'ri,'
+                self.binningLabel2 += 'ri'
+            else:
+                self.binningLabel += 'ri-' +str(i) +','
+                self.binningLabel2 += 'ri' + 'm'*i
+
     def calculateBoxIndexes(self):
         '''
         Determines the indexes correspo0nding to which variable in the box array. It assumes the
@@ -96,27 +118,6 @@ class binnedData:
             velBoxIndex = None
             auxBoxIndex = None
         return posBoxIndex, velBoxIndex, auxBoxIndex
-
-    def calculateDimensionAndBinningLabel(self):
-        self.binningLabel = 'ri+1|'
-        self.binningLabel2 = ''
-        self.dimension = 0
-        if self.binPosition:
-            self.binningLabel += 'qi,'
-            self.binningLabel2 += 'qi'
-            self.dimension +=3
-        if self.binVelocity:
-            self.binningLabel += 'pi,'
-            self.binningLabel2 += 'pi'
-            self.dimension +=3
-        for i in range(self.numBinnedAuxVars):
-            self.dimension +=3
-            if i == 0:
-                self.binningLabel += 'ri,'
-                self.binningLabel2 += 'ri'
-            else:
-                self.binningLabel += 'ri-' +str(i) +','
-                self.binningLabel2 += 'ri' + 'm'*i
 
     def adjustBox(self, trajs, variable = 'position', nsigma=-1):
         '''
@@ -188,7 +189,8 @@ class binnedData:
     def getBinIndex(self, conditionedVars):
         '''
         If conditioned variables are out of domain of bins, it
-        will return the closest possible bin
+        will return the closest possible bin. Note bins in the bins
+        array are labeled by their value at their left edge.
         '''
         indexes = [None]*self.dimension
         for i in range(self.dimension):
@@ -279,4 +281,4 @@ class binnedData:
                     self.data[ijk] = [riplus]
             sys.stdout.write("File " + str(k + 1) + " of " + str(len(trajs)) + " done." + "\r")
         self.updateDataStructures()
-
+        self.percentageOccupiedBins = 100 * len(self.occupiedTuplesArray)/np.product(self.numbins)
