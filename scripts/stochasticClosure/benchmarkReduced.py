@@ -77,6 +77,11 @@ KbT = parameters['KbT']
 boxsize = parameters['boxsize']
 boundaryType = parameters['boundaryType']
 
+# Extract binning parameters
+numbins = parameters['numbins']
+lagTimesteps = parameters['lagTimesteps']
+nsigma = parameters['nsigma']
+
 # Define noise sampler
 nSampler = noiseSampler(dataOnBins)
 
@@ -93,7 +98,8 @@ parameterfilename = os.path.join(outputDataDirectory, "parameters")
 parameterDictionary = {'numFiles' : numSimulations, 'dt' : dt, 'D' : D, 'KbT' : KbT,
                        'mass' : mass, 'tfinal' : tfinal, 'stride' : integratorStride,
                        'boxsize' : boxsize, 'boundaryType' : boundaryType,
-                       'equilibrationSteps' : equilibrationSteps, 'conditionedOn': conditionedOn}
+                       'equilibrationSteps' : equilibrationSteps, 'conditionedOn': conditionedOn,
+                       'numbins': numbins, 'lagTimesteps': lagTimesteps, 'nsigma': nsigma}
 analysisTools.writeParameters(parameterfilename, parameterDictionary)
 
 # Provides base filename (folder must exist (and preferably empty), otherwise H5 might fail)
