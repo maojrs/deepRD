@@ -7,6 +7,7 @@ import deepRD
 from deepRD.diffusionIntegrators import langevinNoiseSampler
 from deepRD.potentials import harmonic
 from deepRD.noiseSampler import noiseSampler
+from deepRD.noiseSampler import binnedData
 import deepRD.tools.trajectoryTools as trajectoryTools
 import deepRD.tools.analysisTools as analysisTools
 
@@ -45,7 +46,7 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 # Simulation parameters
 localDataDirectory = '../../data/stochasticClosure/'
 numSimulations = 100 #100
-conditionedOn = 'qiri' # Available conditionings: qi, ri, qiri, qiririm
+conditionedOn = 'ri' # Available conditionings: qi, ri, qiri, qiririm
 
 # Output data directory
 foldername = 'benchmarkReduced_' + conditionedOn
@@ -63,8 +64,8 @@ except OSError as error:
 print("Loading binned data ...")
 binnedDataFilename = localDataDirectory + 'binnedData/' + conditionedOn + 'BinnedData.pickle'
 #binnedDataFilename = localDataDirectory + 'binnedData/riBinnedData.pickle'
-binnedData = pickle.load(open(binnedDataFilename, "rb" ))
-parameters = binnedData.parameterDictionary
+dataOnBins = pickle.load(open(binnedDataFilename, "rb" ))
+parameters = dataOnBins.parameterDictionary
 print('Binned data loaded')
 #print(parameters)
 
@@ -75,6 +76,9 @@ mass =  parameters['mass']
 KbT = parameters['KbT']
 boxsize = parameters['boxsize']
 boundaryType = parameters['boundaryType']
+
+# Define noise sampler
+nSampler = noiseSampler(dataOnBins)
 
 # External potential parameters
 kconstant = 0.3
@@ -106,9 +110,6 @@ def runParallelSims(simnumber):
     particle = deepRD.particle(position, D, velocity, mass)
     particleList = deepRD.particleList([particle])
 
-    # Define noise sampler
-    nSampler = noiseSampler(binnedData)
-
     # Define external potential
     harmonicPotential = harmonic(kconstant)
 
@@ -132,3 +133,7 @@ num_cores = multiprocessing.cpu_count() - 1
 pool = Pool(processes=num_cores)
 iterator = [i for i in range(numSimulations)]
 pool.map(partial(runParallelSims), iterator)
+
+## Serial test
+#for i in range(numSimulations):
+#    runParallelSims(i)
