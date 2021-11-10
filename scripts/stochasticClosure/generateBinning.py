@@ -46,10 +46,15 @@ for i in range(nfiles):
 print("All data loaded.")
 
 # Parameters used for all binnings:
-numbins = 50
+numbins = 10 #50
 lagTimesteps = 1  # Number of timesteps (from data) to look back in time
 boxsizeBinning = boxsize # Overriden by default when loading trajectory data
 nsigma = 3 # Only include up to nsigma standard deviations around mean of data. If no value given, includes all.
+
+# Add elements to parameter dictionary
+parameterDictionary['numbins'] = numbins
+parameterDictionary['lagTimesteps'] = lagTimesteps
+parameterDictionary['nsigma'] = nsigma
 
 # List of possible combinations for binnings
 binPositionList = [True, False]
