@@ -61,7 +61,7 @@ class diffusionIntegrator:
                             particle.position[j] -= self.boxsize[j]
                         if (particle.position[j] <= - self.boxsize[j] / 2):
                             particle.position[j] += self.boxsize[j]
-            else:
+            elif whichPosition == 'next':
                 for particle in particleList:
                     for j in range(particleList.dimension):
                         if (particle.nextPosition[j] >= self.boxsize[j]/2):
