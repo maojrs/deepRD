@@ -57,7 +57,7 @@ class langevinNoiseSampler(langevin):
     def integrateBOB(self, particleList):
         '''Integrates BOB integrations step at once. This is required to separate the noise Sampler from the
         external potential. '''
-        externalForceField = self.calculateForceField(particleList)
+        externalForceField = self.calculateForceField(particleList, 'next')
         for i, particle in enumerate(particleList):
             # Calculate friction term and external potential term
             eta = self.kBT / particle.D  # friction coefficient

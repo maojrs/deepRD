@@ -13,8 +13,12 @@ class harmonic(externalPotential):
     def evaluate(self, particle):
         return np.dot(self.konstant * particle.position, particle.position)
 
-    def calculateForce(self, particle):
+    def calculateForce(self, particle, whichPosition = 'current'):
         '''
-        Calculates force due to potential
+        Calculates force due to potential. If whichPosition == "current", calculate
+        using current position, if "next, calculate it using the next position."
         '''
-        return -2 * self.kconstant * particle.position
+        if whichPosition == 'current':
+            return -2 * self.kconstant * particle.position
+        else:
+            return -2 * self.kconstant * particle.nextPosition
