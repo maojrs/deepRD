@@ -283,4 +283,4 @@ class binnedData:
         self.updateDataStructures()
         self.percentageOccupiedBins = 100 * len(self.occupiedTuplesArray)/np.product(self.numbins)
         sys.stdout.write("Loading trajectories into bins done. \r" )
-        sys.stdout.write("Percentage of occupied bins = " + str(self.percentageOccupiedBins) + "% \r" )
+        sys.stdout.write("\n Percentage of occupied bins = " + str(self.percentageOccupiedBins) + "% \n" )
