@@ -292,6 +292,6 @@ def calculateAutoCorrelationFunction(trajs, lagtimesteps, stride = 1, var = 'pos
     variance = variance/totalSamples
     for lagtime in range(lagtimesteps):
         ACF.append(calculateAutoCorrelation(trajs, lagtime, stride, var, mean, variance))
-        print('Computing ACF:', 100*(lagtime+1)/lagtimesteps , '% complete   ', end="\r")
+        print('Computing ACF for', var, ': ', 100*(lagtime+1)/lagtimesteps , '% complete   ', end="\r")
     ACF = np.array(ACF)
     return ACF
