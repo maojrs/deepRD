@@ -58,13 +58,6 @@ nsigma3 = 1
 
 # Add elements to parameter dictionary
 parameterDictionary['lagTimesteps'] = lagTimesteps
-parameterDictionary['numbins1'] = numbins1
-parameterDictionary['numbins2'] = numbins2
-parameterDictionary['numbins3'] = numbins3
-parameterDictionary['nsigma1'] = nsigma1
-parameterDictionary['nsigma2'] = nsigma2
-parameterDictionary['nsigma3'] = nsigma3
-
 
 # List of possible combinations for binnings
 binPositionList = [False, True]
@@ -88,12 +81,18 @@ for parameterCombination in product(*[binPositionList, binVelocitiesList, numBin
         if numConditionedVariables == 1:
             dataOnBins = binnedData(boxsizeBinning, numbins1, lagTimesteps, binPosition, binVelocity, numBinnedAuxVars)
             dataOnBins.loadData(trajs, nsigma1)
+            parameterDictionary['numbins'] = numbins1
+            parameterDictionary['nsigma'] = nsigma1
         elif numConditionedVariables == 2:
             dataOnBins = binnedData(boxsizeBinning, numbins2, lagTimesteps, binPosition, binVelocity, numBinnedAuxVars)
             dataOnBins.loadData(trajs, nsigma2)
+            parameterDictionary['numbins'] = numbins2
+            parameterDictionary['nsigma'] = nsigma2
         else:
             dataOnBins = binnedData(boxsizeBinning, numbins3, lagTimesteps, binPosition, binVelocity, numBinnedAuxVars)
             dataOnBins.loadData(trajs, nsigma3)
+            parameterDictionary['numbins'] = numbins3
+            parameterDictionary['nsigma'] = nsigma3
         dataOnBins.parameterDictionary = parameterDictionary
 
         # Dump qi binned data into pickle file and free memory
