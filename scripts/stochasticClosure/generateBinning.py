@@ -43,7 +43,8 @@ for i in range(nfiles):
     traj = trajectoryTools.loadTrajectory(fnamebase, i)
     trajs.append(traj)
     sys.stdout.write("File " + str(i+1) + " of " + str(nfiles) + " done." + "\r")
-print("\n All data loaded.")
+print("\nAll data loaded.")
+print(' ')
 
 # Parameters used for all binnings:
 numbins = 16 #50
