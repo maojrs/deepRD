@@ -57,8 +57,8 @@ parameterDictionary['lagTimesteps'] = lagTimesteps
 parameterDictionary['nsigma'] = nsigma
 
 # List of possible combinations for binnings
-binPositionList = [True, False]
-binVelocitiesList = [True, False]
+binPositionList = [False, True]
+binVelocitiesList = [False, True]
 numBinnedAuxVarsList = [0,1,2]
 
 for parameterCombination in product(*[binPositionList, binVelocitiesList, numBinnedAuxVarsList]):

@@ -8,7 +8,7 @@ class harmonic(externalPotential):
     def __init__(self, kconstant):
         self.kconstant = kconstant
         if np.isscalar(kconstant):
-            self.kconstant = [kconstant, kconstant, kconstant]
+            self.kconstant = np.array([kconstant, kconstant, kconstant])
 
     def evaluate(self, particle):
         return np.dot(self.konstant * particle.position, particle.position)
