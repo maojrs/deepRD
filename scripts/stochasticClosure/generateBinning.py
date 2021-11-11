@@ -46,16 +46,21 @@ for i in range(nfiles):
 print("\nAll data loaded.")
 print(' ')
 
-# Parameters used for all binnings:
-numbins = 16 #50
+# Parameters used for binnings:
 lagTimesteps = 1  # Number of timesteps (from data) to look back in time
 boxsizeBinning = boxsize # Overriden by default when loading trajectory data
-nsigma = 3 # Only include up to nsigma standard deviations around mean of data. If no value given, includes all.
+numbins = 16 #50
+nsigma1 = 3 # Only include up to nsigma standard deviations around mean of data. If no value given, includes all.
+nsigma2 = 2
+nsigma3 = 1
 
 # Add elements to parameter dictionary
-parameterDictionary['numbins'] = numbins
 parameterDictionary['lagTimesteps'] = lagTimesteps
-parameterDictionary['nsigma'] = nsigma
+parameterDictionary['numbins'] = numbins
+parameterDictionary['nsigma1'] = nsigma1
+parameterDictionary['nsigma2'] = nsigma2
+parameterDictionary['nsigma3'] = nsigma3
+
 
 # List of possible combinations for binnings
 binPositionList = [False, True]
@@ -66,7 +71,12 @@ for parameterCombination in product(*[binPositionList, binVelocitiesList, numBin
     if parameterCombination != (False,False,0):
         binPosition, binVelocity, numBinnedAuxVars = parameterCombination
         dataOnBins = binnedData(boxsizeBinning, numbins, lagTimesteps, binPosition, binVelocity, numBinnedAuxVars)
-        dataOnBins.loadData(trajs, nsigma)
+        if dataOnBins.numConditionedVariables == 1:
+            dataOnBins.loadData(trajs, nsigma1)
+        elif dataOnBins.numConditionedVariables == 2:
+            dataOnBins.loadData(trajs, nsigma2)
+        else:
+            dataOnBins.loadData(trajs, nsigma3)
         dataOnBins.parameterDictionary = parameterDictionary
 
         # Dump qi binned data into pickle file and free memory

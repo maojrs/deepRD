@@ -28,6 +28,7 @@ class binnedData:
         self.numBinnedAuxVars = numBinnedAuxVars
         self.adjustPosVelBox = adjustPosVelBox # If true adjust box limit for position and velocities variables
         self.dimension = None
+        self.numConditionedVariables = None
         self.binningLabel = ''
         self.binningLabel2 = ''
         self.percentageOccupiedBins = None
@@ -75,16 +76,20 @@ class binnedData:
         self.binningLabel = 'ri+1|'
         self.binningLabel2 = ''
         self.dimension = 0
+        self.numConditionedVariables = 0
         if self.binPosition:
             self.binningLabel += 'qi,'
             self.binningLabel2 += 'qi'
             self.dimension +=3
+            self.numConditionedVariables += 1
         if self.binVelocity:
             self.binningLabel += 'pi,'
             self.binningLabel2 += 'pi'
             self.dimension +=3
+            self.numConditionedVariables += 1
         for i in range(self.numBinnedAuxVars):
             self.dimension +=3
+            self.numConditionedVariables += 1
             if i == 0:
                 self.binningLabel += 'ri,'
                 self.binningLabel2 += 'ri'
