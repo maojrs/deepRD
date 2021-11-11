@@ -282,5 +282,5 @@ class binnedData:
             sys.stdout.write("File " + str(k + 1) + " of " + str(len(trajs)) + " done." + "\r")
         self.updateDataStructures()
         self.percentageOccupiedBins = 100 * len(self.occupiedTuplesArray)/np.product(self.numbins)
-        sys.stdout.write("Loading trajectories into bins done. \r" )
-        sys.stdout.write("\n Percentage of occupied bins = " + str(self.percentageOccupiedBins) + "% \n" )
+        sys.stdout.write("Loaded trajectories into bins. \r" )
+        sys.stdout.write("\n" + str(int(self.percentageOccupiedBins)) + "% of bins occupied. \n" )
