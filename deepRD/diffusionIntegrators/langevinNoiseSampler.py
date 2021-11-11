@@ -13,7 +13,7 @@ class langevinNoiseSampler(langevin):
     def __init__(self, dt, stride, tfinal, noiseSampler, kBT=1, boxsize = None,
                  boundary = 'periodic', equilibrationSteps = 0, conditionedOn = 'qi'):
         # inherit all methods from parent class
-        integratorType = "ABOBA"
+        integratorType = "dataDrivenABOBA"
         super().__init__(dt, stride, tfinal, kBT, boxsize, boundary,integratorType, equilibrationSteps)
         self.noiseSampler = noiseSampler
         self.prevNoiseTerm = np.zeros(3) # Needs fixing to work for particlelist larger than one
@@ -46,7 +46,7 @@ class langevinNoiseSampler(langevin):
 
 
     def integrateOne(self, particleList):
-        ''' Integrates one time step of ABOBA '''
+        ''' Integrates one time step of data-driven version of ABOBA '''
         self.integrateA(particleList)
         self.enforceBoundary(particleList, 'next')
         self.integrateBOB(particleList)
