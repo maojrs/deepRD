@@ -93,6 +93,7 @@ for parameterCombination in product(*[binPositionList, binVelocitiesList, numBin
             dataOnBins.loadData(trajs, nsigma3)
             parameterDictionary['numbins'] = numbins3
             parameterDictionary['nsigma'] = nsigma3
+        parameterDictionary['percentageOccupiedBins'] = dataOnBins.percentageOccupiedBins
         dataOnBins.parameterDictionary = parameterDictionary
 
         # Dump qi binned data into pickle file and free memory
