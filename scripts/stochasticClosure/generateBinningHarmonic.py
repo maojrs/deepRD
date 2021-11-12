@@ -13,9 +13,9 @@ Generates binned data structures on several different conditionings for the stoc
 Currently implemented on conditioning ri+1 on all the combinations qi,pi,ri,ri-1
 '''
 
-parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/benchmark/'
+parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/harmonic/benchmark/'
 fnamebase = parentDirectory + 'simMoriZwanzig_'
-foldername = 'binnedData/'
+foldername = 'harmonic/binnedData/'
 binningDataDirectory = os.path.join('../../data/stochasticClosure/', foldername)
 
 try:
