@@ -5,7 +5,7 @@ import sys
 import pickle
 import deepRD
 from deepRD.diffusionIntegrators import langevinNoiseSampler
-from deepRD.potentials import harmonic
+from deepRD.potentials import bistable
 from deepRD.noiseSampler import noiseSampler
 from deepRD.noiseSampler import binnedData
 import deepRD.tools.trajectoryTools as trajectoryTools
@@ -85,9 +85,11 @@ nsigma = parameters['nsigma']
 # Define noise sampler
 nSampler = noiseSampler(dataOnBins)
 
-# NEED TO DEFINE PROPER POTENTIAL FOR BISTABLE HERE
-# # External potential parameters
-# kconstant = 0.3
+# External potential parameters
+mu1 = np.array([-1.5,0,0])
+mu2 = np.array([1.5,0,0])
+sigma = 1
+scalefactor = 15
 
 # Integrator parameters
 integratorStride = 50
@@ -118,11 +120,11 @@ def runParallelSims(simnumber):
     particleList = deepRD.particleList([particle])
 
     # Define external potential
-    harmonicPotential = harmonic(kconstant)
+    bistablePotential = bistable(mu1, mu2, sigma, sigma, scalefactor)
 
     diffIntegrator = langevinNoiseSampler(dt, integratorStride, tfinal, nSampler, KbT,
                                           boxsize, boundaryType, equilibrationSteps, conditionedOn)
-    diffIntegrator.setExternalPotential(harmonicPotential)
+    diffIntegrator.setExternalPotential(bistablePotential)
 
     # Integrate dynamics
     t, X, V = diffIntegrator.propagate(particleList)
