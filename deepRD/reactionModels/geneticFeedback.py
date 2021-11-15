@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 from .reactionModel import reactionModel
 from ..reactionIntegrators import gillespie
@@ -92,4 +93,5 @@ class geneticFeedback(reactionModel):
                 self.X = nextX
                 self.updatePropensities()
             FPTs[i] = t
+            sys.stdout.write("Simulation " + str(i + 1) + " of " + str(numSamples) + " done." + "\r")
         return FPTs
