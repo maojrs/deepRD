@@ -39,4 +39,4 @@ class bistable(externalPotential):
         gaussian1 = np.exp(-np.dot(x1,x1) / (2*self.sigma1**2)) / (pifactor * self.sigma1**3)
         gaussian2 = np.exp(-np.dot(x2,x2) / (2*self.sigma2**2)) / (pifactor * self.sigma2**3)
         force = -(x1/self.sigma1**2) * gaussian1 -(x2/self.sigma2**2) * gaussian2
-        return force
+        return self.scale * force
