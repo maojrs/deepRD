@@ -89,7 +89,7 @@ nSampler = noiseSampler(dataOnBins)
 mu1 = np.array([-1.5,0,0])
 mu2 = np.array([1.5,0,0])
 sigma = 1
-scalefactor = 15
+scalefactor = 75
 
 # Integrator parameters
 integratorStride = 50
