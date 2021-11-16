@@ -177,12 +177,18 @@ def convert2trajectory(timeArray, variableArrayList):
 
 def extractVariableFromTrajectory(trajs, variableIndex):
     '''
-    Extracts the variable with index variableIndex from trajectories into an array
+    Extracts the variable with index variableIndex from trajectories into an array. If variableIndex is a list with
+    two indexes, extracts the variables corresponding to that range of indexes.
     '''
     variableArray = []
-    for traj in trajs:
-        for i in range(len(traj)):
-            variableArray.append(traj[i][variableIndex])
+    if np.isscalar(variableIndex):
+        for traj in trajs:
+            for i in range(len(traj)):
+                variableArray.append(traj[i][variableIndex])
+    else:
+        for traj in trajs:
+            for i in range(len(traj)):
+                variableArray.append(traj[i][variableIndex[0]:variableIndex[1]])
     return np.array(variableArray)
 
 

@@ -13,7 +13,7 @@ class reactionModel:
         '''
         'Abstract' method needed to populates reaction vectors
         of a given reaction system. Each reaction vectors correspond to
-        the copy numbe change of all the species involved
+        the copy number change of all the species involved
         for the corresponding reaction. Note this will need a reaction vectors
         variablev (reactionVectors) of dimension corresponding to the number
         of reactions times the number of chemical species involved.
