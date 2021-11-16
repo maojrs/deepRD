@@ -39,13 +39,13 @@ class geneticFeedback(reactionModel):
         self.volume = volume
 
     def populateReactionVectors(self):
-        self.reactionVectors[0] = [0, 0, 1, 0]   # G -rhou-> G+M
-        self.reactionVectors[1] = [0, 0, 1, 0]   # Gstar -rhob-> Gstar+M
-        self.reactionVectors[2] = [0, 0, 0, 1]   # M -k-> M+P
-        self.reactionVectors[3] = [-1, 1, 0, -1] # G + P -sigmab-> Gstar
-        self.reactionVectors[4] = [1, -1, 0, 1]  # Gstar -sigmau-> G + P
-        self.reactionVectors[5] = [0, 0, -1, 0]  # M -dm-> 0
-        self.reactionVectors[6] = [0, 0, 0, -1]  # P -dp-> 0
+        self.reactionVectors[0] = [0, 0, 1, 0]   # G --rhou--> G+M
+        self.reactionVectors[1] = [0, 0, 1, 0]   # Gstar --rhob--> Gstar+M
+        self.reactionVectors[2] = [0, 0, 0, 1]   # M --k--> M+P
+        self.reactionVectors[3] = [-1, 1, 0, -1] # G + P --sigmab--> Gstar
+        self.reactionVectors[4] = [1, -1, 0, 1]  # Gstar --sigmau--> G + P
+        self.reactionVectors[5] = [0, 0, -1, 0]  # M --dm--> 0
+        self.reactionVectors[6] = [0, 0, 0, -1]  # P --dp--> 0
 
     def updatePropensities(self):
         G = self.X[0]
