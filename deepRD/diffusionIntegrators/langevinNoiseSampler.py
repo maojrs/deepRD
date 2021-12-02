@@ -10,11 +10,11 @@ class langevinNoiseSampler(langevin):
     takes certain input and outputs a corresponding noise term.
     '''
 
-    def __init__(self, dt, stride, tfinal, noiseSampler, kBT=1, boxsize = None,
+    def __init__(self, dt, stride, tfinal, Gamma, noiseSampler, kBT=1, boxsize = None,
                  boundary = 'periodic', equilibrationSteps = 0, conditionedOn = 'qi'):
         # inherit all methods from parent class
-        integratorType = "dataDrivenABOBA"
-        super().__init__(dt, stride, tfinal, kBT, boxsize, boundary,integratorType, equilibrationSteps)
+        self.integratorType = "dataDrivenABOBA"
+        super().__init__(dt, stride, tfinal, Gamma, kBT, boxsize, boundary, equilibrationSteps)
         self.noiseSampler = noiseSampler
         self.prevNoiseTerm = np.zeros(3) # Needs fixing to work for particlelist larger than one
         self.prevprevNoiseTerm = np.zeros(3) # Needs fixing to work for particlelist larger than one
