@@ -71,7 +71,7 @@ print('Binned data loaded')
 
 # Extract basic parameters
 dt = parameters['dt']
-D = parameters['D']
+Gamma = parameters['Gamma']
 mass =  parameters['mass']
 KbT = parameters['KbT']
 boxsize = parameters['boxsize']
@@ -119,7 +119,7 @@ def runParallelSims(simnumber):
     # Define external potential
     harmonicPotential = harmonic(kconstant)
 
-    diffIntegrator = langevinNoiseSampler(dt, integratorStride, tfinal, nSampler, KbT,
+    diffIntegrator = langevinNoiseSampler(dt, integratorStride, tfinal, Gamma, nSampler, KbT,
                                           boxsize, boundaryType, equilibrationSteps, conditionedOn)
     diffIntegrator.setExternalPotential(harmonicPotential)
 
