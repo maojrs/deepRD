@@ -5,7 +5,7 @@ class particle:
     Main class for particles, takes initial position r0 and diffusion coefficient D as input.
     Can be used as a parent class for more complex particles (e.g. particles/bodies with orientation)
     '''
-    def __init__(self, position, D, velocity = [0,0,0], mass = None, state = None):
+    def __init__(self, position, D = 0, velocity = [0,0,0], mass = None, state = None):
         self.position = np.array(position)
         self.D = D
         self.velocity = np.array(velocity)

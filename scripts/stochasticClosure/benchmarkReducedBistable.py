@@ -116,7 +116,7 @@ def runParallelSims(simnumber):
     random.seed(seed)
     position = [0, 0, 0]
     velocity = [0, 0, 0]
-    particle = deepRD.particle(position, D, velocity, mass)
+    particle = deepRD.particle(position, velocity = velocity, mass=mass)
     particleList = deepRD.particleList([particle])
 
     # Define external potential
