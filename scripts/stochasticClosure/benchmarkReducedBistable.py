@@ -98,7 +98,7 @@ equilibrationSteps = 10000
 
 # Create parameter dictionary to write to parameters reference file
 parameterfilename = os.path.join(outputDataDirectory, "parameters")
-parameterDictionary = {'numFiles' : numSimulations, 'dt' : dt, 'D' : D, 'KbT' : KbT,
+parameterDictionary = {'numFiles' : numSimulations, 'dt' : dt, 'Gamma' : Gamma, 'KbT' : KbT,
                        'mass' : mass, 'tfinal' : tfinal, 'stride' : integratorStride,
                        'boxsize' : boxsize, 'boundaryType' : boundaryType,
                        'equilibrationSteps' : equilibrationSteps, 'conditionedOn': conditionedOn,
