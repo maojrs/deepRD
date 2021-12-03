@@ -60,8 +60,7 @@ class langevinNoiseSampler(langevin):
         externalForceField = self.calculateForceField(particleList, 'next')
         for i, particle in enumerate(particleList):
             # Calculate friction term and external potential term
-            eta = self.kBT / particle.D  # friction coefficient
-            expterm = np.exp(-self.dt * eta / particle.mass)
+            expterm = np.exp(-self.dt * self.Gamma / particle.mass)
             frictionForceTerm = particle.nextVelocity * expterm
             frictionForceTerm += (1 + expterm) * externalForceField[i] * self.dt/(2*particle.mass)
             # Calculate interaction and noise term from noise sampler
