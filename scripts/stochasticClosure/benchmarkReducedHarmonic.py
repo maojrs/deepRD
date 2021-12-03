@@ -89,7 +89,7 @@ nSampler = noiseSampler(dataOnBins)
 kconstant = 0.3
 
 # Integrator parameters
-integratorStride = 50
+integratorStride = 1 #50
 tfinal = 10000
 equilibrationSteps = 10000
 
