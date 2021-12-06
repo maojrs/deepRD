@@ -23,16 +23,16 @@ class bistable(externalPotential):
         gaussian2 = np.exp(-np.dot(x2,x2) / (2*self.sigma2**2)) / (pifactor * self.sigma2**3)
         return -1 * self.scale * (gaussian1 + gaussian2)
 
-    def calculateForce(self, particle, whichPosition = 'current'):
+    def calculateForce(self, particle, currentOrNext = 'current'):
         '''
         Calculates force due to potential. If whichPosition == "current", calculate
         using current position, if "next, calculate it using the next position."
         '''
         force = np.zeros(3)
-        if whichPosition == 'current':
+        if currentOrNext == 'current':
             x1 = particle.position - self.mu1
             x2 = particle.position - self.mu2
-        elif whichPosition == 'next':
+        elif currentOrNext == 'next':
             x1 = particle.nextPosition - self.mu1
             x2 = particle.nextPosition - self.mu2
         pifactor = np.power(2*np.pi, 3.0 / 2.0)
