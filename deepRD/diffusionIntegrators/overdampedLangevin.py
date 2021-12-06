@@ -7,39 +7,43 @@ class overdampedLangevin(diffusionIntegrator):
     Integrator class to integrate the diffusive dynamics of a standard Brownian particle (overdamped Lanegvin regime)
     '''
 
-    def __init__(self, dt, stride, tfinal, boxsize = None, boundary = 'periodic'):
+    def __init__(self, dt, stride, tfinal, boxsize = None, boundary = 'periodic', equilibrationSteps = 0):
         # inherit all methods from parent class
         kBT = 1
-        super().__init__(dt, stride, tfinal, kBT, boxsize, boundary)
+        super().__init__(dt, stride, tfinal, kBT, boxsize, boundary, equilibrationSteps)
 
 
     def integrateOne(self, particleList):
-        nextPositions = [None] * len(particleList)
-        forceField = self.calculateForceField(particleList)
+        self.calculateForceField(particleList, 'next')
         for i, particle in enumerate(particleList):
             sigma = np.sqrt(2 * self.dt * particle.D)
-            force = forceField[i]
-            nextPositions[i] = particle.position + force * self.dt * particle.D / self.KbT + sigma * np.random.normal(0., 1, particle.dimension)
-        return nextPositions
+            force = self.forceField[i]
+            particle.nextPosition = particle.nextPosition + force * self.dt * particle.D / self.kBT + \
+                               sigma * np.random.normal(0., 1, particle.dimension)
+        self.enforceBoundary(particleList, 'next')
+        particleList.updatePositions()
 
     def propagate(self, particleList, showProgress = False):
-        percentage_resolution = self.tfinal / 100.0
-        time_for_percentage = - 1 * percentage_resolution
-        # Begins Euler-Maruyama algorithm
-        Xtraj = [particleList.positions]
-        times = np.zeros(self.timesteps + 1)
+        if self.firstRun:
+            self.calculateForceField(particleList, 'next')
+            self.firstRun = False
+        # Equilbration runs
+        for i in range(self.equilibrationSteps):
+            self.integrateOne(particleList)
+        # Begins integration
+        time = 0.0
+        xTraj = [particleList.positions]
+        tTraj = [time]
         for i in range(self.timesteps):
-            nextPositions = self.integrateOne(particleList)
+            self.integrateOne(particleList)
             # Update variables
-            Xtraj.append(nextPositions)
-            particleList.positions = nextPositions
-            # Enforce boundary conditions
-            self.enforceBoundary(particleList)
-            times[i + 1] = times[i] + self.dt
-            # Print integration percentage
-            if (showProgress and times[i] - time_for_percentage >= percentage_resolution):
-                time_for_percentage = 1 * times[i]
-                sys.stdout.write("Percentage complete " + str(round(100 * times[i] / self.tfinal, 1)) + "% " + "\r")
+            time = time + self.dt
+            if i % self.stride == 0 and i > 0:
+                xTraj.append(particleList.positions)
+                tTraj.append(time)
+            if showProgress and (i % 50 == 0):
+                # Print integration percentage
+                sys.stdout.write("Percentage complete " + str(round(100 * time/ self.tfinal, 1)) + "% " + "\r")
         if showProgress:
             sys.stdout.write("Percentage complete 100% \r")
-        return times, np.array(Xtraj)
+        return np.array(tTraj), np.array(xTraj)

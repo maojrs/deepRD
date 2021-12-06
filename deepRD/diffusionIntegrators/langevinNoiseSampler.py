@@ -47,22 +47,23 @@ class langevinNoiseSampler(langevin):
 
     def integrateOne(self, particleList):
         ''' Integrates one time step of data-driven version of ABOBA '''
-        self.integrateA(particleList)
+        self.integrateA(particleList, self.dt/2.0)
         self.enforceBoundary(particleList, 'next')
-        self.integrateBOB(particleList)
-        self.integrateA(particleList)
+        self.calculateForceField(particleList, 'next')
+        self.integrateBOB(particleList, self.dt)
+        self.integrateA(particleList, self.dt/2.0)
         self.enforceBoundary(particleList, 'next')
         particleList.updatePositionsVelocities()
 
-    def integrateBOB(self, particleList):
+
+    def integrateBOB(self, particleList, dt):
         '''Integrates BOB integrations step at once. This is required to separate the noise Sampler from the
         external potential. '''
-        externalForceField = self.calculateForceField(particleList, 'next')
         for i, particle in enumerate(particleList):
             # Calculate friction term and external potential term
-            expterm = np.exp(-self.dt * self.Gamma / particle.mass)
+            expterm = np.exp(-dt * self.Gamma / particle.mass)
             frictionForceTerm = particle.nextVelocity * expterm
-            frictionForceTerm += (1 + expterm) * externalForceField[i] * self.dt/(2*particle.mass)
+            frictionForceTerm += (1 + expterm) * self.forceField[i] * dt/(2*particle.mass)
             # Calculate interaction and noise term from noise sampler
             conditionedVars = self.getConditionedVars(particle)
             interactionNoiseTerm = self.noiseSampler.sample(conditionedVars)

@@ -13,11 +13,16 @@ class diffusionIntegrator:
     Parent (abstract) class for all diffusion integrators
     '''
 
-    def __init__(self, dt=0.0001, stride=1, tfinal=1000, kBT = 1, boxsize = None, boundary = 'periodic'):
+    def __init__(self, dt=0.0001, stride=1, tfinal=1000, kBT = 1, boxsize = None,
+                 boundary = 'periodic', equilibrationSteps = 0):
         # Define default simulation parameters
         self.setSimulationParameters(dt, stride, tfinal, kBT, boxsize, boundary)
         self.externalPotential = None
         self.pairPotential = None
+        self.equilibrationSteps = equilibrationSteps
+        self.forceField = None
+        self.firstRun = True
+
 
     def setSimulationParameters(self, dt, stride, tfinal, kBT, boxsize, boundary):
         '''
@@ -75,18 +80,18 @@ class diffusionIntegrator:
         output the force exterted into particle indexed by particleIndex. The whichPosition variable can
         take values of 'current' or 'next'.'''
         dim = len(particleList[0].velocity)
-        forceField = [np.zeros(dim)]*len(particleList)
+        fField = [np.zeros(dim)]*len(particleList)
         if self.externalPotential != None:
             for i, particle in enumerate(particleList):
-                forceField[i] += self.externalPotential.calculateForce(particle, whichPosition)
+                fField[i] += self.externalPotential.calculateForce(particle, whichPosition)
         if self.pairPotential != None:
             ''' Could be implemented more efficiently, at the moment calculating twice every interaction'''
             for ij in list(itertools.combinations(range(len(particleList)), 2)):
                 i= ij[0]
                 j = ij[1]
-                forceField[i] += self.pairPotential.calculateForce(particleList[i], particleList[j], whichPosition)
-                forceField[j] -= 1.0 * forceField[i]
-        return forceField
+                fField[i] += self.pairPotential.calculateForce(particleList[i], particleList[j], whichPosition)
+                fField[j] -= 1.0 * fField[i]
+        self.forceField = fField
 
     def setExternalPotential(self, externalPot):
         self.externalPotential = externalPot
