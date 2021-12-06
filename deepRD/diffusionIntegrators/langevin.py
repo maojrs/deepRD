@@ -9,28 +9,28 @@ class langevin(diffusionIntegrator):
     the child classes
     '''
 
-    def __init__(self, dt, stride, tfinal, Gamma, kBT=1, boxsize = None, boundary = 'periodic', equilibrationSteps = 0):
+    def __init__(self, dt, stride, tfinal, Gamma, kBT=1, boxsize = None,
+                 boundary = 'periodic', equilibrationSteps = 0):
         # inherit all methods from parent class
-        super().__init__(dt, stride, tfinal, kBT, boxsize, boundary)
+        super().__init__(dt, stride, tfinal, kBT, boxsize, boundary,equilibrationSteps)
         self.Gamma = Gamma # friction coefficient in units of mass/time
-        self.equilibrationSteps = equilibrationSteps
 
     def integrateOne(self, particleList):
         ''' Integrates one time step using the BAOAB algorithm '''
-        self.integrateB(particleList)
-        self.integrateA(particleList)
-        self.integrateO(particleList)
-        self.integrateA(particleList)
-        self.enforceBoundary(particleList)
-        particleList.updatePositions()
-        self.integrateB(particleList)
-        particleList.updateVelocities()
+        self.integrateB(particleList, self.dt/2.0)
+        self.integrateA(particleList, self.dt/2.0)
+        self.integrateO(particleList, self.dt)
+        self.integrateA(particleList, self.dt/2.0)
+        self.enforceBoundary(particleList, 'next')
+        self.calculateForceField(particleList, 'next')
+        self.integrateB(particleList, self.dt/2.0)
+        particleList.updatePositionsVelocities()
 
     def propagate(self, particleList, showProgress = False):
-        #percentage_resolution = self.tfinal / 100.0
-        #time_for_percentage = - 1 * percentage_resolution
-        # Begin equilbration
-        particleList.resetNextPositionsVelocities()
+        if self.firstRun:
+            self.calculateForceField(particleList, 'next')
+            self.firstRun = False
+        # Equilbration runs
         for i in range(self.equilibrationSteps):
             self.integrateOne(particleList)
         # Begins integration
@@ -53,24 +53,23 @@ class langevin(diffusionIntegrator):
             sys.stdout.write("Percentage complete 100% \r")
         return np.array(tTraj), np.array(xTraj), np.array(vTraj)
 
-    def integrateA(self, particleList):
+    def integrateA(self, particleList, dt):
         '''Integrates position half a time step given velocity term'''
         for particle in particleList:
-            particle.nextPosition = particle.nextPosition + self.dt/2 * particle.nextVelocity
+            particle.nextPosition = particle.nextPosition + dt * particle.nextVelocity
 
-    def integrateB(self, particleList):
+    def integrateB(self, particleList, dt):
         '''Integrates velocity half a time step given potential or force term. Note this does
         nothing in its current implementation.  '''
-        forceField = self.calculateForceField(particleList)
         for i, particle in enumerate(particleList):
-            force = forceField[i]
-            particle.nextVelocity = particle.nextVelocity + (self.dt / 2) * (force / particle.mass)
+            force = self.forceField[i]
+            particle.nextVelocity = particle.nextVelocity + (dt / 2) * (force / particle.mass)
 
-    def integrateO(self, particleList):
+    def integrateO(self, particleList, dt):
         '''Integrates velocity full time step given friction and noise term'''
         for particle in particleList:
-            xi = np.sqrt(self.kBT * particle.mass * (1 - np.exp(-2 * self.Gamma * self.dt/particle.mass)))
-            frictionTerm = np.exp(-self.dt * self.Gamma/particle.mass) * particle.nextVelocity
+            xi = np.sqrt(self.kBT * particle.mass * (1 - np.exp(-2 * self.Gamma * dt/particle.mass)))
+            frictionTerm = np.exp(-dt * self.Gamma/particle.mass) * particle.nextVelocity
             particle.nextVelocity = frictionTerm + xi / particle.mass * np.random.normal(0., 1, particle.dimension)
 
 
@@ -87,13 +86,13 @@ class langevinABOBA(langevin):
     '''
     def integrateOne(self, particleList):
         ''' Integrates one time step using the ABOBA algorithm '''
-        self.integrateA(particleList)
-        particleList.updatePositions()
-        self.integrateB(particleList)
-        self.integrateO(particleList)
-        self.integrateB(particleList)
-        self.integrateA(particleList)
-        self.enforceBoundary(particleList)
+        self.integrateA(particleList, self.dt/2.0)
+        self.calculateForceField(particleList, 'next')
+        self.integrateB(particleList, self.dt/2.0)
+        self.integrateO(particleList, self.dt)
+        self.integrateB(particleList, self.dt/2.0)
+        self.integrateA(particleList, self.dt/2.0)
+        self.enforceBoundary(particleList, 'next')
         particleList.updatePositionsVelocities()
 
 class langevinSemiImplicitEuler(langevin):
@@ -102,16 +101,11 @@ class langevinSemiImplicitEuler(langevin):
     '''
     def integrateOne(self, particleList):
         ''' Integrates one time step using the semi-eimplicit Euler algorithm '''
-        forceField = self.calculateForceField(particleList)
-        for i, particle in enumerate(particleList):
-            force = forceField[i]
-            xi = np.sqrt(2 * self.kBT * self.Gamma * self.dt)
-            frictionTerm = -(self.dt * self.Gamma / particle.mass) * particle.nextVelocity
-            particle.nextVelocity = particle.nextVelocity + self.dt * (force / particle.mass) + \
-                                    frictionTerm + (xi / particle.mass) * np.random.normal(0., 1, particle.dimension)
-        for particle in particleList:
-            particle.nextPosition = particle.nextPosition + self.dt * particle.nextVelocity
-        self.enforceBoundary(particleList)
+        self.calculateForceField(particleList, 'next')
+        self.integrateO(particleList, self.dt)
+        self.integrateB(particleList, self.dt)
+        self.integrateA(particleList, self.dt)
+        self.enforceBoundary(particleList, 'next')
         particleList.updatePositionsVelocities()
 
 
