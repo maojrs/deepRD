@@ -14,19 +14,18 @@ class overdampedLangevin(diffusionIntegrator):
 
 
     def integrateOne(self, particleList):
-        self.calculateForceField(particleList, 'next')
+        self.calculateForceField(particleList)
         for i, particle in enumerate(particleList):
             sigma = np.sqrt(2 * self.dt * particle.D)
             force = self.forceField[i]
             particle.nextPosition = particle.nextPosition + force * self.dt * particle.D / self.kBT + \
                                sigma * np.random.normal(0., 1, particle.dimension)
-        self.enforceBoundary(particleList, 'next')
+        self.enforceBoundary(particleList)
         particleList.updatePositions()
 
     def propagate(self, particleList, showProgress = False):
         if self.firstRun:
-            self.calculateForceField(particleList, 'next')
-            self.firstRun = False
+            self.prepareSimulation(particleList, 'next')
         # Equilbration runs
         for i in range(self.equilibrationSteps):
             self.integrateOne(particleList)

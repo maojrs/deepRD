@@ -21,15 +21,14 @@ class langevin(diffusionIntegrator):
         self.integrateA(particleList, self.dt/2.0)
         self.integrateO(particleList, self.dt)
         self.integrateA(particleList, self.dt/2.0)
-        self.enforceBoundary(particleList, 'next')
-        self.calculateForceField(particleList, 'next')
+        self.enforceBoundary(particleList)
+        self.calculateForceField(particleList)
         self.integrateB(particleList, self.dt/2.0)
         particleList.updatePositionsVelocities()
 
     def propagate(self, particleList, showProgress = False):
         if self.firstRun:
-            self.calculateForceField(particleList, 'next')
-            self.firstRun = False
+            self.prepareSimulation(particleList, 'next')
         # Equilbration runs
         for i in range(self.equilibrationSteps):
             self.integrateOne(particleList)
@@ -63,7 +62,7 @@ class langevin(diffusionIntegrator):
         nothing in its current implementation.  '''
         for i, particle in enumerate(particleList):
             force = self.forceField[i]
-            particle.nextVelocity = particle.nextVelocity + (dt / 2) * (force / particle.mass)
+            particle.nextVelocity = particle.nextVelocity + dt * (force / particle.mass)
 
     def integrateO(self, particleList, dt):
         '''Integrates velocity full time step given friction and noise term'''
@@ -75,7 +74,7 @@ class langevin(diffusionIntegrator):
 
 class langevinBAOAB(langevin):
     '''
-    Same as langevin class, but method stated explicitly. Uses BAOAB method for integration.
+    Same as langevin class, but method stated explicitly in the class name. Uses BAOAB method for integration.
     '''
     pass
 
@@ -87,12 +86,12 @@ class langevinABOBA(langevin):
     def integrateOne(self, particleList):
         ''' Integrates one time step using the ABOBA algorithm '''
         self.integrateA(particleList, self.dt/2.0)
-        self.calculateForceField(particleList, 'next')
+        self.calculateForceField(particleList)
         self.integrateB(particleList, self.dt/2.0)
         self.integrateO(particleList, self.dt)
         self.integrateB(particleList, self.dt/2.0)
         self.integrateA(particleList, self.dt/2.0)
-        self.enforceBoundary(particleList, 'next')
+        self.enforceBoundary(particleList)
         particleList.updatePositionsVelocities()
 
 class langevinSemiImplicitEuler(langevin):
@@ -101,11 +100,11 @@ class langevinSemiImplicitEuler(langevin):
     '''
     def integrateOne(self, particleList):
         ''' Integrates one time step using the semi-eimplicit Euler algorithm '''
-        self.calculateForceField(particleList, 'next')
+        self.calculateForceField(particleList)
         self.integrateO(particleList, self.dt)
         self.integrateB(particleList, self.dt)
         self.integrateA(particleList, self.dt)
-        self.enforceBoundary(particleList, 'next')
+        self.enforceBoundary(particleList)
         particleList.updatePositionsVelocities()
 
 

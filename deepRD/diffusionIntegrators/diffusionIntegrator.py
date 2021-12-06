@@ -22,6 +22,7 @@ class diffusionIntegrator:
         self.equilibrationSteps = equilibrationSteps
         self.forceField = None
         self.firstRun = True
+        self.currentOrNext = 'next' # Determines if integration done on 'current' or 'next' position particle variable
 
 
     def setSimulationParameters(self, dt, stride, tfinal, kBT, boxsize, boundary):
@@ -54,19 +55,33 @@ class diffusionIntegrator:
         '''
         raise NotImplementedError("Please Implement propagate method")
 
-    def enforceBoundary(self, particleList, whichPosition = 'current'):
+    def prepareSimulation(self, particleList, currentOrNext = 'next'):
+        '''
+        'Abstract' method used to setup integration. In general, it will
+        calculate forceTorque for the first time step, but it can be overriden
+        for more complex behavion
+        '''
+        self.currentOrNext = currentOrNext
+        self.calculateForceField(particleList)
+        self.firstRun = False
+
+    def enforceBoundary(self, particleList, currentOrNextOverride = None):
         '''
         The whichPosition variable can take values of 'current' or 'next'.
         '''
+        if (currentOrNextOverride != None):
+            currentOrNext = currentOrNextOverride
+        else:
+            currentOrNext = self.currentOrNext
         if self.boundary == 'periodic' and self.boxsize != None:
-            if whichPosition == 'current':
+            if currentOrNext  == 'current':
                 for particle in particleList:
                     for j in range(particleList.dimension):
                         if (particle.position[j] >= self.boxsize[j]/2):
                             particle.position[j] -= self.boxsize[j]
                         if (particle.position[j] <= - self.boxsize[j] / 2):
                             particle.position[j] += self.boxsize[j]
-            elif whichPosition == 'next':
+            elif currentOrNext  == 'next':
                 for particle in particleList:
                     for j in range(particleList.dimension):
                         if (particle.nextPosition[j] >= self.boxsize[j]/2):
@@ -75,21 +90,25 @@ class diffusionIntegrator:
                             particle.nextPosition[j] += self.boxsize[j]
 
 
-    def calculateForceField(self, particleList, whichPosition = 'current'):
+    def calculateForceField(self, particleList, currentOrNextOverride = None):
         ''' Default force term is zero. General force calculations can be implemented here. It should
-        output the force exterted into particle indexed by particleIndex. The whichPosition variable can
+        output the force exterted into particle indexed by particleIndex. The currentOrNext variable can
         take values of 'current' or 'next'.'''
+        if (currentOrNextOverride != None):
+            currentOrNext = currentOrNextOverride
+        else:
+            currentOrNext = self.currentOrNext
         dim = len(particleList[0].velocity)
         fField = [np.zeros(dim)]*len(particleList)
         if self.externalPotential != None:
             for i, particle in enumerate(particleList):
-                fField[i] += self.externalPotential.calculateForce(particle, whichPosition)
+                fField[i] += self.externalPotential.calculateForce(particle, currentOrNext)
         if self.pairPotential != None:
             ''' Could be implemented more efficiently, at the moment calculating twice every interaction'''
             for ij in list(itertools.combinations(range(len(particleList)), 2)):
                 i= ij[0]
                 j = ij[1]
-                fField[i] += self.pairPotential.calculateForce(particleList[i], particleList[j], whichPosition)
+                fField[i] += self.pairPotential.calculateForce(particleList[i], particleList[j], currentOrNext)
                 fField[j] -= 1.0 * fField[i]
         self.forceField = fField
 
