@@ -25,7 +25,7 @@ class overdampedLangevin(diffusionIntegrator):
 
     def propagate(self, particleList, showProgress = False):
         if self.firstRun:
-            self.prepareSimulation(particleList, 'next')
+            self.prepareSimulation(particleList)
         # Equilbration runs
         for i in range(self.equilibrationSteps):
             self.integrateOne(particleList)
