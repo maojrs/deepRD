@@ -13,7 +13,7 @@ class externalPotential:
         '''
         raise NotImplementedError("Please Implement evaluate method for this potential")
 
-    def calculateForce(self, particle, whichPosition = 'current'):
+    def calculateForce(self, particle, currentOrNext = 'current'):
         '''
         'Abstract' method used to calculate forces of a given potential. If whichPosition == "current", calculate
         using current position, if "next, calculate it using the next position."
@@ -32,7 +32,7 @@ class pairPotential:
         '''
         raise NotImplementedError("Please Implement evaluate method for this potential")
 
-    def calculateForce(self, particle1, particle2, whichPosition = 'current'):
+    def calculateForce(self, particle1, particle2, currentOrNext = 'current'):
         '''
         'Abstract' method used to calculate forces of a given potential. If whichPosition == "current", calculate
         using current position, if "next, calculate it using the next position."
