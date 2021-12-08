@@ -271,7 +271,7 @@ class binnedData:
                 if self.binPosition:
                     qi = traj[i][self.posIndex:self.posIndex + 3]
                     conditionedVars.append(qi)
-                if self.binVelocity:http://localhost:8889/notebooks/stochasticClosure/02_runLangevinNoiseSampler.ipynb#
+                if self.binVelocity:
                     pi = traj[i][self.velIndex:self.velIndex + 3]
                     conditionedVars.append(pi)
                 for m in range(self.numBinnedAuxVars):
