@@ -40,6 +40,17 @@ class diffusionIntegrator:
             self.boxsize = [boxsize, boxsize, boxsize]
         self.boundary = boundary
 
+    def prepareSimulation(self, particleList):
+        '''
+        Routine used to setup integration for a particular list of particles.
+        In general, it will calculate forceTorque for the first time step,
+        but it can be overriden for more complex behavior. This routine is only run
+        once before the first integration.
+        '''
+        self.currentOrNext = 'next'
+        self.calculateForceField(particleList)
+        self.firstRun = False
+
     def integrateOne(self, particleList):
         '''
         'Abstract' method used to integrate one time step or iteration of the
@@ -54,16 +65,6 @@ class diffusionIntegrator:
         completed.
         '''
         raise NotImplementedError("Please Implement propagate method")
-
-    def prepareSimulation(self, particleList, currentOrNext = 'next'):
-        '''
-        'Abstract' method used to setup integration. In general, it will
-        calculate forceTorque for the first time step, but it can be overriden
-        for more complex behavion
-        '''
-        self.currentOrNext = currentOrNext
-        self.calculateForceField(particleList)
-        self.firstRun = False
 
     def enforceBoundary(self, particleList, currentOrNextOverride = None):
         '''

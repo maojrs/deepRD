@@ -28,23 +28,23 @@ class langevin(diffusionIntegrator):
 
     def propagate(self, particleList, showProgress = False):
         if self.firstRun:
-            self.prepareSimulation(particleList, 'next')
+            self.prepareSimulation(particleList)
         # Equilbration runs
         for i in range(self.equilibrationSteps):
             self.integrateOne(particleList)
         # Begins integration
         time = 0.0
+        tTraj = [time]
         xTraj = [particleList.positions]
         vTraj = [particleList.velocities]
-        tTraj = [time]
         for i in range(self.timesteps):
             self.integrateOne(particleList)
             # Update variables
             time = time + self.dt
             if i % self.stride == 0 and i > 0:
+                tTraj.append(time)
                 xTraj.append(particleList.positions)
                 vTraj.append(particleList.velocities)
-                tTraj.append(time)
             if showProgress and (i % 50 == 0):
                 # Print integration percentage
                 sys.stdout.write("Percentage complete " + str(round(100 * time/ self.tfinal, 1)) + "% " + "\r")
@@ -86,6 +86,7 @@ class langevinABOBA(langevin):
     def integrateOne(self, particleList):
         ''' Integrates one time step using the ABOBA algorithm '''
         self.integrateA(particleList, self.dt/2.0)
+        self.enforceBoundary(particleList)
         self.calculateForceField(particleList)
         self.integrateB(particleList, self.dt/2.0)
         self.integrateO(particleList, self.dt)
