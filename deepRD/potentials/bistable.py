@@ -35,6 +35,8 @@ class bistable(externalPotential):
         elif currentOrNext == 'next':
             x1 = particle.nextPosition - self.mu1
             x2 = particle.nextPosition - self.mu2
+        else:
+            raise NotImplementedError("CurrentOrNext variable must take values of current or next.")
         pifactor = np.power(2*np.pi, 3.0 / 2.0)
         gaussian1 = np.exp(-np.dot(x1,x1) / (2*self.sigma1**2)) / (pifactor * self.sigma1**3)
         gaussian2 = np.exp(-np.dot(x2,x2) / (2*self.sigma2**2)) / (pifactor * self.sigma2**3)

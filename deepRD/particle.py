@@ -14,6 +14,9 @@ class particle:
         self.dimension = len(position)
         self.nextPosition = np.array(position)
         self.nextVelocity = np.array(velocity)
+        self.aux1 = None
+        self.aux2 = None
+        self.aux3 = None
 
 
 class particleList:
@@ -54,6 +57,21 @@ class particleList:
     def velocities(self, newVelocities):
         for i, particle in enumerate(self.particleList):
             particle.velocity = newVelocities[i]
+
+    @property
+    def aux1List(self):
+        aux1 = [particle.aux1 for particle in self.particleList]
+        return np.array(aux1)
+
+    @property
+    def aux2List(self):
+        aux1 = [particle.aux1 for particle in self.particleList]
+        return np.array(aux1)
+
+    @property
+    def aux3List(self):
+        aux1 = [particle.aux1 for particle in self.particleList]
+        return np.array(aux1)
 
     def updatePositions(self):
         for particle in self.particleList:

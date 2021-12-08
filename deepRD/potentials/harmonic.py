@@ -22,3 +22,5 @@ class harmonic(externalPotential):
             return -2 * self.kconstant * particle.position
         elif currentOrNext == 'next':
             return -2 * self.kconstant * particle.nextPosition
+        else:
+            raise NotImplementedError("CurrentOrNext variable must take values of current or next.")
