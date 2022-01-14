@@ -11,7 +11,7 @@ class particle:
         self.velocity = np.array(velocity)
         self.mass = mass
         self.state = state
-        self.dimension = len(position)
+        self.dimension = len(self.position)
         self.nextPosition = np.array(position)
         self.nextVelocity = np.array(velocity)
         self.aux1 = None

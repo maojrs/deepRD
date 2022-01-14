@@ -7,12 +7,12 @@ class noiseSampler:
     a given implementation. The sampling model can be arbitrary, it only needs to have
     a function called sample that takes conditioned variables as input.
     '''
-    def __init__(self, samplingModel= None, defaultStdDev = 1):
+    def __init__(self, samplingModel= None):
         self.samplingModel = samplingModel
-        self.defaultStdDev = defaultStdDev
+
 
     def sample(self, conditionedVariables):
         try:
             return self.samplingModel.sample(conditionedVariables)
         except:
-            return np.random.normal(0., self.defaultStdDev, 3)
+            raise NotImplementedError("Please Implement sample method for given conditioned variables")
