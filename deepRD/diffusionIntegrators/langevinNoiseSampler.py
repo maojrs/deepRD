@@ -81,6 +81,11 @@ class langevinNoiseSampler(langevin):
             # Calculate interaction and noise term from noise sampler
             conditionedVars = self.getConditionedVars(particle)
             interactionNoiseTerm = self.noiseSampler.sample(conditionedVars)
+
+            # For testing and consistency.
+            #xi = np.sqrt(self.kBT * particle.mass * (1 - np.exp(-2 * self.Gamma * dt / particle.mass)))
+            #interactionNoiseTerm = xi / particle.mass * np.random.normal(0., 1, particle.dimension)
+
             particle.aux2 = 1.0 * particle.aux1
             particle.aux1 = 1.0 * interactionNoiseTerm
             particle.nextVelocity = frictionForceTerm + interactionNoiseTerm
