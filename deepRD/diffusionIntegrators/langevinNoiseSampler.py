@@ -14,11 +14,12 @@ class langevinNoiseSampler(langevin):
 
     def __init__(self, dt, stride, tfinal, Gamma, noiseSampler, kBT=1, boxsize = None,
                  boundary = 'periodic', equilibrationSteps = 0, conditionedOn = 'qi'):
-        # inherit all methods from parent class
-        self.integratorType = "dataDrivenABOBA"
-        super().__init__(dt, stride, tfinal, Gamma, kBT, boxsize, boundary, equilibrationSteps)
         self.noiseSampler = noiseSampler
         self.conditionedOn = conditionedOn
+        self.integratorType = "dataDrivenABOBA"
+        # inherit methods from parent class
+        super().__init__(dt, stride, tfinal, Gamma, kBT, boxsize, boundary, equilibrationSteps)
+
 
     def prepareSimulation(self, particleList):
         '''
@@ -69,6 +70,9 @@ class langevinNoiseSampler(langevin):
         self.enforceBoundary(particleList)
         particleList.updatePositionsVelocities()
 
+    def testSample(self):
+        return self.noiseSampler.sample(np.array([0,0,0]))
+
 
     def integrateBOB(self, particleList, dt):
         '''Integrates BOB integrations step at once. This is required to separate the noise Sampler from the
@@ -82,7 +86,8 @@ class langevinNoiseSampler(langevin):
             conditionedVars = self.getConditionedVars(particle)
             interactionNoiseTerm = self.noiseSampler.sample(conditionedVars)
 
-            # For testing and consistency.
+            ## For testing and consistency.
+            #interactionNoiseTerm = 0.3 * self.noiseSampler.sample(np.array([0,0,0]))
             #xi = np.sqrt(self.kBT * particle.mass * (1 - np.exp(-2 * self.Gamma * dt / particle.mass)))
             #interactionNoiseTerm = xi / particle.mass * np.random.normal(0., 1, particle.dimension)
 
@@ -90,9 +95,9 @@ class langevinNoiseSampler(langevin):
             particle.aux1 = 1.0 * interactionNoiseTerm
             particle.nextVelocity = frictionForceTerm + interactionNoiseTerm
 
-    def propagate(self, particleList, showProgress = False):
+    def propagate(self, particleList, showProgress = False, outputAux = False):
         '''
-        Same as Langevin propagator, but this one outputs particle.aux1, corresponding to the 'r' variables.
+        Same as Langevin propagator, but this one can output particle.aux1, corresponding to the 'r' variables.
         '''
         if self.firstRun:
             self.prepareSimulation(particleList)
@@ -104,19 +109,25 @@ class langevinNoiseSampler(langevin):
         tTraj = [time]
         xTraj = [particleList.positions]
         vTraj = [particleList.velocities]
-        rTraj = [particleList.aux1List]
+        if outputAux:
+            rTraj = [particleList.aux1List]
         for i in range(self.timesteps):
             self.integrateOne(particleList)
             # Update variables
             time = time + self.dt
             if i % self.stride == 0 and i > 0:
+                tTraj.append(time)
                 xTraj.append(particleList.positions)
                 vTraj.append(particleList.velocities)
-                rTraj.append(particleList.aux1List)
-                tTraj.append(time)
+                if outputAux:
+                    rTraj.append(particleList.aux1List)
             if showProgress and (i % 50 == 0):
                 # Print integration percentage
                 sys.stdout.write("Percentage complete " + str(round(100 * time/ self.tfinal, 1)) + "% " + "\r")
         if showProgress:
             sys.stdout.write("Percentage complete 100% \r")
-        return np.array(tTraj), np.array(xTraj), np.array(vTraj), np.array(rTraj)
+        self.firstRun = True
+        if outputAux:
+            return np.array(tTraj), np.array(xTraj), np.array(vTraj), np.array(rTraj)
+        else:
+            return np.array(tTraj), np.array(xTraj), np.array(vTraj)
