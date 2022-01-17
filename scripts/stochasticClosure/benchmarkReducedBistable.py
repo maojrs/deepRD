@@ -7,7 +7,7 @@ import deepRD
 from deepRD.diffusionIntegrators import langevinNoiseSampler
 from deepRD.potentials import bistable
 from deepRD.noiseSampler import noiseSampler
-from deepRD.noiseSampler import binnedData
+#from deepRD.noiseSampler import binnedData
 import deepRD.tools.trajectoryTools as trajectoryTools
 import deepRD.tools.analysisTools as analysisTools
 
@@ -45,8 +45,8 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 
 # Simulation parameters
 localDataDirectory = '../../data/stochasticClosure/'
-numSimulations = 100 #100
-conditionedOn = 'ri' # Available conditionings: qi, ri, qiri, qiririm
+numSimulations = 100
+conditionedOn = 'ri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
 
 # Output data directory
 foldername = 'bistable/benchmarkReduced_' + conditionedOn
@@ -110,6 +110,10 @@ basefilename = os.path.join(outputDataDirectory, "simMoriZwanzigReduced_")
 
 # Simulation wrapper for parallel runs
 def runParallelSims(simnumber):
+    #if simnumber % 2 == 0:
+    #    sign = 1
+    #else:
+    #    sign= -1
 
     # Define particle list
     seed = int(simnumber)
@@ -138,7 +142,7 @@ def runParallelSims(simnumber):
 
 # Runs several simulations in parallel
 print('Simulation for ri+1|' + conditionedOn + ' begins ...')
-num_cores = multiprocessing.cpu_count() - 1
+num_cores =  multiprocessing.cpu_count() - 1
 pool = Pool(processes=num_cores)
 iterator = [i for i in range(numSimulations)]
 pool.map(partial(runParallelSims), iterator)
