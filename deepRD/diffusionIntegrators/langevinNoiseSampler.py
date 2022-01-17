@@ -70,9 +70,6 @@ class langevinNoiseSampler(langevin):
         self.enforceBoundary(particleList)
         particleList.updatePositionsVelocities()
 
-    def testSample(self):
-        return self.noiseSampler.sample(np.array([0,0,0]))
-
 
     def integrateBOB(self, particleList, dt):
         '''Integrates BOB integrations step at once. This is required to separate the noise Sampler from the
@@ -87,7 +84,6 @@ class langevinNoiseSampler(langevin):
             interactionNoiseTerm = self.noiseSampler.sample(conditionedVars)
 
             ## For testing and consistency.
-            #interactionNoiseTerm = 0.3 * self.noiseSampler.sample(np.array([0,0,0]))
             #xi = np.sqrt(self.kBT * particle.mass * (1 - np.exp(-2 * self.Gamma * dt / particle.mass)))
             #interactionNoiseTerm = xi / particle.mass * np.random.normal(0., 1, particle.dimension)
 
