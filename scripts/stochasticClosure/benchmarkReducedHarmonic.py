@@ -45,8 +45,8 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 
 # Simulation parameters
 localDataDirectory = '../../data/stochasticClosure/'
-numSimulations = 100 #100
-conditionedOn = 'ri' # Available conditionings: qi, ri, qiri, qiririm
+numSimulations = 100 #100 #100
+conditionedOn = 'piri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
 
 # Output data directory
 foldername = 'harmonic/benchmarkReduced_' + conditionedOn
@@ -133,7 +133,7 @@ def runParallelSims(simnumber):
     print("Simulation " + str(simnumber) + ", done.")
 
 
-# Runs several simulations in parallel
+## Runs several simulations in parallel
 print('Simulation for ri+1|' + conditionedOn + ' begins ...')
 num_cores = multiprocessing.cpu_count() - 1
 pool = Pool(processes=num_cores)
