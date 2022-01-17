@@ -8,9 +8,6 @@ import deepRD.tools.trajectoryTools as trajectoryTools
 import deepRD.tools.analysisTools as analysisTools
 matplotlib.rcParams.update({'font.size': 15})
 
-
-
-
 # Benchmark data folder
 parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/harmonic/benchmarkComparison/'
 benchmarkfnamebase = parentDirectory + 'simMoriZwanzig_'
@@ -31,7 +28,7 @@ redModelfnamebase[7] += '_piririm/simMoriZwanzigReduced_'
 
 # Read relevant parameters
 parameterDictionary = analysisTools.readParameters(parentDirectory + "parameters")
-numSimulations = 6 #parameterDictionary['numFiles']
+numSimulations = parameterDictionary['numFiles']
 dt = parameterDictionary['dt'] 
 integratorStride = parameterDictionary['stride']
 totalTimeSteps = parameterDictionary['timesteps'] 
@@ -121,7 +118,7 @@ ax.set_xlabel("position");
 ax.set_ylabel("distribution");
 ax.legend();
 plt.savefig('position_distribution_comparison_harmonic_' + conditionedOn +'.pdf')
-
+plt.clf()
 
 
 # Plot distirbution comparison for velocity
@@ -142,7 +139,7 @@ ax.set_xlabel("velocity");
 ax.set_ylabel("distribution");
 ax.legend()
 plt.savefig('velocity_distribution_comparison_harmonic_' + conditionedOn +'.pdf')
-
+plt.clf()
 
 # ## Autocorrelation function comparison
 
@@ -174,7 +171,7 @@ plt.ylabel(variables[index] + ' autocorrelation')
 plt.legend()
 #plt.xlim([0,1500])
 plt.savefig(variables[index]+ '_autocorrelation_harmonic_' + conditionedOn +'.pdf')
-
+plt.clf()
 
 
 index = 1
@@ -186,8 +183,7 @@ plt.ylabel(variables[index] + ' autocorrelation')
 plt.legend()
 #plt.xlim([0,1500])
 plt.savefig(variables[index]+ '_autocorrelation_harmonic_' + conditionedOn +'.pdf')
-
-
+plt.clf()
 
 
 
