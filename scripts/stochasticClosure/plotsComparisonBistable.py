@@ -28,7 +28,7 @@ redModelfnamebase[7] += '_piririm/simMoriZwanzigReduced_'
 
 # Read relevant parameters
 parameterDictionary = analysisTools.readParameters(parentDirectory + "parameters")
-numSimulations = 6 #10 #20 #parameterDictionary['numFiles']
+numSimulations = parameterDictionary['numFiles']
 dt = parameterDictionary['dt'] 
 integratorStride = parameterDictionary['stride']
 totalTimeSteps = parameterDictionary['timesteps'] 
@@ -253,7 +253,7 @@ ax1[2].legend(bbox_to_anchor=(0.6, 0., 0.5, 1.0), framealpha=1.0)
 # displaying plot
 plt.tight_layout()
 plt.savefig('distributions_comparison_bistable_'+ conditionedOn +'.pdf')
-
+plt.clf()
 
 # Plot x-position distribution vs samples from original data
 
@@ -287,7 +287,7 @@ ax2.legend(loc="upper right", markerscale=20, borderpad=0.1)
 plt.subplots_adjust(hspace=0)
 #plt.savefig('kernel_density_estimation.pdf')
 plt.savefig('distributions_n_sampleddata_bistable_'+ conditionedOn +'.pdf')
-
+plt.clf()
 
 
 # ## Plot auto-correlation functions comparison
@@ -319,6 +319,7 @@ plt.legend()
 #plt.xlim([0,1500])
 plt.subplots_adjust(bottom=0.15)
 plt.savefig(variables[index]+ '_autocorrelation_bistable_'+ conditionedOn +'.pdf', bbox_inches='tight')
+plt.clf()
 
 index = 1
 time = dt*integratorStride*strides[index]*np.linspace(1,lagtimesteps[index],lagtimesteps[index])
@@ -330,4 +331,4 @@ plt.legend()
 #plt.xlim([0,1500])
 plt.subplots_adjust(bottom=0.15)
 plt.savefig(variables[index]+ '_autocorrelation_bistable_'+ conditionedOn +'.pdf', bbox_inches='tight')
-
+plt.clf()
