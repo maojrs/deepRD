@@ -147,9 +147,9 @@ for i in range(numConditions):
         ax2.hist(velocity[i], bins=numbins, density= True, alpha=0.5, label = labelList[i]);
 
 
-ax1.set_xlabel("position");
+ax1.set_xlabel("position (nm)");
 ax1.set_ylabel("distribution");
-ax2.set_xlabel("velocity");
+ax2.set_xlabel("velocity (nm/ns)");
 ax2.yaxis.tick_right()
 ax2.legend(loc = 'lower left',  bbox_to_anchor=(-0.36, 0.5), framealpha = 1.0);
 plt.savefig('distributions_comparisons_harmonic.pdf', bbox_inches='tight')
