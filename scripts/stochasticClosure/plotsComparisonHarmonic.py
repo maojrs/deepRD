@@ -93,9 +93,12 @@ if 'piri' in conditionedList:
 if 'piririm' in conditionedList:
     trajIndexes.append(7)
 numConditions = len(trajIndexes)
-labelList = [r'$r_{i+1}|r_i$', r'$r_{i+1}|r_i, r_{i-1}$',
-             r'$r_{i+1}|q_i$', r'$r_{i+1}|q_i,r_i$', r'$r_{i+1}|q_i, r_i, r_{i-1}$', 
-             r'$r_{i+1}|p_i$', r'$r_{i+1}|p_i,r_i$', r'$r_{i+1}|p_i, r_i, r_{i-1}$']
+# Note in plot labels x = q and v = p
+labelList = [r'$\tilde{r}_{i+1}|\tilde{r}_i$', r'$\tilde{r}_{i+1}|\tilde{r}_i, \tilde{r}_{i-1}$',
+             r'$\tilde{r}_{i+1}|\tilde{x}_i$', r'$\tilde{r}_{i+1}|\tilde{x}_i,\tilde{r}_i$',
+             r'$\tilde{r}_{i+1}|\tilde{x}_i, \tilde{r}_i, \tilde{r}_{i-1}$',
+             r'$\tilde{r}_{i+1}|\tilde{v}_i$', r'$\tilde{r}_{i+1}|\tilde{v}_i,\tilde{r}_i$',
+             r'$\tilde{r}_{i+1}|\tilde{v}_i, \tilde{r}_i, \tilde{r}_{i-1}$']
 lineTypeList = [':', '-.', '--', 'xk']*2
 lwList = [4, 2, 2, 2]*2
 
