@@ -7,6 +7,11 @@ from deepRD.noiseSampler import binnedData
 import deepRD.tools.trajectoryTools as trajectoryTools
 import deepRD.tools.analysisTools as analysisTools
 matplotlib.rcParams.update({'font.size': 15})
+colorList = ['CC6677', '882255', 'AA4499','332288', '88CCEE', '44AA99','117733', '999933', 'DDCC77']
+colorList2 = ['4477AA', 'EE6677', '228833', 'CCBB44', '66CCEE', 'AA3377', 'BBBBBB']
+colorList3 = ['0077BB', '33BBEE', '009988', 'EE7733', 'CC3311', 'EE3377', 'BBBBBB']
+colorList3alt = ['EE7733', 'A50026', '0077BB', '009988', '33BBEE', 'BBBBBB']
+matplotlib.rcParams['axes.prop_cycle'] = matplotlib.cycler(color=colorList3alt)
 
 
 # Benchmark data folder
@@ -25,10 +30,9 @@ redModelfnamebase[5] += '_pi/simMoriZwanzigReduced_'
 redModelfnamebase[6] += '_piri/simMoriZwanzigReduced_'
 redModelfnamebase[7] += '_piririm/simMoriZwanzigReduced_'
 
-
 # Read relevant parameters
 parameterDictionary = analysisTools.readParameters(parentDirectory + "parameters")
-numSimulations = 1 #6 #parameterDictionary['numFiles']
+numSimulations = parameterDictionary['numFiles']
 dt = parameterDictionary['dt'] 
 integratorStride = parameterDictionary['stride']
 totalTimeSteps = parameterDictionary['timesteps'] 
@@ -38,6 +42,7 @@ parameterDictionary
 
 
 # ## Load benchmark and reduced model trajectory data
+
 
 # Load benchmark trajectory data from h5 files (only of distinguished particle)
 trajs_ref = []
@@ -70,7 +75,6 @@ print("Reduced models data loaded.")
 
 # Choose which reduced model to compare (just uncomment one)
 conditionedList = ['ri', 'qiri', 'pi', 'piri'] #Possibilities 'qi', 'ri', 'qiri', 'qiririm'
-bestCondition = 'piri' # The one that  best matches
 trajIndexes = []
 if 'ri' in conditionedList:
     trajIndexes.append(0)
@@ -92,6 +96,9 @@ numConditions = len(trajIndexes)
 labelList = [r'$r_{i+1}|r_i$', r'$r_{i+1}|r_i, r_{i-1}$',
              r'$r_{i+1}|q_i$', r'$r_{i+1}|q_i,r_i$', r'$r_{i+1}|q_i, r_i, r_{i-1}$', 
              r'$r_{i+1}|p_i$', r'$r_{i+1}|p_i,r_i$', r'$r_{i+1}|p_i, r_i, r_{i-1}$']
+lineTypeList = [':', '-.', '--', 'xk']*2
+lwList = [4, 2, 2, 2]*2
+
 
 
 # Extract variables to plot from trajectories (x components)
@@ -117,8 +124,8 @@ binsPosRef = 0.5 * (binEdges[1:] + binEdges[:-1])
 velRef, binEdges = np.histogram(velocity_ref, bins=numbins, density = True)
 binsVelRef = 0.5 * (binEdges[1:] + binEdges[:-1])
 if plotLines:
-    ax1.plot(binsPosRef, posRef, '-', c='black', label = 'benchmark');
-    ax2.plot(binsVelRef, velRef, '-', c='black', label = 'benchmark');
+    ax1.plot(binsPosRef, posRef, '-k', label = 'benchmark');
+    ax2.plot(binsVelRef, velRef, '-k', label = 'benchmark');
 else:
     ax1.hist(position_ref, bins=numbins, density= True, alpha=0.5, label='benchmark');
     ax2.hist(velocity_ref, bins=numbins, density= True, alpha=0.5, label='benchmark');
@@ -130,12 +137,8 @@ for i in range(numConditions):
     vel, binEdges = np.histogram(velocity[i], bins=numbins, density = True)
     binsVel = 0.5 * (binEdges[1:] + binEdges[:-1])
     if plotLines:
-        if conditionedList[i] != bestCondition:
-            ax1.plot(binsPos, pos, '--', label = labelList[index]);
-            ax2.plot(binsVel, vel, '--', label = labelList[index]);
-        else:
-            ax1.plot(binsPos, pos, 'xk', label = labelList[index]);
-            ax2.plot(binsVel, vel, 'xk', label = labelList[index]);
+        ax1.plot(binsPos, pos, lineTypeList[i], lw = lwList[i], label = labelList[index]);
+        ax2.plot(binsVel, vel, lineTypeList[i], lw = lwList[i], label = labelList[index]);
     else:
         ax1.hist(position[i], bins=numbins, density= True, alpha=0.5, label = labelList[i]);
         ax2.hist(velocity[i], bins=numbins, density= True, alpha=0.5, label = labelList[i]);
@@ -146,15 +149,14 @@ ax1.set_ylabel("distribution");
 ax2.set_xlabel("velocity");
 ax2.yaxis.tick_right()
 ax2.legend(loc = 'lower left',  bbox_to_anchor=(-0.36, 0.5), framealpha = 1.0);
-
+plt.tight_layout()
 plt.savefig('distributions_comparisons_harmonic.pdf')
 plt.clf()
 
 
 # ## Autocorrelation function comparison
 
-
-# Parameters for autocorrelation functions. Uses only a subset (mtrajs) of the
+# Parameters for autocorrelation functions. Uses only a subset (mtrajs) of the 
 # total trajectories, since computing them with all is very slow
 lagtimesteps = 40
 mtrajs = 20
@@ -164,9 +166,9 @@ stridesVel = 50
 
 # Calculate reference autocorrelation functions
 print('ACF for reference benchmark:')
-ACF_ref_position = trajectoryTools.calculateAutoCorrelationFunction(trajs_ref[0:mtrajs],
+ACF_ref_position = trajectoryTools.calculateAutoCorrelationFunction(trajs_ref[0:mtrajs], 
                                                                        lagtimesteps, stridesPos, 'position')
-ACF_ref_velocity = trajectoryTools.calculateAutoCorrelationFunction(trajs_ref[0:mtrajs],
+ACF_ref_velocity = trajectoryTools.calculateAutoCorrelationFunction(trajs_ref[0:mtrajs], 
                                                                        lagtimesteps, stridesVel, 'velocity')
 
 
@@ -174,26 +176,23 @@ ACF_ref_velocity = trajectoryTools.calculateAutoCorrelationFunction(trajs_ref[0:
 ACF_position = [None] * numConditions
 ACF_velocity = [None] * numConditions
 for i in range(numConditions):
-    print('ACF conditioned on ' + conditionedList[i] + ' (' + str(i+1) + ' of ' + str(numConditions) + '):')
+    print('\nACF conditioned on ' + conditionedList[i] + ' (' + str(i+1) + ' of ' + str(numConditions) + '):')
     currentTrajs = allTrajs[trajIndexes[i]]
-    ACF_position[i] = trajectoryTools.calculateAutoCorrelationFunction(currentTrajs[0:mtrajs],
+    ACF_position[i] = trajectoryTools.calculateAutoCorrelationFunction(currentTrajs[0:mtrajs], 
                                                                        lagtimesteps, stridesPos, 'position')
-    ACF_velocity[i] = trajectoryTools.calculateAutoCorrelationFunction(currentTrajs[0:mtrajs],
+    ACF_velocity[i] = trajectoryTools.calculateAutoCorrelationFunction(currentTrajs[0:mtrajs], 
                                                                        lagtimesteps, stridesVel, 'velocity')
     print('\nDone')
 
 
 # Plot both autocorrelation functions at once
-f, (ax1, ax2) = plt.subplots(1, 2, figsize=(12,4), sharey=True) #fig, ax = plt.subplots()
+f, (ax1, ax2) = plt.subplots(1, 2, figsize=(12,4)) #fig, ax = plt.subplots()
 time = dt*integratorStride*stridesPos*np.linspace(1,lagtimesteps,lagtimesteps)
 ax1.plot(time, ACF_ref_position, '-k', label = 'benchmark')
 # Plot reduced models
 for i in range(numConditions):
     index = trajIndexes[i]
-    if conditionedList[i] != bestCondition:
-        ax1.plot(time, ACF_position[i], '--', label = labelList[index])
-    else:
-        ax1.plot(time, ACF_position[i], 'xk', label = labelList[index])
+    ax1.plot(time, ACF_position[i], lineTypeList[i], lw = lwList[i], label = labelList[index])
 ax1.set_xlabel('time(ns)')
 ax1.set_ylabel('Position autocorrelation')
 
@@ -203,15 +202,10 @@ ax2.plot(time, ACF_ref_velocity, '-k', label = 'benchmark')
 # Plot reduced models
 for i in range(numConditions):
     index = trajIndexes[i]
-    if conditionedList[i] != bestCondition:
-        ax2.plot(time, ACF_velocity[i], '--', label = labelList[index])
-    else:
-        ax2.plot(time, ACF_velocity[i], 'xk', label = labelList[index])
+    ax2.plot(time, ACF_velocity[i], lineTypeList[i], lw = lwList[i], label = labelList[index])
 ax2.set_xlabel('time(ns)')
 ax2.set_ylabel('Velocity autocorrelation')
 ax2.yaxis.tick_right()
+plt.tight_layout()
 plt.savefig('Autocorrelations_harmonic.pdf')
 plt.clf()
-
-
-
