@@ -63,7 +63,7 @@ for i in range(numModels):
         for j in range(numSimulations):
             traj = trajectoryTools.loadTrajectory(redModelfnamebase[i], j)
             iTraj.append(traj)
-            print("File ", i+1, " of ", numSimulations, " done.", end="\r")
+            print("File ", j+1, " of ", numSimulations, " done.", end="\r")
         allTrajs[i] = iTraj
     except:
         continue
@@ -152,8 +152,7 @@ ax1.set_ylabel("distribution");
 ax2.set_xlabel("velocity");
 ax2.yaxis.tick_right()
 ax2.legend(loc = 'lower left',  bbox_to_anchor=(-0.36, 0.5), framealpha = 1.0);
-plt.tight_layout()
-plt.savefig('distributions_comparisons_harmonic.pdf')
+plt.savefig('distributions_comparisons_harmonic.pdf', bbox_inches='tight')
 plt.clf()
 
 
