@@ -56,6 +56,12 @@ class langevinNoiseSampler(langevin):
             return np.concatenate((particle.nextVelocity, particle.aux1))
         elif self.conditionedOn == 'piririm':
             return np.concatenate((particle.nextVelocity, particle.aux1, particle.aux2))
+        elif self.conditionedOn == 'qipi':
+            return ((particle.nextPosition, particle.nextVelocity))
+        elif self.conditionedOn == 'qipiri':
+            return np.concatenate((particle.nextPosition, particle.nextVelocity, particle.aux1))
+        elif self.conditionedOn == 'qipiririm':
+            return np.concatenate((particle.nextPosition, particle.nextVelocity, particle.aux1, particle.aux2))
         else:
             sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
 
