@@ -45,8 +45,8 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 
 # Simulation parameters
 localDataDirectory = '../../data/stochasticClosure/'
-numSimulations = 100
-conditionedOn = 'ri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
+numSimulations = 10 #100
+conditionedOn = 'piri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
 
 # Output data directory
 foldername = 'bistable/benchmarkReduced_' + conditionedOn
@@ -86,10 +86,8 @@ nsigma = parameters['nsigma']
 nSampler = noiseSampler(dataOnBins)
 
 # External potential parameters
-mu1 = np.array([-1.5,0,0])
-mu2 = np.array([1.5,0,0])
-sigma = 1
-scalefactor = 75
+minimaDist = 1.5
+kconstants = np.array([3.0, 10.0, 10.0])
 
 # Integrator parameters
 integratorStride = 1 #50
@@ -124,7 +122,7 @@ def runParallelSims(simnumber):
     particleList = deepRD.particleList([particle])
 
     # Define external potential
-    bistablePotential = bistable(mu1, mu2, sigma, sigma, scalefactor)
+    bistablePotential = bistable(minimaDist, kconstants)
 
     diffIntegrator = langevinNoiseSampler(dt, integratorStride, tfinal, Gamma, nSampler, KbT,
                                           boxsize, boundaryType, equilibrationSteps, conditionedOn)
@@ -140,13 +138,13 @@ def runParallelSims(simnumber):
     print("Simulation " + str(simnumber) + ", done.")
 
 
-# Runs several simulations in parallel
-print('Simulation for ri+1|' + conditionedOn + ' begins ...')
-num_cores =  multiprocessing.cpu_count() - 1
-pool = Pool(processes=num_cores)
-iterator = [i for i in range(numSimulations)]
-pool.map(partial(runParallelSims), iterator)
+## Runs several simulations in parallel
+#print('Simulation for ri+1|' + conditionedOn + ' begins ...')
+#num_cores =  multiprocessing.cpu_count() - 1
+#pool = Pool(processes=num_cores)
+#iterator = [i for i in range(numSimulations)]
+#pool.map(partial(runParallelSims), iterator)
 
-## Serial test
-#for i in range(numSimulations):
-#    runParallelSims(i)
+# Serial test
+for i in range(numSimulations):
+    runParallelSims(i)

@@ -8,20 +8,18 @@ class bistable(externalPotential):
     +         exp( -((x-mu2)*(x-mu2)/sigma2^2))/(2*sigma2**3)).
     Assumes mu1 and mu2 are vectors and sigma1 and sigma 2 scalars (equal variance in all directions).
     '''
-    def __init__(self, mu1, mu2, sigma1, sigma2, scale = 1):
-        self.mu1 = mu1
-        self.mu2 = mu2
-        self.sigma1 = sigma1
-        self.sigma2 = sigma2
+    def __init__(self, minimaDist, kconstants, scale = 1):
+        self.minimaDist = minimaDist
+        self.kconstants = kconstants
+        if np.isscalar(kconstants):
+            self.kconstant = np.array([kconstants, kconstants, kconstants])
         self.scale = scale
 
     def evaluate(self, particle):
-        x1 = particle.position - self.mu1
-        x2 = particle.position - self.mu2
-        pifactor = np.power(2*np.pi, 3.0 / 2.0)
-        gaussian1 = np.exp(-np.dot(x1,x1) / (2*self.sigma1**2)) / (pifactor * self.sigma1**3)
-        gaussian2 = np.exp(-np.dot(x2,x2) / (2*self.sigma2**2)) / (pifactor * self.sigma2**3)
-        return -1 * self.scale * (gaussian1 + gaussian2)
+        x = particle.position
+        bistablePot = self.kconstants[0] * (1 - (x[0] / self.minimaDist)**2)**2 + \
+                      self.kconstants[1] * x[1]**2 + self.kconstants[2] * x[2]**2
+        return self.scale * bistablePot
 
     def calculateForce(self, particle, currentOrNext = 'current'):
         '''
@@ -30,15 +28,13 @@ class bistable(externalPotential):
         '''
         force = np.zeros(3)
         if currentOrNext == 'current':
-            x1 = particle.position - self.mu1
-            x2 = particle.position - self.mu2
+            x = particle.position
         elif currentOrNext == 'next':
-            x1 = particle.nextPosition - self.mu1
-            x2 = particle.nextPosition - self.mu2
+            x = particle.nextPosition
         else:
             raise NotImplementedError("CurrentOrNext variable must take values of current or next.")
         pifactor = np.power(2*np.pi, 3.0 / 2.0)
-        gaussian1 = np.exp(-np.dot(x1,x1) / (2*self.sigma1**2)) / (pifactor * self.sigma1**3)
-        gaussian2 = np.exp(-np.dot(x2,x2) / (2*self.sigma2**2)) / (pifactor * self.sigma2**3)
-        force = -(x1/self.sigma1**2) * gaussian1 -(x2/self.sigma2**2) * gaussian2
+        force[0] = - self.kconstants[0] * 4 * x[0] * (x[0]**2 - self.minimaDist**2)/self.minimaDist**4
+        force[1] = - self.kconstants[1] * 2 * x[1]
+        force[2] = - self.kconstants[2] * 2 * x[2]
         return self.scale * force
