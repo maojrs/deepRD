@@ -1,3 +1,4 @@
 from .potentials import *
-from .harmonic import *
 from .bistable import *
+from .harmonic import *
+from .gaussians import *
