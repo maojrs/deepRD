@@ -25,6 +25,9 @@ class pairPotential:
     '''
     Parent(abstract) class for external potentials
     '''
+    def __init__(self):
+        self.boxsize = None
+        self.boundary = 'periodic'
 
     def evaluate(self, particle1, particle2):
         '''
@@ -38,3 +41,15 @@ class pairPotential:
         using current position, if "next, calculate it using the next position."
         '''
         raise NotImplementedError("Please Implement calculateForce method for this potential")
+
+    def relativePosition(self, pos1, pos2):
+        p1periodic = 1.0 * pos1
+        if (self.boundary == "periodic" and self.boxsize != None):
+            for i in range(3):
+                if (pos2[i] - pos1[i]) > 0.5 * self.boxsize[i]:
+                    p1Periodic[i] += self.boxsize[i]
+                if (pos2[i] - pos1[i]) < -0.5 * self.boxsize[i]:
+                    p1Periodic[i] -= self.boxsize[i]
+        return pos2 - p1periodic
+
+    }
