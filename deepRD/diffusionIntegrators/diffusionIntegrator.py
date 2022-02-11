@@ -117,3 +117,5 @@ class diffusionIntegrator:
 
     def setPairPotential(self, pairPot):
         self.pairPotential = pairPot
+        self.pairPotential.boxsize = self.boxsize
+        self.pairPotential.boundary = self.boundary

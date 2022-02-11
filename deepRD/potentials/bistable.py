@@ -3,10 +3,9 @@ from .potentials import externalPotential
 
 class bistable(externalPotential):
     '''
-    Potential class for bistable potential made with two Gaussians of the form:
-    -scale * (exp( -((x-mu1)*(x-mu1)/sigma1^2))/(2*sigma1**3) +
-    +         exp( -((x-mu2)*(x-mu2)/sigma2^2))/(2*sigma2**3)).
-    Assumes mu1 and mu2 are vectors and sigma1 and sigma 2 scalars (equal variance in all directions).
+    Bistable external potential in 3D corresponding to
+    scaleFactor ( k1 (1-(x/minimaDist)^2)^2 + k2 y^2 + k3 z^2)
+    The minimas are x = +/- minimaDist
     '''
     def __init__(self, minimaDist, kconstants, scale = 1):
         self.minimaDist = minimaDist
