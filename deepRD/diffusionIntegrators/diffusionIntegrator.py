@@ -105,9 +105,8 @@ class diffusionIntegrator:
             for i, particle in enumerate(particleList):
                 fField[i] += self.externalPotential.calculateForce(particle, currentOrNext)
         if self.pairPotential != None:
-            ''' Could be implemented more efficiently, at the moment calculating twice every interaction'''
             for ij in list(itertools.combinations(range(len(particleList)), 2)):
-                i= ij[0]
+                i = ij[0]
                 j = ij[1]
                 fField[i] += self.pairPotential.calculateForce(particleList[i], particleList[j], currentOrNext)
                 fField[j] -= 1.0 * fField[i]
