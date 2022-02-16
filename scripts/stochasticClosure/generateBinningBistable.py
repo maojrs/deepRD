@@ -29,7 +29,7 @@ except OSError as error:
 # Load parameters from parameters file
 parameterDictionary = analysisTools.readParameters(parentDirectory + "parameters")
 # Parameters for loading continuous trajectories from files (from original simulation)
-nfiles = parameterDictionary['numFiles']
+nfiles = 1250 #parameterDictionary['numFiles']
 dt = parameterDictionary['dt']
 stride = parameterDictionary['stride']
 totalTimeSteps = parameterDictionary['timesteps']
@@ -60,9 +60,9 @@ nsigma3 = 1
 parameterDictionary['lagTimesteps'] = lagTimesteps
 
 # List of possible combinations for binnings
-binPositionList = [False, True]
+binPositionList = [False] #[False, True]
 binVelocitiesList = [False, True]
-numBinnedAuxVarsList = [0,1,2]
+numBinnedAuxVarsList = [2] #[0,1] #[0,1,2]
 
 def getNumberConditionedVariables(binPosition, binVelocity, numBinnedAuxVars):
     numConditionedVariables = 0
