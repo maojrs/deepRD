@@ -133,3 +133,25 @@ class langevinNoiseSampler(langevin):
             return np.array(tTraj), np.array(xTraj), np.array(vTraj), np.array(rTraj)
         else:
             return np.array(tTraj), np.array(xTraj), np.array(vTraj)
+
+    def propagateFPT(self, particleList, finalPosition, threshold):
+        '''
+        Same as propagate, but also takes a finalPosition argument. If the final position is reached the propagation
+        is stopped and the time is printed.
+        '''
+        if self.firstRun:
+            self.prepareSimulation(particleList)
+        # Equilbration runs
+        for i in range(self.equilibrationSteps):
+            self.integrateOne(particleList)
+        # Begins integration
+        time = 0.0
+        unbound = True
+        while (unbound):
+            self.integrateOne(particleList)
+            # Update variables
+            time = time + self.dt
+            if np.linalg.norm(particleList[0].position - finalPosition) < threshold:
+                return 'success', time
+        return 'failed', time
+

@@ -45,11 +45,11 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 
 # Simulation parameters
 localDataDirectory = '../../data/stochasticClosure/'
-numSimulations = 10 #100
+numSimulations = 20 #100
 conditionedOn = 'piri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
 
 # Output data directory
-foldername = 'bistable/benchmarkReduced_' + conditionedOn
+foldername = 'bistable/benchmarkReducedFPT'
 outputDataDirectory = os.path.join(localDataDirectory, foldername)
 # Create folder for data
 try:
@@ -92,31 +92,34 @@ kconstants = np.array([1.0, 1.0, 1.0])
 # Integrator parameters
 integratorStride = 1 #50
 tfinal = 10000
-equilibrationSteps = 10000
+equilibrationSteps = 0
+
+# Parameters for FPT calculations
+initialPosition = np.array([-1.0*minimaDist, 0., 0.])
+finalPosition = np.array([1.0*minimaDist, 0., 0.])
+minimaThreshold = 0.3
 
 # Create parameter dictionary to write to parameters reference file
 parameterfilename = os.path.join(outputDataDirectory, "parameters")
 parameterDictionary = {'numFiles' : numSimulations, 'dt' : dt, 'Gamma' : Gamma, 'KbT' : KbT,
                        'mass' : mass, 'tfinal' : tfinal, 'stride' : integratorStride,
                        'boxsize' : boxsize, 'boundaryType' : boundaryType,
-                       'equilibrationSteps' : equilibrationSteps, 'conditionedOn': conditionedOn,
-                       'numbins': numbins, 'lagTimesteps': lagTimesteps, 'nsigma': nsigma}
+                       'conditionedOn': conditionedOn, 'numbins': numbins, 'lagTimesteps': lagTimesteps,
+                       'nsigma': nsigma}
 analysisTools.writeParameters(parameterfilename, parameterDictionary)
 
 # Provides base filename (folder must exist (and preferably empty), otherwise H5 might fail)
 basefilename = os.path.join(outputDataDirectory, "simMoriZwanzigReduced_")
 
+# Create empty files to save the data in parallel algorithm
+filename = outputDataDirectory  + '/simMoriZwanzigFPTs_' + conditionedOn + '_' + str(numSimulations) + '.xyz'
+
 # Simulation wrapper for parallel runs
 def runParallelSims(simnumber):
-    #if simnumber % 2 == 0:
-    #    sign = 1
-    #else:
-    #    sign= -1
-
     # Define particle list
     seed = int(simnumber)
     random.seed(seed)
-    position = [0, 0, 0]
+    position = initialPosition
     velocity = [0, 0, 0]
     particle = deepRD.particle(position, velocity = velocity, mass=mass)
     particleList = deepRD.particleList([particle])
@@ -129,21 +132,30 @@ def runParallelSims(simnumber):
     diffIntegrator.setExternalPotential(bistablePotential)
 
     # Integrate dynamics
-    t, X, V = diffIntegrator.propagate(particleList)
+    result, FPT = diffIntegrator.propagateFPT(particleList, finalPosition, minimaThreshold)
 
-    # Write dynamics into trjactory
-    traj = trajectoryTools.convert2trajectory(t, [X, V])
-    trajectoryTools.writeTrajectory(traj,basefilename,simnumber)
-
-    print("Simulation " + str(simnumber) + ", done.")
+    return result, FPT
 
 
-# Runs several simulations in parallel
-print('Simulation for ri+1|' + conditionedOn + ' begins ...')
-num_cores =  multiprocessing.cpu_count() - 1
-pool = Pool(processes=num_cores)
-iterator = [i for i in range(numSimulations)]
-pool.map(partial(runParallelSims), iterator)
+def multiprocessingHandler():
+    '''
+    Handles parallel processing of simulationFPT and writes to same file in parallel
+    '''
+    # Runs several simulations in parallel
+    num_cores = multiprocessing.cpu_count() - 1
+    pool = Pool(processes=num_cores)
+    trajNumList = list(range(numSimulations))
+    with open(filename, 'w') as file:
+        for index, result in enumerate(pool.imap(runParallelSims, trajNumList)):
+            result, time = result
+            if result == 'success':
+                file.write(str(time) + '\n')
+                print("Simulation " + str(index) + ", done. Success!")
+            else:
+                print("Simulation " + str(index) + ", done. Failed :(")
+
+# Run parallel code
+multiprocessingHandler()
 
 ## Serial test
 #for i in range(numSimulations):
