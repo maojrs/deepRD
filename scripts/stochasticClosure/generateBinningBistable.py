@@ -13,10 +13,13 @@ Generates binned data structures on several different conditionings for the stoc
 Currently implemented on conditioning ri+1 on all the combinations qi,pi,ri,ri-1
 '''
 
-parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/bistable/benchmark/'
+#parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/bistable/benchmark/'
+parentDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/benchmark/'
 fnamebase = parentDirectory + 'simMoriZwanzig_'
 foldername = 'binnedData/'
-binningDataDirectory = os.path.join('../../data/stochasticClosure/bistable/', foldername)
+#binningDataDirectory = os.path.join('../../data/stochasticClosure/bistable/', foldername)
+binningDataDirectory = os.path.join(os.environ['DATA'] + 'stochasticClosure/bistable/', foldername)
+
 
 try:
     os.mkdir(binningDataDirectory)
@@ -29,7 +32,7 @@ except OSError as error:
 # Load parameters from parameters file
 parameterDictionary = analysisTools.readParameters(parentDirectory + "parameters")
 # Parameters for loading continuous trajectories from files (from original simulation)
-nfiles = 1250 #parameterDictionary['numFiles']
+nfiles = parameterDictionary['numFiles']
 dt = parameterDictionary['dt']
 stride = parameterDictionary['stride']
 totalTimeSteps = parameterDictionary['timesteps']

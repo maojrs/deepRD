@@ -13,10 +13,12 @@ Generates binned data structures on several different conditionings for the stoc
 Currently implemented on conditioning ri+1 on all the combinations qi,pi,ri,ri-1
 '''
 
-parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/harmonic/benchmark/'
+#parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/harmonic/benchmark/'
+parentDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/benchmark/'
 fnamebase = parentDirectory + 'simMoriZwanzig_'
 foldername = 'binnedData/'
-binningDataDirectory = os.path.join('../../data/stochasticClosure/harmonic/', foldername)
+#binningDataDirectory = os.path.join('../../data/stochasticClosure/harmonic/', foldername)
+binningDataDirectory = os.path.join(os.environ['DATA'] + 'stochasticClosure/harmonic/', foldername)
 
 try:
     os.mkdir(binningDataDirectory)

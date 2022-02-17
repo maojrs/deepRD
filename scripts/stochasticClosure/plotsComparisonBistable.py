@@ -11,10 +11,12 @@ import deepRD.tools.analysisTools as analysisTools
 matplotlib.rcParams.update({'font.size': 15})
 
 # Benchmark data folder
-parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/bistable/old/benchmarkComparison/'
+#parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/bistable/benchmarkComparison/'
+parentDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/benchmarkComparison/'
 benchmarkfnamebase = parentDirectory + 'simMoriZwanzig_'
 # Reduced models data folders
-localDataDirectory = '../../data/stochasticClosure/bistable/benchmarkReduced'
+#localDataDirectory = '../../data/stochasticClosure/bistable/benchmarkReduced'
+localDataDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/benchmarkReduced'
 numModels = 8
 redModelfnamebase = [localDataDirectory]*numModels
 redModelfnamebase[0] += '_ri/simMoriZwanzigReduced_'

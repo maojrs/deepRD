@@ -15,10 +15,12 @@ matplotlib.rcParams['axes.prop_cycle'] = matplotlib.cycler(color=colorList3alt)
 
 
 # Benchmark data folder
-parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/harmonic/benchmarkComparison/'
+#parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/harmonic/benchmarkComparison/'
+parentDirectory = os.environ['DATA'] + 'stochasticClosure/harmonic/benchmarkComparison/'
 benchmarkfnamebase = parentDirectory + 'simMoriZwanzig_'
 # Reduced models data folders
-localDataDirectory = '../../data/stochasticClosure/harmonic/benchmarkReduced'
+#localDataDirectory = '../../data/stochasticClosure/harmonic/benchmarkReduced'
+localDataDirectory = os.environ['DATA'] + 'stochasticClosure/harmonic/benchmarkReduced'
 numModels = 8
 redModelfnamebase = [localDataDirectory]*numModels
 redModelfnamebase[0] += '_ri/simMoriZwanzigReduced_'

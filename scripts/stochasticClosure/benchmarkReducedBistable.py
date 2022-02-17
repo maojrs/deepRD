@@ -44,8 +44,9 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 # - Reduced friction: $\sigma^2/time$
 
 # Simulation parameters
-localDataDirectory = '../../data/stochasticClosure/'
-numSimulations = 10 #100
+#localDataDirectory = '../../data/stochasticClosure/'
+localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
+numSimulations = 100
 conditionedOn = 'piri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
 
 # Output data directory
