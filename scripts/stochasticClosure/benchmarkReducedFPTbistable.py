@@ -7,12 +7,13 @@ import deepRD
 from deepRD.diffusionIntegrators import langevinNoiseSampler
 from deepRD.potentials import bistable
 from deepRD.noiseSampler import noiseSampler
-#from deepRD.noiseSampler import binnedData
+from deepRD.noiseSampler import binnedData
 import deepRD.tools.trajectoryTools as trajectoryTools
 import deepRD.tools.analysisTools as analysisTools
 
 import multiprocessing
-from multiprocessing import Pool
+from multiprocessing import Pool, Process, Manager
+from multiprocessing.managers import BaseManager
 from functools import partial
 
 '''
@@ -44,7 +45,8 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 # - Reduced friction: $\sigma^2/time$
 
 # Simulation parameters
-localDataDirectory = '../../data/stochasticClosure/'
+#localDataDirectory = '../../data/stochasticClosure/'
+localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
 numSimulations = 10000 #100
 conditionedOn = 'piri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
 
@@ -133,9 +135,6 @@ def runParallelSims(simnumber):
 
     # Integrate dynamics
     result, FPT = diffIntegrator.propagateFPT(particleList, finalPosition, minimaThreshold)
-
-    # Free memory
-    del diffIntegrator
 
     return result, FPT
 
