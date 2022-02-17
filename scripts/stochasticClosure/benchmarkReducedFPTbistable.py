@@ -45,7 +45,7 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 
 # Simulation parameters
 localDataDirectory = '../../data/stochasticClosure/'
-numSimulations = 20 #100
+numSimulations = 10000 #100
 conditionedOn = 'piri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
 
 # Output data directory

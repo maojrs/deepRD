@@ -146,12 +146,15 @@ class langevinNoiseSampler(langevin):
             self.integrateOne(particleList)
         # Begins integration
         time = 0.0
-        unbound = True
-        while (unbound):
+        condition = True
+        while (condition):
             self.integrateOne(particleList)
             # Update variables
             time = time + self.dt
-            if np.linalg.norm(particleList[0].position - finalPosition) < threshold:
+            if time > self.tfinal:
+                condition = False
+            elif np.linalg.norm(particleList[0].position - finalPosition) < threshold:
+                condition = False
                 return 'success', time
         return 'failed', time
 
