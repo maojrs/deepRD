@@ -14,7 +14,7 @@ Currently implemented on conditioning ri+1 on all the combinations qi,pi,ri,ri-1
 '''
 
 #parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/harmonic/benchmark/'
-parentDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/benchmark/'
+parentDirectory = os.environ['DATA'] + 'stochasticClosure/harmonic/benchmark/'
 fnamebase = parentDirectory + 'simMoriZwanzig_'
 foldername = 'binnedData/'
 #binningDataDirectory = os.path.join('../../data/stochasticClosure/harmonic/', foldername)
