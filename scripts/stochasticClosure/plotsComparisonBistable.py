@@ -176,7 +176,7 @@ def sampleKernelDensity(numSamples, variable = 'position_ref'):
 # Calculate kernel density output for a certain one dimensional cut going through the origin.
 
 # Obtain x, y, or z cut of the distribution
-xxPos = np.arange(-4,4,0.1)
+xxPos = np.arange(-2.5,2.5,0.1)
 xxVel = np.arange(-0.6,0.6,0.015)
 ww = np.zeros(len(xxPos))
 ww2 = np.zeros(len(xxVel))
@@ -280,9 +280,9 @@ ax2.scatter(sampledPosRef[:,0],sampledPosRef[:,1], marker='o', s=0.1,label='rand
 
 ax2.set_xlabel('position ' + xlabel[0])
 ax2.set_ylabel(r'$y$')
-ax2.set_xlim([-4,4])
+ax2.set_xlim([-2.5,2.5])
 ax2.set_ylim([-1.5,1.5])
-ax2.xaxis.set_ticks(np.arange(-4,5,2)) 
+ax2.xaxis.set_ticks(np.arange(-2,3,1))
 ax2.yaxis.set_ticks(np.arange(-1,2,1)) 
 ax2.legend(loc="upper right", markerscale=20, borderpad=0.1)
 
