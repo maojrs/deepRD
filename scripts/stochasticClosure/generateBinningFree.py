@@ -13,12 +13,16 @@ Generates binned data structures on several different conditionings for the stoc
 Currently implemented on conditioning ri+1 on all the combinations qi,pi,ri,ri-1
 '''
 
+bsize = 5
+
 #parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/free/benchmark/'
-parentDirectory = os.environ['DATA'] + 'stochasticClosure/free/benchmark/'
+parentDirectory = os.environ['DATA'] + 'stochasticClosure/free/boxsize' + str(bsize)+ '/benchmark/'
+
 fnamebase = parentDirectory + 'simMoriZwanzig_'
 foldername = 'binnedData/'
 #binningDataDirectory = os.path.join('../../data/stochasticClosure/free/', foldername)
-binningDataDirectory = os.path.join(os.environ['DATA'] + 'stochasticClosure/free/', foldername)
+binningDataDirectory = os.path.join(os.environ['DATA'] + 'stochasticClosure/free/boxsize' + str(bsize) + '/', foldername)
+
 
 try:
     os.mkdir(binningDataDirectory)
@@ -37,6 +41,9 @@ stride = parameterDictionary['stride']
 totalTimeSteps = parameterDictionary['timesteps']
 boxsize = parameterDictionary['boxsize']
 boundaryType = parameterDictionary['boundaryType']
+
+if bsize != boxsize:
+    print('Requested boxsize does not match simulation')
 
 # Load trajectory data from h5 files (only of distinguished particle)
 trajs = []

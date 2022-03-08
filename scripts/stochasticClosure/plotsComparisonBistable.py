@@ -10,13 +10,15 @@ import deepRD.tools.trajectoryTools as trajectoryTools
 import deepRD.tools.analysisTools as analysisTools
 matplotlib.rcParams.update({'font.size': 15})
 
+bsize = 5
+
 # Benchmark data folder
 #parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/bistable/benchmarkComparison/'
-parentDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/benchmarkComparison/'
+parentDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(bsize) + '/benchmarkComparison/'
 benchmarkfnamebase = parentDirectory + 'simMoriZwanzig_'
 # Reduced models data folders
 #localDataDirectory = '../../data/stochasticClosure/bistable/benchmarkReduced'
-localDataDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/benchmarkReduced'
+localDataDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(bsize) + '/benchmarkReduced'
 numModels = 8
 redModelfnamebase = [localDataDirectory]*numModels
 redModelfnamebase[0] += '_ri/simMoriZwanzigReduced_'
@@ -37,6 +39,9 @@ totalTimeSteps = parameterDictionary['timesteps']
 boxsize = parameterDictionary['boxsize']
 boundaryType = parameterDictionary['boundaryType']
 parameterDictionary
+
+if bsize != boxsize:
+    print('Requested boxsize does not match simulation')
 
 
 # ## Load benchmark and reduced model trajectory data
