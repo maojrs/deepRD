@@ -13,14 +13,15 @@ colorList3 = ['0077BB', '33BBEE', '009988', 'EE7733', 'CC3311', 'EE3377', 'BBBBB
 colorList3alt = ['EE7733', 'A50026', '0077BB', '009988', '33BBEE', 'BBBBBB']
 matplotlib.rcParams['axes.prop_cycle'] = matplotlib.cycler(color=colorList3alt)
 
+bsize = 5
 
 # Benchmark data folder
 #parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/harmonic/benchmarkComparison/'
-parentDirectory = os.environ['DATA'] + 'stochasticClosure/harmonic/benchmarkComparison/'
+parentDirectory = os.environ['DATA'] + 'stochasticClosure/harmonic/boxsize' + str(bsize) + '/benchmarkComparison/'
 benchmarkfnamebase = parentDirectory + 'simMoriZwanzig_'
 # Reduced models data folders
 #localDataDirectory = '../../data/stochasticClosure/harmonic/benchmarkReduced'
-localDataDirectory = os.environ['DATA'] + 'stochasticClosure/harmonic/benchmarkReduced'
+localDataDirectory = os.environ['DATA'] + 'stochasticClosure/harmonic/boxsize' + str(bsize) + '/benchmarkReduced'
 numModels = 8
 redModelfnamebase = [localDataDirectory]*numModels
 redModelfnamebase[0] += '_ri/simMoriZwanzigReduced_'
@@ -41,6 +42,9 @@ totalTimeSteps = parameterDictionary['timesteps']
 boxsize = parameterDictionary['boxsize']
 boundaryType = parameterDictionary['boundaryType']
 parameterDictionary
+
+if bsize != boxsize:
+    print('Requested boxsize does not match simulation')
 
 
 # ## Load benchmark and reduced model trajectory data

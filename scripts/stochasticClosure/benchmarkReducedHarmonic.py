@@ -47,10 +47,11 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 #localDataDirectory = '../../data/stochasticClosure/'
 localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
 numSimulations = 100 #100 #100
+bsize = 5
 conditionedOn = 'piri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
 
 # Output data directory
-foldername = 'harmonic/benchmarkReduced_' + conditionedOn
+foldername = 'harmonic/boxsize' + str(bsize) + '/benchmarkReduced_' + conditionedOn
 outputDataDirectory = os.path.join(localDataDirectory, foldername)
 # Create folder for data
 try:
@@ -77,6 +78,9 @@ mass =  parameters['mass']
 KbT = parameters['KbT']
 boxsize = parameters['boxsize']
 boundaryType = parameters['boundaryType']
+
+if bsize != boxsize:
+    print('Requested boxsize does not match simulation')
 
 # Extract binning parameters
 numbins = parameters['numbins']
