@@ -12,7 +12,8 @@ colorList = ['CC6677', '882255', 'AA4499','332288', '88CCEE', '44AA99','117733',
 colorList2 = ['4477AA', 'EE6677', '228833', 'CCBB44', '66CCEE', 'AA3377', 'BBBBBB']
 colorList3 = ['0077BB', '33BBEE', '009988', 'EE7733', 'CC3311', 'EE3377', 'BBBBBB']
 colorList3alt = ['EE7733', 'A50026', '0077BB', '009988', '33BBEE', 'BBBBBB']
-matplotlib.rcParams['axes.prop_cycle'] = matplotlib.cycler(color=colorList3alt)
+colorList3alt2 = ['A50026', '0077BB', '009988', '33BBEE', 'BBBBBB', 'EE7733']
+matplotlib.rcParams['axes.prop_cycle'] = matplotlib.cycler(color=colorList3alt2)
 
 bsize = 5
 
