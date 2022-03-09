@@ -91,7 +91,8 @@ print("Reduced models data loaded.")
 
 
 # Choose which reduced model to compare (just uncomment one)
-conditionedList = ['ri', 'qiri', 'pi', 'piri'] #Possibilities 'qi', 'ri', 'qiri', 'qiririm'
+#conditionedList = ['ri', 'qiri', 'pi', 'piri'] #Possibilities 'qi', 'ri', 'qiri', 'qiririm'
+conditionedList = ['pi', 'piri', 'piririm']
 trajIndexes = []
 if 'ri' in conditionedList:
     trajIndexes.append(0)
@@ -116,8 +117,12 @@ labelList = [r'$\tilde{r}_{i+1}|\tilde{r}_i$', r'$\tilde{r}_{i+1}|\tilde{r}_i, \
              r'$\tilde{r}_{i+1}|\tilde{x}_i, \tilde{r}_i, \tilde{r}_{i-1}$',
              r'$\tilde{r}_{i+1}|\tilde{v}_i$', r'$\tilde{r}_{i+1}|\tilde{v}_i,\tilde{r}_i$',
              r'$\tilde{r}_{i+1}|\tilde{v}_i, \tilde{r}_i, \tilde{r}_{i-1}$']
-lineTypeList = [':', '-.', '--', 'xk']*2
-lwList = [4, 2, 2, 2]*2
+#lineTypeList = [':', '-.', '--', 'xk']*2
+#lwList = [4, 2, 2, 2]*2
+
+lineTypeList = ['-.', '--', 'xk']*2
+lwList = [2, 2, 2]*2
+
 
 
 
