@@ -13,7 +13,7 @@ Generates binned data structures on several different conditionings for the stoc
 Currently implemented on conditioning ri+1 on all the combinations qi,pi,ri,ri-1
 '''
 
-bize = 5
+bsize = 5
 
 #parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/harmonic/benchmark/'
 parentDirectory = os.environ['DATA'] + 'stochasticClosure/harmonic/boxsize' + str(bsize)+ '/benchmark/'

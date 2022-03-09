@@ -48,6 +48,7 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 #localDataDirectory = '../../data/stochasticClosure/'
 localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
 numSimulations = 10000 #100
+bsize= 5
 conditionedOn = 'piri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
 
 # Output data directory
@@ -64,7 +65,7 @@ except OSError as error:
 
 # Load binning sampling models
 print("Loading binned data ...")
-binnedDataFilename = localDataDirectory + 'bistable/binnedData/' + conditionedOn + 'BinnedData.pickle'
+binnedDataFilename = localDataDirectory + 'bistable/boxsize' + str(bsize) + '/binnedData/' + conditionedOn + 'BinnedData.pickle'
 #binnedDataFilename = localDataDirectory + 'binnedData/riBinnedData.pickle'
 dataOnBins = pickle.load(open(binnedDataFilename, "rb" ))
 parameters = dataOnBins.parameterDictionary
@@ -83,6 +84,9 @@ boundaryType = parameters['boundaryType']
 numbins = parameters['numbins']
 lagTimesteps = parameters['lagTimesteps']
 nsigma = parameters['nsigma']
+
+if bsize != boxsize:
+    print('Requested boxsize does not match simulation')
 
 # Define noise sampler
 nSampler = noiseSampler(dataOnBins)
