@@ -1,4 +1,5 @@
 import os
+import sys
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
@@ -29,6 +30,16 @@ redModelfnamebase[4] += '_qiririm/simMoriZwanzigReduced_'
 redModelfnamebase[5] += '_pi/simMoriZwanzigReduced_'
 redModelfnamebase[6] += '_piri/simMoriZwanzigReduced_'
 redModelfnamebase[7] += '_piririm/simMoriZwanzigReduced_'
+
+# Create plot directory
+plotDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(bsize) + '/plots/'
+try:
+    os.mkdir(plotDirectory)
+except OSError as error:
+    print('Folder ' + plotDirectory + ' already exists. Previous data files might be overwritten. Continue, y/n?')
+    proceed = input()
+    if proceed != 'y':
+        sys.exit()
 
 # Read relevant parameters
 parameterDictionary = analysisTools.readParameters(parentDirectory + "parameters")
@@ -259,7 +270,7 @@ ax1[2].legend(bbox_to_anchor=(0.6, 0., 0.5, 1.0), framealpha=1.0)
     
 # displaying plot
 plt.tight_layout()
-plt.savefig('distributions_comparison_bistable_'+ conditionedOn +'.pdf')
+plt.savefig(plotDirectory + 'distributions_comparison_bistable_'+ conditionedOn +'.pdf')
 plt.clf()
 
 # Plot x-position distribution vs samples from original data
@@ -293,7 +304,7 @@ ax2.legend(loc="upper right", markerscale=20, borderpad=0.1)
 
 plt.subplots_adjust(hspace=0)
 #plt.savefig('kernel_density_estimation.pdf')
-plt.savefig('distributions_n_sampleddata_bistable_'+ conditionedOn +'.pdf')
+plt.savefig(plotDirectory + 'distributions_n_sampleddata_bistable_'+ conditionedOn +'.pdf')
 plt.clf()
 
 
@@ -325,7 +336,7 @@ plt.ylabel(variables[index] + ' autocorrelation')
 plt.legend()
 #plt.xlim([0,1500])
 plt.subplots_adjust(bottom=0.15)
-plt.savefig(variables[index]+ '_autocorrelation_bistable_'+ conditionedOn +'.pdf', bbox_inches='tight')
+plt.savefig(plotDirectory + variables[index] + '_autocorrelation_bistable_'+ conditionedOn +'.pdf', bbox_inches='tight')
 plt.clf()
 
 index = 1
@@ -337,5 +348,5 @@ plt.ylabel(variables[index] + ' autocorrelation')
 plt.legend()
 #plt.xlim([0,1500])
 plt.subplots_adjust(bottom=0.15)
-plt.savefig(variables[index]+ '_autocorrelation_bistable_'+ conditionedOn +'.pdf', bbox_inches='tight')
+plt.savefig(plotDirectory + variables[index]+ '_autocorrelation_bistable_'+ conditionedOn +'.pdf', bbox_inches='tight')
 plt.clf()

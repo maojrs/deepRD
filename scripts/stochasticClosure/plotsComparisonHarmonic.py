@@ -1,4 +1,5 @@
 import os
+import sys
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
@@ -32,6 +33,16 @@ redModelfnamebase[4] += '_qiririm/simMoriZwanzigReduced_'
 redModelfnamebase[5] += '_pi/simMoriZwanzigReduced_'
 redModelfnamebase[6] += '_piri/simMoriZwanzigReduced_'
 redModelfnamebase[7] += '_piririm/simMoriZwanzigReduced_'
+
+# Create plot directory
+plotDirectory = os.environ['DATA'] + 'stochasticClosure/harmonic/boxsize' + str(bsize) + '/plots/'
+try:
+    os.mkdir(plotDirectory)
+except OSError as error:
+    print('Folder ' + plotDirectory + ' already exists. Previous data files might be overwritten. Continue, y/n?')
+    proceed = input()
+    if proceed != 'y':
+        sys.exit()
 
 # Read relevant parameters
 parameterDictionary = analysisTools.readParameters(parentDirectory + "parameters")
@@ -158,7 +169,7 @@ ax1.set_ylabel("distribution");
 ax2.set_xlabel("velocity (nm/ns)");
 ax2.yaxis.tick_right()
 ax2.legend(loc = 'lower left',  bbox_to_anchor=(-0.36, 0.5), framealpha = 1.0);
-plt.savefig('distributions_comparisons_harmonic.pdf', bbox_inches='tight')
+plt.savefig(plotDirectory + 'distributions_comparisons_harmonic.pdf', bbox_inches='tight')
 plt.clf()
 
 
@@ -215,5 +226,5 @@ ax2.set_xlabel('time(ns)')
 ax2.set_ylabel('Velocity autocorrelation')
 ax2.yaxis.tick_right()
 plt.tight_layout()
-plt.savefig('Autocorrelations_harmonic.pdf')
+plt.savefig(plotDirectory + 'Autocorrelations_harmonic.pdf')
 plt.clf()
