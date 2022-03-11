@@ -259,6 +259,10 @@ def calculateAutoCorrelation(trajs, lagtimesteps, stride = 1, var = 'position', 
         index = 1
     elif var == 'velocity':
         index = 4
+    elif var == 'raux':
+        index = 8
+    elif var == 'raux2':
+        index = 11
     if mean.any() == None:
         mean = calculateMean(trajs)
     if variance.any() == None:
@@ -288,6 +292,10 @@ def calculateAutoCorrelationFunction(trajs, lagtimesteps, stride = 1, var = 'pos
         index = 1
     elif var == 'velocity':
         index = 4
+    elif var == 'raux':
+        index = 8
+    elif var == 'raux2':
+        index = 11
     variance = 0
     totalSamples = 0
     for traj in trajs:
