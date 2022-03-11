@@ -203,6 +203,12 @@ def calculateMean(trajs, varOrIndex = 'position'):
     elif varOrIndex == 'velocity':
         indexl = 4
         indexr = 7
+    elif varOrIndex == 'raux':
+        indexl = 8
+        indexr = 11
+    elif varOrIndex == 'raux2':
+        indexl = 11
+        indexr = 14
     else:
         indexl = varOrIndex[0]
         indexr = varOrIndex[1]
@@ -230,6 +236,12 @@ def calculateVariance(trajs, varOrIndex = 'position', mean = None):
     elif varOrIndex == 'velocity':
         indexl = 4
         indexr = 7
+    elif varOrIndex == 'raux':
+        indexl = 8
+        indexr = 11
+    elif varOrIndex == 'raux2':
+        indexl = 11
+        indexr = 14
     else:
         indexl = varOrIndex[0]
         indexr = varOrIndex[1]
