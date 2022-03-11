@@ -49,13 +49,14 @@ localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
 numSimulations = 100 #100 #100
 bsize = 5
 conditionedOn = 'piri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
+outputAux = True #False
 
 # Output data directory
 foldername = 'harmonic/boxsize' + str(bsize) + '/benchmarkReduced_' + conditionedOn
 outputDataDirectory = os.path.join(localDataDirectory, foldername)
 # Create folder for data
 try:
-    os.mkdir(outputDataDirectory)
+    os.makedirs(outputDataDirectory)
 except OSError as error:
     print('Folder ' + foldername + ' already exists. Previous data files might be overwritten. Continue, y/n?')
     proceed = input()
@@ -129,7 +130,7 @@ def runParallelSims(simnumber):
     diffIntegrator.setExternalPotential(harmonicPotential)
 
     # Integrate dynamics
-    t, X, V = diffIntegrator.propagate(particleList)
+    t, X, V = diffIntegrator.propagate(particleList, outputAux = outputAux)
 
     # Write dynamics into trjactory
     traj = trajectoryTools.convert2trajectory(t, [X, V])

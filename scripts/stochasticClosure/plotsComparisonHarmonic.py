@@ -38,7 +38,7 @@ redModelfnamebase[7] += '_piririm/simMoriZwanzigReduced_'
 # Create plot directory
 plotDirectory = os.environ['DATA'] + 'stochasticClosure/harmonic/boxsize' + str(bsize) + '/plots/'
 try:
-    os.mkdir(plotDirectory)
+    os.makedirs(plotDirectory)
 except OSError as error:
     print('Folder ' + plotDirectory + ' already exists. Previous data files might be overwritten. Continue, y/n?')
     proceed = input()

@@ -56,7 +56,7 @@ foldername = 'bistable/benchmarkReducedFPT'
 outputDataDirectory = os.path.join(localDataDirectory, foldername)
 # Create folder for data
 try:
-    os.mkdir(outputDataDirectory)
+    os.makedirs(outputDataDirectory)
 except OSError as error:
     print('Folder ' + foldername + ' already exists. Previous data files might be overwritten. Continue, y/n?')
     proceed = input()

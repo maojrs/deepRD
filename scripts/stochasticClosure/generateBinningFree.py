@@ -25,7 +25,7 @@ binningDataDirectory = os.path.join(os.environ['DATA'] + 'stochasticClosure/free
 
 
 try:
-    os.mkdir(binningDataDirectory)
+    os.makedirs(binningDataDirectory)
 except OSError as error:
     print('Folder ' + foldername + ' already exists. Previous data files might be overwritten. Continue, y/n?')
     proceed = input()
