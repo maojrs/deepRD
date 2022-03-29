@@ -3,7 +3,7 @@ import random
 import sys
 import os
 from ..tools import trajectoryTools
-from .binning import binning
+from .binning import binnedData
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -18,7 +18,7 @@ consists of an array of points of the form:
 (time, positionx, positiony, positionz, velocityx, velocityy, velocityz, type, rx, ry, rz).  
 '''
 
-class deepSampler(binning):
+class deepSampler(binnedData):
     '''
     Class to sample auxiliary variables from deep neural network based model, (ri+1|qi,ri).
     '''
