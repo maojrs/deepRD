@@ -17,11 +17,14 @@ bsize = 5
 
 #parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/harmonic/benchmark/'
 parentDirectory = os.environ['DATA'] + 'stochasticClosure/harmonic/boxsize' + str(bsize)+ '/benchmark/'
+#parentDirectory = os.environ['DATA'] + 'stochasticClosure/harmonicAlt/boxsize' + str(bsize)+ '/benchmark/'
+
 
 fnamebase = parentDirectory + 'simMoriZwanzig_'
 foldername = 'binnedData/'
 #binningDataDirectory = os.path.join('../../data/stochasticClosure/harmonic/', foldername)
 binningDataDirectory = os.path.join(os.environ['DATA'] + 'stochasticClosure/harmonic/boxsize' + str(bsize) + '/', foldername)
+#binningDataDirectory = os.path.join(os.environ['DATA'] + 'stochasticClosure/harmonicAlt/boxsize' + str(bsize) + '/', foldername)
 
 
 try:
