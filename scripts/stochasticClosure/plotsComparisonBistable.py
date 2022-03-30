@@ -272,7 +272,7 @@ for i in range(3):
     #ax1[i].fill_between(xxPos,distributionPos_ref[i], color='dodgerblue', alpha = 0.15, label = "benchmark")
     for j in range(numConditions):
         index = trajIndexes[j]
-        ax1[i].plot(xxPos,distributionPos[j][i], lineTypeList[i], lw = lwList[i], label = labelList[index])
+        ax1[i].plot(xxPos,distributionPos[j][i], lineTypeList[j], lw = lwList[j], label = labelList[index])
     #ax1[i].set_xlim((-4,4))
     ax1[i].set_ylim((0,None))
     ax1[i].set_xlabel(xlabel[i] + '-position')
@@ -287,7 +287,7 @@ for i in range(3):
     #ax2[i].fill_between(xxVel,distributionVel_ref[i], color='dodgerblue', alpha = 0.15, label = "benchmark")
     for j in range(numConditions):
         index = trajIndexes[j]
-        ax2[i].plot(xxVel,distributionVel[j][i], lineTypeList[i],  lw = lwList[i])
+        ax2[i].plot(xxVel,distributionVel[j][i], lineTypeList[j],  lw = lwList[j])
     #ax2[i].set_xlim((-0.6,0.6))
     ax2[i].set_ylim((0,None))
     ax2[i].set_xlabel(xlabel[i] + '-velocity' + '\n('+ zerolabel[i] +')')
