@@ -10,6 +10,12 @@ from deepRD.noiseSampler import binnedData
 import deepRD.tools.trajectoryTools as trajectoryTools
 import deepRD.tools.analysisTools as analysisTools
 matplotlib.rcParams.update({'font.size': 15})
+colorList = ['CC6677', '882255', 'AA4499','332288', '88CCEE', '44AA99','117733', '999933', 'DDCC77']
+colorList2 = ['4477AA', 'EE6677', '228833', 'CCBB44', '66CCEE', 'AA3377', 'BBBBBB']
+colorList3 = ['0077BB', '33BBEE', '009988', 'EE7733', 'CC3311', 'EE3377', 'BBBBBB']
+colorList3alt = ['EE7733', 'A50026', '0077BB', '009988', '33BBEE', 'BBBBBB']
+colorList3alt2 = ['A50026', '0077BB', '009988', '33BBEE', 'BBBBBB', 'EE7733']
+matplotlib.rcParams['axes.prop_cycle'] = matplotlib.cycler(color=colorList3alt2)
 
 bsize = 5
 
@@ -87,39 +93,48 @@ print("Reduced models data loaded.")
 
 
 # Choose which reduced model to compare (just uncomment one)
-conditionedOn = 'piri' #Possibilities 'qi', 'ri', 'qiri', 'qiririm'
+#conditionedList = ['ri', 'qiri', 'pi', 'piri'] #Possibilities 'qi', 'ri', 'qiri', 'qiririm'
+conditionedList = ['pi', 'piri', 'piririm']
+trajIndexes = []
+if 'ri' in conditionedList:
+    trajIndexes.append(0)
+if 'ririm' in conditionedList:
+    trajIndexes.append(1)
+if 'qi' in conditionedList:
+    trajIndexes.append(2)
+if 'qiri' in conditionedList:
+    trajIndexes.append(3)
+if 'qiririm' in conditionedList:
+    trajIndexes.append(4)
+if 'pi' in conditionedList:
+    trajIndexes.append(5)
+if 'piri' in conditionedList:
+    trajIndexes.append(6)
+if 'piririm' in conditionedList:
+    trajIndexes.append(7)
+numConditions = len(trajIndexes)
+# Note in plot labels x = q and v = p
+labelList = [r'$\tilde{r}_{i+1}|\tilde{r}_i$', r'$\tilde{r}_{i+1}|\tilde{r}_i, \tilde{r}_{i-1}$',
+             r'$\tilde{r}_{i+1}|\tilde{x}_i$', r'$\tilde{r}_{i+1}|\tilde{x}_i,\tilde{r}_i$',
+             r'$\tilde{r}_{i+1}|\tilde{x}_i, \tilde{r}_i, \tilde{r}_{i-1}$',
+             r'$\tilde{r}_{i+1}|\tilde{v}_i$', r'$\tilde{r}_{i+1}|\tilde{v}_i,\tilde{r}_i$',
+             r'$\tilde{r}_{i+1}|\tilde{v}_i, \tilde{r}_i, \tilde{r}_{i-1}$']
+#lineTypeList = [':', '-.', '--', 'xk']*2
+#lwList = [4, 2, 2, 2]*2
 
-if conditionedOn == 'ri':
-    trajs = allTrajs[0]
-    texlabel = r'$(r_{i+1}|r_i)$'
-elif conditionedOn == 'ririm':
-    trajs = allTrajs[1] 
-    texlabel = r'$(r_{i+1}|r_i,r_{i-1})$'
-elif conditionedOn == 'qi':
-    trajs = allTrajs[2] 
-    texlabel = r'$(r_{i+1}|x_i)$'
-elif conditionedOn == 'qiri':
-    trajs = allTrajs[3] 
-    texlabel = r'$(r_{i+1}|x_i,r_i)$'
-elif conditionedOn == 'qiririm':
-    trajs = allTrajs[4] 
-    texlabel = r'$(r_{i+1}|x_i,r_i,r_{i-1})$'
-elif conditionedOn == 'pi':
-    trajs = allTrajs[5] 
-    texlabel = r'$(r_{i+1}|v_i)$'
-elif conditionedOn == 'piri':
-    trajs = allTrajs[6] 
-    texlabel = r'$(r_{i+1}|v_i,r_i)$'
-elif conditionedOn == 'piririm':
-    trajs = allTrajs[7]
-    texlabel = r'$(r_{i+1}|v_i,r_i,r_{i-1})$'
+lineTypeList = ['-.', '--', 'xk']*2
+lwList = [2, 2, 2]*2
 
-
-# Extract variables to plot from tajectories
-position = trajectoryTools.extractVariableFromTrajectory(trajs, variableIndex = [1,4])
-velocity = trajectoryTools.extractVariableFromTrajectory(trajs, variableIndex = [4,7])
-position_ref = trajectoryTools.extractVariableFromTrajectory(trajs_ref, variableIndex = [1,4])
-velocity_ref = trajectoryTools.extractVariableFromTrajectory(trajs_ref, variableIndex = [4,7])
+# Extract variables to plot from trajectories (x components)
+varIndex = 1 # 1=x, 2=y, 3=z
+position = [None] * numConditions
+velocity = [None] * numConditions
+for i in range(numConditions):
+    currentTrajs = allTrajs[trajIndexes[i]]
+    position[i] = trajectoryTools.extractVariableFromTrajectory(currentTrajs, variableIndex = varIndex)
+    velocity[i] = trajectoryTools.extractVariableFromTrajectory(currentTrajs, variableIndex = varIndex + 3)
+position_ref = trajectoryTools.extractVariableFromTrajectory(trajs_ref, variableIndex = varIndex)
+velocity_ref = trajectoryTools.extractVariableFromTrajectory(trajs_ref, variableIndex = varIndex + 3)
 
 
 #  Obtain bandwidth for kernel density estimation through cross validation
@@ -198,9 +213,9 @@ ww = np.zeros(len(xxPos))
 ww2 = np.zeros(len(xxVel))
 xyzcutPos = [None]*3
 xyzcutVel = [None]*3
-distributionPos = [None]*3
+distributionPos = [None, None, None]*numConditions
 distributionPos_ref = [None]*3 
-distributionVel = [None]*3
+distributionVel = [None, None, None]*numConditions
 distributionVel_ref = [None]*3
 xlabel = [r'$x$', r'$y$', r'$z$']
 zerolabel = [r'$y=z=0$', r'$x=z=0$', r'$x=y=0$']
@@ -208,28 +223,32 @@ zerolabel = [r'$y=z=0$', r'$x=z=0$', r'$x=y=0$']
 # Calculate distributions for xcut (y=z=0)
 xyzcutPos[0] = np.array(list(zip(xxPos,ww,ww))).reshape(-1, 3)
 xyzcutVel[0] = np.array(list(zip(xxVel,ww2,ww2))).reshape(-1, 3)
-distributionPos[0] = calculateKernelDensity(xyzcutPos[0], 'position')
 distributionPos_ref[0] = calculateKernelDensity(xyzcutPos[0], 'position_ref')
-distributionVel[0] = calculateKernelDensity(xyzcutVel[0], 'velocity')
 distributionVel_ref[0] = calculateKernelDensity(xyzcutVel[0], 'velocity_ref')
+for i in range(numConditions):
+    distributionPos[i][0] = calculateKernelDensity(xyzcutPos[0], 'position')
+    distributionVel[i][0] = calculateKernelDensity(xyzcutVel[0], 'velocity')
+
 print("Calculations of x-cut distributions finished.")
 
 # Calculate distributions for ycut (x=z=0)
 xyzcutPos[1] = np.array(list(zip(ww,xxPos,ww))).reshape(-1, 3)
 xyzcutVel[1] = np.array(list(zip(ww2,xxVel,ww2))).reshape(-1, 3)
-distributionPos[1] = calculateKernelDensity(xyzcutPos[1], 'position')
 distributionPos_ref[1] = calculateKernelDensity(xyzcutPos[1], 'position_ref')
-distributionVel[1] = calculateKernelDensity(xyzcutVel[1], 'velocity')
 distributionVel_ref[1] = calculateKernelDensity(xyzcutVel[1], 'velocity_ref')
+for i in range(numConditions):
+    distributionPos[i][1] = calculateKernelDensity(xyzcutPos[1], 'position')
+    distributionVel[i][1] = calculateKernelDensity(xyzcutVel[1], 'velocity')
 print("Calculations of y-cut distributions finished.")
 
 # Calculate distributions for zcut (x=y=0)
 xyzcutPos[2] = np.array(list(zip(ww,ww,xxPos))).reshape(-1, 3)
 xyzcutVel[2] = np.array(list(zip(ww2,ww2,xxVel))).reshape(-1, 3)
-distributionPos[2] = calculateKernelDensity(xyzcutPos[2], 'position')
 distributionPos_ref[2] = calculateKernelDensity(xyzcutPos[2], 'position_ref')
-distributionVel[2] = calculateKernelDensity(xyzcutVel[2], 'velocity')
 distributionVel_ref[2] = calculateKernelDensity(xyzcutVel[2], 'velocity_ref')
+for i in range(numConditions):
+    distributionPos[i][2] = calculateKernelDensity(xyzcutPos[2], 'position')
+    distributionVel[i][2] = calculateKernelDensity(xyzcutVel[2], 'velocity')
 print("Calculations of z-cut distributions finished.")
 
 
@@ -244,9 +263,11 @@ ax1, ax2 = gs.subplots() #sharey='row')
 
 # Plot position distribution
 for i in range(3):
-    ax1[i].plot(xxPos,distributionPos_ref[i], '-k', lw = 0.5)
-    ax1[i].fill_between(xxPos,distributionPos_ref[i], color='dodgerblue', alpha = 0.15, label = "benchmark")
-    ax1[i].plot(xxPos,distributionPos[i], 'xk', label = 'reduced ' + texlabel)
+    ax1[i].plot(xxPos,distributionPos_ref[i], '-k', label = 'benchmark')
+    #ax1[i].fill_between(xxPos,distributionPos_ref[i], color='dodgerblue', alpha = 0.15, label = "benchmark")
+    for j in range(numConditions):
+        index = trajIndexes[j]
+        ax1[i].plot(xxPos,distributionPos[j][i], lw = lwList[i], label = labelList[index])
     #ax1[i].set_xlim((-4,4))
     ax1[i].set_ylim((0,None))
     ax1[i].set_xlabel(xlabel[i] + '-position')
@@ -258,8 +279,10 @@ for i in range(3):
 
     # Plot velocity distribution
     ax2[i].plot(xxVel,distributionVel_ref[i], '-k', lw = 0.5)
-    ax2[i].fill_between(xxVel,distributionVel_ref[i], color='dodgerblue', alpha = 0.15, label = "benchmark")
-    ax2[i].plot(xxVel,distributionVel[i], 'xk', label = 'reduced ' + texlabel)
+    #ax2[i].fill_between(xxVel,distributionVel_ref[i], color='dodgerblue', alpha = 0.15, label = "benchmark")
+    for j in range(numConditions):
+        index = trajIndexes[j]
+        ax2[i].plot(xxVel,distributionVel[j][i], lw = lwList[i], label = labelList[index])
     #ax2[i].set_xlim((-0.6,0.6))
     ax2[i].set_ylim((0,None))
     ax2[i].set_xlabel(xlabel[i] + '-velocity' + '\n('+ zerolabel[i] +')')
@@ -310,43 +333,73 @@ plt.clf()
 
 # ## Plot auto-correlation functions comparison
 
+# Parameters for autocorrelation functions. Uses only a subset (mtrajs) of the
+# total trajectories, since computing them with all is very slow
+lagtimesteps = 40
+mtrajs = 20
+stridesPos = 50
+stridesVel = 50
+stridesAux = 1
 
-# Uses only a subset (mtrajs) of the total trajectories, since computing them with all is very slow
-variables = ['position', 'velocity']
-lagtimesteps = [40,40]
-mtrajs = 1
-strides = [200,5] #[30,1]
-ACF = [None]*2
-ACF_ref = [None]*2
-for i, var in enumerate(variables):
-    #mean = trajectoryTools.calculateMean(trajs[0:mtrajs], var)
-    #mean_ref = trajectoryTools.calculateMean(trajs_ref[0:mtrajs], var)
-    #variance = trajectoryTools.calculateVariance(trajs[0:mtrajs], var, mean)
-    #variance_ref = trajectoryTools.calculateVariance(trajs_ref[0:mtrajs], var, mean_ref)
-    ACF[i] = trajectoryTools.calculateAutoCorrelationFunction(trajs[0:mtrajs], lagtimesteps[i], strides[i], var)
-    ACF_ref[i] = trajectoryTools.calculateAutoCorrelationFunction(trajs_ref[0:mtrajs], lagtimesteps[i], strides[i], var)
+# Calculate reference autocorrelation functions
+print('ACF for reference benchmark:')
+ACF_ref_position = trajectoryTools.calculateAutoCorrelationFunction(trajs_ref[0:mtrajs],
+                                                                       lagtimesteps, stridesPos, 'position')
+ACF_ref_velocity = trajectoryTools.calculateAutoCorrelationFunction(trajs_ref[0:mtrajs],
+                                                                       lagtimesteps, stridesVel, 'velocity')
+ACF_ref_raux = trajectoryTools.calculateAutoCorrelationFunction(trajs_ref[0:mtrajs],
+                                                                       lagtimesteps, stridesAux, 'raux')
+
+# Calculate autocorrelation functions for reduced models
+ACF_position = [None] * numConditions
+ACF_velocity = [None] * numConditions
+ACF_raux = [None] * numConditions
+for i in range(numConditions):
+    print('\nACF conditioned on ' + conditionedList[i] + ' (' + str(i+1) + ' of ' + str(numConditions) + '):')
+    currentTrajs = allTrajs[trajIndexes[i]]
+    ACF_position[i] = trajectoryTools.calculateAutoCorrelationFunction(currentTrajs[0:mtrajs],
+                                                                       lagtimesteps, stridesPos, 'position')
+    ACF_velocity[i] = trajectoryTools.calculateAutoCorrelationFunction(currentTrajs[0:mtrajs],
+                                                                       lagtimesteps, stridesVel, 'velocity')
+    ACF_raux[i] = trajectoryTools.calculateAutoCorrelationFunction(currentTrajs[0:mtrajs],
+                                                                       lagtimesteps, stridesAux, 'rauxReduced')
+    print('\nDone')
 
 
-index = 0
-time = dt*integratorStride*strides[index]*np.linspace(1,lagtimesteps[index],lagtimesteps[index])
-plt.plot(time/1000, ACF[index], 'xk', label = 'reduced ' + texlabel)
-plt.plot(time/1000, ACF_ref[index], '-k', label = 'benchmark')
-plt.xlabel('time ' +r'$(\mu s)$')
-plt.ylabel(variables[index] + ' autocorrelation')
-plt.legend()
-#plt.xlim([0,1500])
-plt.subplots_adjust(bottom=0.15)
-plt.savefig(plotDirectory + variables[index] + '_autocorrelation_bistable_'+ conditionedOn +'.pdf', bbox_inches='tight')
-plt.clf()
+# Plot three autocorrelation functions at once
+f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18,4)) #fig, ax = plt.subplots()
+time = dt*integratorStride*stridesPos*np.linspace(1,lagtimesteps,lagtimesteps)
+ax1.plot(time, ACF_ref_position, '-k', label = 'benchmark')
+# Plot reduced models
+for i in range(numConditions):
+    index = trajIndexes[i]
+    ax1.plot(time, ACF_position[i], lineTypeList[i], lw = lwList[i], label = labelList[index])
+ax1.set_xlabel('time(ns)')
+ax1.set_ylabel('Position autocorrelation')
+ax1.yaxis.tick_right()
 
-index = 1
-time = dt*integratorStride*strides[index]*np.linspace(1,lagtimesteps[index],lagtimesteps[index])
-plt.plot(time, ACF[index], 'xk', label = 'reduced ' + texlabel)
-plt.plot(time, ACF_ref[index], '-k', label = 'benchmark')
-plt.xlabel('time ' + r'$(ns)$')
-plt.ylabel(variables[index] + ' autocorrelation')
-plt.legend()
-#plt.xlim([0,1500])
-plt.subplots_adjust(bottom=0.15)
-plt.savefig(plotDirectory + variables[index]+ '_autocorrelation_bistable_'+ conditionedOn +'.pdf', bbox_inches='tight')
+
+time = dt*integratorStride*stridesVel*np.linspace(1,lagtimesteps,lagtimesteps)
+# Plot reference
+ax2.plot(time, ACF_ref_velocity, '-k', label = 'benchmark')
+# Plot reduced models
+for i in range(numConditions):
+    index = trajIndexes[i]
+    ax2.plot(time, ACF_velocity[i], lineTypeList[i], lw = lwList[i], label = labelList[index])
+ax2.set_xlabel('time(ns)')
+ax2.set_ylabel('Velocity autocorrelation')
+ax2.yaxis.tick_right()
+
+time = dt*integratorStride*stridesAux*np.linspace(1,lagtimesteps,lagtimesteps)
+ax3.plot(time, ACF_ref_raux, '-k', label = 'benchmark')
+# Plot reduced models
+for i in range(numConditions):
+    index = trajIndexes[i]
+    ax3.plot(time, ACF_raux[i], lineTypeList[i], lw = lwList[i], label = labelList[index])
+ax3.set_xlabel('time(ns)')
+ax3.set_ylabel(r'$r$ autocorrelation')
+ax3.yaxis.tick_right()
+
+plt.tight_layout()
+plt.savefig(plotDirectory + 'Autocorrelations_bistable.pdf')
 plt.clf()
