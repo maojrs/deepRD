@@ -126,7 +126,7 @@ lineTypeList = ['-.', '--', 'xk']*2
 lwList = [2, 2, 2]*2
 
 # Extract variables to plot from trajectories (x components)
-varIndex = 1 # 1=x, 2=y, 3=z
+#varIndex = 1 # 1=x, 2=y, 3=z
 position = [None] * numConditions
 velocity = [None] * numConditions
 for i in range(numConditions):
@@ -218,9 +218,9 @@ ww = np.zeros(len(xxPos))
 ww2 = np.zeros(len(xxVel))
 xyzcutPos = [None]*3
 xyzcutVel = [None]*3
-distributionPos = [[None, None, None]]*numConditions
+distributionPos = [[None, None, None] for i in range(numConditions)]
 distributionPos_ref = [None]*3 
-distributionVel = [[None, None, None]]*numConditions
+distributionVel = [[None, None, None] for i in range(numConditions)]
 distributionVel_ref = [None]*3
 xlabel = [r'$x$', r'$y$', r'$z$']
 zerolabel = [r'$y=z=0$', r'$x=z=0$', r'$x=y=0$']
@@ -231,8 +231,8 @@ xyzcutVel[0] = np.array(list(zip(xxVel,ww2,ww2))).reshape(-1, 3)
 distributionPos_ref[0] = calculateKernelDensity(xyzcutPos[0], 'position_ref')
 distributionVel_ref[0] = calculateKernelDensity(xyzcutVel[0], 'velocity_ref')
 for i in range(numConditions):
-    distributionPos[i][0] = calculateKernelDensity(xyzcutPos[0], 'position', i)
-    distributionVel[i][0] = calculateKernelDensity(xyzcutVel[0], 'velocity', i)
+    distributionPos[i][0] = calculateKernelDensity(xyzcutPos[0], 'position',  index = i)
+    distributionVel[i][0] = calculateKernelDensity(xyzcutVel[0], 'velocity',  index = i)
 
 print("Calculations of x-cut distributions finished.")
 
@@ -242,8 +242,8 @@ xyzcutVel[1] = np.array(list(zip(ww2,xxVel,ww2))).reshape(-1, 3)
 distributionPos_ref[1] = calculateKernelDensity(xyzcutPos[1], 'position_ref')
 distributionVel_ref[1] = calculateKernelDensity(xyzcutVel[1], 'velocity_ref')
 for i in range(numConditions):
-    distributionPos[i][1] = calculateKernelDensity(xyzcutPos[1], 'position', i)
-    distributionVel[i][1] = calculateKernelDensity(xyzcutVel[1], 'velocity', i)
+    distributionPos[i][1] = calculateKernelDensity(xyzcutPos[1], 'position',  index = i)
+    distributionVel[i][1] = calculateKernelDensity(xyzcutVel[1], 'velocity',  index = i)
 print("Calculations of y-cut distributions finished.")
 
 # Calculate distributions for zcut (x=y=0)
@@ -252,8 +252,8 @@ xyzcutVel[2] = np.array(list(zip(ww2,ww2,xxVel))).reshape(-1, 3)
 distributionPos_ref[2] = calculateKernelDensity(xyzcutPos[2], 'position_ref')
 distributionVel_ref[2] = calculateKernelDensity(xyzcutVel[2], 'velocity_ref')
 for i in range(numConditions):
-    distributionPos[i][2] = calculateKernelDensity(xyzcutPos[2], 'position', i)
-    distributionVel[i][2] = calculateKernelDensity(xyzcutVel[2], 'velocity', i)
+    distributionPos[i][2] = calculateKernelDensity(xyzcutPos[2], 'position', index = i)
+    distributionVel[i][2] = calculateKernelDensity(xyzcutVel[2], 'velocity', index = i)
 print("Calculations of z-cut distributions finished.")
 
 
@@ -283,11 +283,11 @@ for i in range(3):
     
 
     # Plot velocity distribution
-    ax2[i].plot(xxVel,distributionVel_ref[i], '-k')
+    ax2[i].plot(xxVel,distributionVel_ref[i], '-k', label = 'benchmark')
     #ax2[i].fill_between(xxVel,distributionVel_ref[i], color='dodgerblue', alpha = 0.15, label = "benchmark")
     for j in range(numConditions):
         index = trajIndexes[j]
-        ax2[i].plot(xxVel,distributionVel[j][i], lineTypeList[j],  lw = lwList[j])
+        ax2[i].plot(xxVel,distributionVel[j][i], lineTypeList[j],  lw = lwList[j], label = labelList[index])
     #ax2[i].set_xlim((-0.6,0.6))
     ax2[i].set_ylim((0,None))
     ax2[i].set_xlabel(xlabel[i] + '-velocity' + '\n('+ zerolabel[i] +')')
