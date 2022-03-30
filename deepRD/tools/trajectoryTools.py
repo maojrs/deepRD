@@ -209,6 +209,9 @@ def calculateMean(trajs, varOrIndex = 'position'):
     elif varOrIndex == 'raux2':
         indexl = 11
         indexr = 14
+    elif varOrIndex == 'rauxReduced':
+        indexl = 7
+        indexr = 10
     else:
         indexl = varOrIndex[0]
         indexr = varOrIndex[1]
@@ -242,6 +245,9 @@ def calculateVariance(trajs, varOrIndex = 'position', mean = None):
     elif varOrIndex == 'raux2':
         indexl = 11
         indexr = 14
+    elif varOrIndex == 'rauxReduced':
+        indexl = 7
+        indexr = 10
     else:
         indexl = varOrIndex[0]
         indexr = varOrIndex[1]
@@ -275,10 +281,12 @@ def calculateAutoCorrelation(trajs, lagtimesteps, stride = 1, var = 'position', 
         index = 8
     elif var == 'raux2':
         index = 11
+    elif var == 'rauxReduced':
+        index = 7
     if mean.any() == None:
-        mean = calculateMean(trajs)
+        mean = calculateMean(trajs, var)
     if variance.any() == None:
-        variance = calculateVariance(trajs, mean)
+        variance = calculateVariance(trajs, var, mean)
     totalSamples = 0
     AC = 0.0
     for traj in trajs:
@@ -308,6 +316,8 @@ def calculateAutoCorrelationFunction(trajs, lagtimesteps, stride = 1, var = 'pos
         index = 8
     elif var == 'raux2':
         index = 11
+    elif var == 'rauxReduced':
+        index = 7
     variance = 0
     totalSamples = 0
     for traj in trajs:

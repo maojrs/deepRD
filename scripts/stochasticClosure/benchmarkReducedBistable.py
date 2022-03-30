@@ -142,10 +142,13 @@ def runParallelSims(simnumber):
     diffIntegrator.setExternalPotential(bistablePotential)
 
     # Integrate dynamics
-    t, X, V = diffIntegrator.propagate(particleList, outputAux = outputAux)
+    #t, X, V = diffIntegrator.propagate(particleList, outputAux = outputAux)
+    t, X, V, Raux = diffIntegrator.propagate(particleList, outputAux = outputAux)
+
 
     # Write dynamics into trjactory
-    traj = trajectoryTools.convert2trajectory(t, [X, V])
+    #traj = trajectoryTools.convert2trajectory(t, [X, V])
+    traj = trajectoryTools.convert2trajectory(t, [X, V, Raux])
     trajectoryTools.writeTrajectory(traj,basefilename,simnumber)
 
     print("Simulation " + str(simnumber) + ", done.")
