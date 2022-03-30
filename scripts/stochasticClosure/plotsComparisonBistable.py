@@ -218,9 +218,9 @@ ww = np.zeros(len(xxPos))
 ww2 = np.zeros(len(xxVel))
 xyzcutPos = [None]*3
 xyzcutVel = [None]*3
-distributionPos = [None, None, None]*numConditions
+distributionPos = [[None, None, None]]*numConditions
 distributionPos_ref = [None]*3 
-distributionVel = [None, None, None]*numConditions
+distributionVel = [[None, None, None]]*numConditions
 distributionVel_ref = [None]*3
 xlabel = [r'$x$', r'$y$', r'$z$']
 zerolabel = [r'$y=z=0$', r'$x=z=0$', r'$x=y=0$']
@@ -272,7 +272,7 @@ for i in range(3):
     #ax1[i].fill_between(xxPos,distributionPos_ref[i], color='dodgerblue', alpha = 0.15, label = "benchmark")
     for j in range(numConditions):
         index = trajIndexes[j]
-        ax1[i].plot(xxPos,distributionPos[j][i], lw = lwList[i], label = labelList[index])
+        ax1[i].plot(xxPos,distributionPos[j][i], lineTypeList[i], lw = lwList[i], label = labelList[index])
     #ax1[i].set_xlim((-4,4))
     ax1[i].set_ylim((0,None))
     ax1[i].set_xlabel(xlabel[i] + '-position')
@@ -283,11 +283,11 @@ for i in range(3):
     
 
     # Plot velocity distribution
-    ax2[i].plot(xxVel,distributionVel_ref[i], '-k', lw = 0.5)
+    ax2[i].plot(xxVel,distributionVel_ref[i], '-k')
     #ax2[i].fill_between(xxVel,distributionVel_ref[i], color='dodgerblue', alpha = 0.15, label = "benchmark")
     for j in range(numConditions):
         index = trajIndexes[j]
-        ax2[i].plot(xxVel,distributionVel[j][i], lw = lwList[i], label = labelList[index])
+        ax2[i].plot(xxVel,distributionVel[j][i], lineTypeList[i],  lw = lwList[i])
     #ax2[i].set_xlim((-0.6,0.6))
     ax2[i].set_ylim((0,None))
     ax2[i].set_xlabel(xlabel[i] + '-velocity' + '\n('+ zerolabel[i] +')')
@@ -297,8 +297,8 @@ for i in range(3):
 ax1[2].legend(bbox_to_anchor=(0.6, 0., 0.5, 1.0), framealpha=1.0)
     
 # displaying plot
-plt.tight_layout()
-plt.savefig(plotDirectory + 'distributions_comparison_bistable_'+ conditionedOn +'.pdf')
+#plt.tight_layout()
+plt.savefig(plotDirectory + 'distributions_comparison_bistable.pdf')
 plt.clf()
 
 # Plot x-position distribution vs samples from original data
@@ -308,7 +308,7 @@ fig, (ax1, ax2) = plt.subplots(figsize=(8,6), nrows=2, sharex=True)
 
 # Plot x-position distribution
 ax1.plot(xxPos,distributionPos_ref[0], '-k', lw = 0.5)
-ax1.fill_between(xxPos,distributionPos_ref[0], color='dodgerblue', alpha = 0.15, label = "benchmark (kde)")
+#ax1.fill_between(xxPos,distributionPos_ref[0], color='dodgerblue', alpha = 0.15, label = "benchmark (kde)")
 #ax1.plot(xx,distributionPos[0], 'xk', label = 'reduced ' + texlabel)
 ax1.set_ylim((0,0.11)) #None))
 ax1.yaxis.set_ticks(np.arange(0,0.15,0.05)) 
@@ -332,7 +332,7 @@ ax2.legend(loc="upper right", markerscale=20, borderpad=0.1)
 
 plt.subplots_adjust(hspace=0)
 #plt.savefig('kernel_density_estimation.pdf')
-plt.savefig(plotDirectory + 'distributions_n_sampleddata_bistable_'+ conditionedOn +'.pdf')
+plt.savefig(plotDirectory + 'distributions_n_sampleddata_bistable.pdf')
 plt.clf()
 
 
