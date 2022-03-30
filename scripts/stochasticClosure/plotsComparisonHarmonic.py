@@ -187,6 +187,7 @@ lagtimesteps = 40
 mtrajs = 20
 stridesPos = 50
 stridesVel = 50
+stridesAux = 1
 
 
 # Calculate reference autocorrelation functions
@@ -195,11 +196,14 @@ ACF_ref_position = trajectoryTools.calculateAutoCorrelationFunction(trajs_ref[0:
                                                                        lagtimesteps, stridesPos, 'position')
 ACF_ref_velocity = trajectoryTools.calculateAutoCorrelationFunction(trajs_ref[0:mtrajs], 
                                                                        lagtimesteps, stridesVel, 'velocity')
+ACF_ref_raux = trajectoryTools.calculateAutoCorrelationFunction(trajs_ref[0:mtrajs],
+                                                                       lagtimesteps, stridesAux, 'raux')
 
 
 # Calculate autocorrelation functions for reduced models
 ACF_position = [None] * numConditions
 ACF_velocity = [None] * numConditions
+ACF_raux = [None] * numConditions
 for i in range(numConditions):
     print('\nACF conditioned on ' + conditionedList[i] + ' (' + str(i+1) + ' of ' + str(numConditions) + '):')
     currentTrajs = allTrajs[trajIndexes[i]]
@@ -207,11 +211,13 @@ for i in range(numConditions):
                                                                        lagtimesteps, stridesPos, 'position')
     ACF_velocity[i] = trajectoryTools.calculateAutoCorrelationFunction(currentTrajs[0:mtrajs], 
                                                                        lagtimesteps, stridesVel, 'velocity')
+    ACF_raux[i] = trajectoryTools.calculateAutoCorrelationFunction(currentTrajs[0:mtrajs],
+                                                                       lagtimesteps, stridesAux, 'rauxReduced')
     print('\nDone')
 
 
-# Plot both autocorrelation functions at once
-f, (ax1, ax2) = plt.subplots(1, 2, figsize=(12,4)) #fig, ax = plt.subplots()
+# Plot three autocorrelation functions at once
+f, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18,4)) #fig, ax = plt.subplots()
 time = dt*integratorStride*stridesPos*np.linspace(1,lagtimesteps,lagtimesteps)
 ax1.plot(time, ACF_ref_position, '-k', label = 'benchmark')
 # Plot reduced models
@@ -231,6 +237,16 @@ for i in range(numConditions):
 ax2.set_xlabel('time(ns)')
 ax2.set_ylabel('Velocity autocorrelation')
 ax2.yaxis.tick_right()
+
+time = dt*integratorStride*stridesAux*np.linspace(1,lagtimesteps,lagtimesteps)
+ax3.plot(time, ACF_ref_raux, '-k', label = 'benchmark')
+# Plot reduced models
+for i in range(numConditions):
+    index = trajIndexes[i]
+    ax3.plot(time, ACF_raux[i], lineTypeList[i], lw = lwList[i], label = labelList[index])
+ax3.set_xlabel('time(ns)')
+ax3.set_ylabel(r'$r$ autocorrelation')
+
 plt.tight_layout()
 plt.savefig(plotDirectory + 'Autocorrelations_harmonic.pdf')
 plt.clf()
