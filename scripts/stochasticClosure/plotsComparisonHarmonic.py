@@ -226,6 +226,8 @@ for i in range(numConditions):
     ax1.plot(time, ACF_position[i], lineTypeList[i], lw = lwList[i], label = labelList[index])
 ax1.set_xlabel('time(ns)')
 ax1.set_ylabel('Position autocorrelation')
+ax1.yaxis.tick_right()
+
 
 time = dt*integratorStride*stridesVel*np.linspace(1,lagtimesteps,lagtimesteps)
 # Plot reference
@@ -246,6 +248,7 @@ for i in range(numConditions):
     ax3.plot(time, ACF_raux[i], lineTypeList[i], lw = lwList[i], label = labelList[index])
 ax3.set_xlabel('time(ns)')
 ax3.set_ylabel(r'$r$ autocorrelation')
+ax3.yaxis.tick_right()
 
 plt.tight_layout()
 plt.savefig(plotDirectory + 'Autocorrelations_harmonic.pdf')
