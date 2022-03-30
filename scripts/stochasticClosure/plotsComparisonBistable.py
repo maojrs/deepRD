@@ -131,10 +131,10 @@ position = [None] * numConditions
 velocity = [None] * numConditions
 for i in range(numConditions):
     currentTrajs = allTrajs[trajIndexes[i]]
-    position[i] = trajectoryTools.extractVariableFromTrajectory(currentTrajs, variableIndex = varIndex)
-    velocity[i] = trajectoryTools.extractVariableFromTrajectory(currentTrajs, variableIndex = varIndex + 3)
-position_ref = trajectoryTools.extractVariableFromTrajectory(trajs_ref, variableIndex = varIndex)
-velocity_ref = trajectoryTools.extractVariableFromTrajectory(trajs_ref, variableIndex = varIndex + 3)
+    position[i] = trajectoryTools.extractVariableFromTrajectory(currentTrajs, variableIndex = [1,4])
+    velocity[i] = trajectoryTools.extractVariableFromTrajectory(currentTrajs, variableIndex = [4,7])
+position_ref = trajectoryTools.extractVariableFromTrajectory(trajs_ref, variableIndex = [1,4])
+velocity_ref = trajectoryTools.extractVariableFromTrajectory(trajs_ref, variableIndex = [4,7])
 
 
 #  Obtain bandwidth for kernel density estimation through cross validation
