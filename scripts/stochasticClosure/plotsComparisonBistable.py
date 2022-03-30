@@ -171,36 +171,41 @@ bandwidthVel = 0.036 # Obtained through cross-validation 0.036(Main) but also 0.
 # Use "epanechnikov" for fast tests, "gaussian" for final plots
 kernelType = "gaussian" #"epanechnikov" # "epanechnikov", "tophat" "gaussian" # Sample requires Guassian/tophat
 rtol=1E-3 # Default value zero, sacrifices minor accuracy for faster computation
-kdePosition = KernelDensity(kernel=kernelType, bandwidth=bandwidthPos, rtol=rtol).fit(position)
+kdePosition = [None] * numConditions
+kdeVelocity = [None] * numConditions
 kdePosition_ref = KernelDensity(kernel=kernelType, bandwidth=bandwidthPos, rtol=rtol).fit(position_ref)
-kdeVelocity = KernelDensity(kernel=kernelType, bandwidth=bandwidthVel, rtol=rtol).fit(velocity)
 kdeVelocity_ref = KernelDensity(kernel=kernelType, bandwidth=bandwidthVel, rtol=rtol).fit(velocity_ref)
-def calculateKernelDensity(x, variable = 'position_ref'):
+for i in range(numConditions):
+    kdePosition[i] = KernelDensity(kernel=kernelType, bandwidth=bandwidthPos, rtol=rtol).fit(position[i])
+    kdeVelocity[i] = KernelDensity(kernel=kernelType, bandwidth=bandwidthVel, rtol=rtol).fit(velocity[i])
+
+
+def calculateKernelDensity(x, variable = 'position_ref', index = 0):
     if variable == 'position':
-        log_dens = kdePosition.score_samples(x)
+        log_dens = kdePosition[index].score_samples(x)
     elif variable == 'position_ref':
         log_dens = kdePosition_ref.score_samples(x)
     elif variable == 'velocity':
-        log_dens = kdeVelocity.score_samples(x)
+        log_dens = kdeVelocity[index].score_samples(x)
     elif variable == 'velocity_ref':
         log_dens = kdeVelocity_ref.score_samples(x)
     return np.exp(log_dens)
 
-def sampleKernelDensity(numSamples, variable = 'position_ref'):
+def sampleKernelDensity(numSamples, variable = 'position_ref', index = 0):
     ''' Only available for kernel density estimation using gaussian or tophat'''
     if variable == 'position':
-        return kdePosition.sample(numSamples)
+        return kdePosition[index].sample(numSamples)
     elif variable == 'position_ref':
         return kdePosition_ref.sample(numSamples)
     elif variable == 'velocity':
-        return kdeVelocity.sample(numSamples)
+        return kdeVelocity[index].sample(numSamples)
     elif variable == 'velocity_ref':
         return kdeVelocity_ref.sample(numSamples)
     
 # Sample 3D values from estimated reference density. It can only sample 
 # if Gaussian or tophat kernels are being used
 #numsamples = 50000
-#values = sampleKernelDensity(numsamples, variable)
+#values = sampleKernelDensity(numsamples, variable, index)
 #values_ref = sampleKernelDensity(numsamples, variable + '_ref')
 
 
@@ -226,8 +231,8 @@ xyzcutVel[0] = np.array(list(zip(xxVel,ww2,ww2))).reshape(-1, 3)
 distributionPos_ref[0] = calculateKernelDensity(xyzcutPos[0], 'position_ref')
 distributionVel_ref[0] = calculateKernelDensity(xyzcutVel[0], 'velocity_ref')
 for i in range(numConditions):
-    distributionPos[i][0] = calculateKernelDensity(xyzcutPos[0], 'position')
-    distributionVel[i][0] = calculateKernelDensity(xyzcutVel[0], 'velocity')
+    distributionPos[i][0] = calculateKernelDensity(xyzcutPos[0], 'position', i)
+    distributionVel[i][0] = calculateKernelDensity(xyzcutVel[0], 'velocity', i)
 
 print("Calculations of x-cut distributions finished.")
 
@@ -237,8 +242,8 @@ xyzcutVel[1] = np.array(list(zip(ww2,xxVel,ww2))).reshape(-1, 3)
 distributionPos_ref[1] = calculateKernelDensity(xyzcutPos[1], 'position_ref')
 distributionVel_ref[1] = calculateKernelDensity(xyzcutVel[1], 'velocity_ref')
 for i in range(numConditions):
-    distributionPos[i][1] = calculateKernelDensity(xyzcutPos[1], 'position')
-    distributionVel[i][1] = calculateKernelDensity(xyzcutVel[1], 'velocity')
+    distributionPos[i][1] = calculateKernelDensity(xyzcutPos[1], 'position', i)
+    distributionVel[i][1] = calculateKernelDensity(xyzcutVel[1], 'velocity', i)
 print("Calculations of y-cut distributions finished.")
 
 # Calculate distributions for zcut (x=y=0)
@@ -247,8 +252,8 @@ xyzcutVel[2] = np.array(list(zip(ww2,ww2,xxVel))).reshape(-1, 3)
 distributionPos_ref[2] = calculateKernelDensity(xyzcutPos[2], 'position_ref')
 distributionVel_ref[2] = calculateKernelDensity(xyzcutVel[2], 'velocity_ref')
 for i in range(numConditions):
-    distributionPos[i][2] = calculateKernelDensity(xyzcutPos[2], 'position')
-    distributionVel[i][2] = calculateKernelDensity(xyzcutVel[2], 'velocity')
+    distributionPos[i][2] = calculateKernelDensity(xyzcutPos[2], 'position', i)
+    distributionVel[i][2] = calculateKernelDensity(xyzcutVel[2], 'velocity', i)
 print("Calculations of z-cut distributions finished.")
 
 
