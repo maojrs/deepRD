@@ -4,8 +4,8 @@ import os
 import sys
 import pickle
 import deepRD
-# from deepRD.diffusionIntegrators import langevinNoiseSampler
-from deepRD.diffusionIntegrators import langevinInteractionSampler
+from deepRD.diffusionIntegrators import langevinNoiseSampler
+#from deepRD.diffusionIntegrators import langevinInteractionSampler
 from deepRD.potentials import bistable
 from deepRD.noiseSampler import noiseSampler
 #from deepRD.noiseSampler import binnedData
@@ -54,7 +54,7 @@ outputAux = True #False
 
 # Output data directory
 #foldername = 'bistable/boxsize' + str(bsize) + '/benchmarkReduced_' + conditionedOn
-foldername = 'bistable/boxsize' + str(bsize) + '/benchmarkReducedAlt_' + conditionedOn
+foldername = 'bistable/boxsize' + str(bsize) + '/benchmarkReduced_' + conditionedOn
 outputDataDirectory = os.path.join(localDataDirectory, foldername)
 # Create folder for data
 try:
@@ -68,7 +68,7 @@ except OSError as error:
 # Load binning sampling models
 print("Loading binned data ...")
 #binnedDataFilename = localDataDirectory + 'bistable/boxsize' + str(bsize) + '/binnedData/' + conditionedOn + 'BinnedData.pickle'
-binnedDataFilename = localDataDirectory + 'harmonicAlt/boxsize' + str(bsize) + '/binnedData/' + conditionedOn + 'BinnedData.pickle'
+binnedDataFilename = localDataDirectory + 'bistable/boxsize' + str(bsize) + '/binnedData/' + conditionedOn + 'BinnedData.pickle'
 dataOnBins = pickle.load(open(binnedDataFilename, "rb" ))
 parameters = dataOnBins.parameterDictionary
 print('Binned data loaded')
@@ -133,11 +133,11 @@ def runParallelSims(simnumber):
     # Define external potential
     bistablePotential = bistable(minimaDist, kconstants, scalefactor)
 
-    #diffIntegrator = langevinNoiseSampler(dt, integratorStride, tfinal, Gamma, nSampler, KbT,
-    #                                      boxsize, boundaryType, equilibrationSteps, conditionedOn)
+    diffIntegrator = langevinNoiseSampler(dt, integratorStride, tfinal, Gamma, nSampler, KbT,
+                                          boxsize, boundaryType, equilibrationSteps, conditionedOn)
 
-    diffIntegrator = langevinInteractionSampler(dt, integratorStride, tfinal, Gamma, nSampler, KbT,
-                                                boxsize, boundaryType, equilibrationSteps, conditionedOn)
+    #diffIntegrator = langevinInteractionSampler(dt, integratorStride, tfinal, Gamma, nSampler, KbT,
+    #                                            boxsize, boundaryType, equilibrationSteps, conditionedOn)
 
     diffIntegrator.setExternalPotential(bistablePotential)
 
