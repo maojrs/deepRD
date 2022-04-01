@@ -49,7 +49,7 @@ except OSError as error:
 
 # Read relevant parameters
 parameterDictionary = analysisTools.readParameters(parentDirectory + "parameters")
-numSimulations = parameterDictionary['numFiles']
+numSimulations = 10 # parameterDictionary['numFiles']
 dt = parameterDictionary['dt'] 
 integratorStride = parameterDictionary['stride']
 totalTimeSteps = parameterDictionary['timesteps'] 
@@ -89,12 +89,9 @@ for i in range(numModels):
 print("Reduced models data loaded.")
 
 
-# ## Kernel density estimation from data
-
-
 # Choose which reduced model to compare (just uncomment one)
 #conditionedList = ['ri', 'qiri', 'pi', 'piri'] #Possibilities 'qi', 'ri', 'qiri', 'qiririm'
-conditionedList = ['pi', 'piri', 'piririm']
+conditionedList = ['piririm'] #['pi', 'piri', 'piririm']
 trajIndexes = []
 if 'ri' in conditionedList:
     trajIndexes.append(0)
@@ -137,162 +134,45 @@ position_ref = trajectoryTools.extractVariableFromTrajectory(trajs_ref, variable
 velocity_ref = trajectoryTools.extractVariableFromTrajectory(trajs_ref, variableIndex = [4,7])
 
 
-#  Obtain bandwidth for kernel density estimation through cross validation
-numsamples = 50000
-crossValidation = False
-if crossValidation:
-    # Sample random points from original data (both positions and velocities)
-    idx = np.random.randint(len(position_ref), size=numsamples)
-    sampled_positions = position_ref[idx,:]
-    sampled_velocities = velocity_ref[idx,:]
-    
-    # Run cross validations for positions
-    gridPos = GridSearchCV(KernelDensity(),
-                        {'bandwidth': np.linspace(0.1, 1.0, 31)},
-                        cv=5,  # 5-fold cross-validation
-                        verbose=2)
-    gridPos.fit(sampled_positions)
-    print(gridPos.best_params_)
-    print(gridPos.best_estimator_)
-    
-    # Run cross validations for velocities
-    gridVel = GridSearchCV(KernelDensity(),
-                        {'bandwidth': np.linspace(0.01, 0.2, 31)},
-                        cv=5,  # 5-fold cross-validation
-                        verbose=2)
-    gridVel.fit(sampled_velocities) #(sampled_positions) 
-    print(gridVel.best_params_)
-    print(gridVel.best_estimator_)
-
-
-# Estimate the densities using Gaussian kernel density estimation
-bandwidthPos = 0.190 # Obtained through cross-validation 0.19(Main) but also 0.22 and 0.28 #0.77 #0.2
-bandwidthVel = 0.036 # Obtained through cross-validation 0.036(Main) but also 0.1
-# Use "epanechnikov" for fast tests, "gaussian" for final plots
-kernelType = "gaussian" #"epanechnikov" # "epanechnikov", "tophat" "gaussian" # Sample requires Guassian/tophat
-rtol=1E-3 # Default value zero, sacrifices minor accuracy for faster computation
-kdePosition = [None] * numConditions
-kdeVelocity = [None] * numConditions
-kdePosition_ref = KernelDensity(kernel=kernelType, bandwidth=bandwidthPos, rtol=rtol).fit(position_ref)
-kdeVelocity_ref = KernelDensity(kernel=kernelType, bandwidth=bandwidthVel, rtol=rtol).fit(velocity_ref)
-for i in range(numConditions):
-    kdePosition[i] = KernelDensity(kernel=kernelType, bandwidth=bandwidthPos, rtol=rtol).fit(position[i])
-    kdeVelocity[i] = KernelDensity(kernel=kernelType, bandwidth=bandwidthVel, rtol=rtol).fit(velocity[i])
-
-
-def calculateKernelDensity(x, variable = 'position_ref', index = 0):
-    if variable == 'position':
-        log_dens = kdePosition[index].score_samples(x)
-    elif variable == 'position_ref':
-        log_dens = kdePosition_ref.score_samples(x)
-    elif variable == 'velocity':
-        log_dens = kdeVelocity[index].score_samples(x)
-    elif variable == 'velocity_ref':
-        log_dens = kdeVelocity_ref.score_samples(x)
-    return np.exp(log_dens)
-
-def sampleKernelDensity(numSamples, variable = 'position_ref', index = 0):
-    ''' Only available for kernel density estimation using gaussian or tophat'''
-    if variable == 'position':
-        return kdePosition[index].sample(numSamples)
-    elif variable == 'position_ref':
-        return kdePosition_ref.sample(numSamples)
-    elif variable == 'velocity':
-        return kdeVelocity[index].sample(numSamples)
-    elif variable == 'velocity_ref':
-        return kdeVelocity_ref.sample(numSamples)
-    
-# Sample 3D values from estimated reference density. It can only sample 
-# if Gaussian or tophat kernels are being used
-#numsamples = 50000
-#values = sampleKernelDensity(numsamples, variable, index)
-#values_ref = sampleKernelDensity(numsamples, variable + '_ref')
-
-
-# Calculate kernel density output for a certain one dimensional cut going through the origin.
-
-# Obtain x, y, or z cut of the distribution
-xxPos = np.arange(-2.5,2.5,0.1)
-xxVel = np.arange(-0.6,0.6,0.015)
-ww = np.zeros(len(xxPos))
-ww2 = np.zeros(len(xxVel))
-xyzcutPos = [None]*3
-xyzcutVel = [None]*3
-distributionPos = [[None, None, None] for i in range(numConditions)]
-distributionPos_ref = [None]*3 
-distributionVel = [[None, None, None] for i in range(numConditions)]
-distributionVel_ref = [None]*3
-xlabel = [r'$x$', r'$y$', r'$z$']
-zerolabel = [r'$y=z=0$', r'$x=z=0$', r'$x=y=0$']
-
-# Calculate distributions for xcut (y=z=0)
-xyzcutPos[0] = np.array(list(zip(xxPos,ww,ww))).reshape(-1, 3)
-xyzcutVel[0] = np.array(list(zip(xxVel,ww2,ww2))).reshape(-1, 3)
-distributionPos_ref[0] = calculateKernelDensity(xyzcutPos[0], 'position_ref')
-distributionVel_ref[0] = calculateKernelDensity(xyzcutVel[0], 'velocity_ref')
-for i in range(numConditions):
-    distributionPos[i][0] = calculateKernelDensity(xyzcutPos[0], 'position',  index = i)
-    distributionVel[i][0] = calculateKernelDensity(xyzcutVel[0], 'velocity',  index = i)
-
-print("Calculations of x-cut distributions finished.")
-
-# Calculate distributions for ycut (x=z=0)
-xyzcutPos[1] = np.array(list(zip(ww,xxPos,ww))).reshape(-1, 3)
-xyzcutVel[1] = np.array(list(zip(ww2,xxVel,ww2))).reshape(-1, 3)
-distributionPos_ref[1] = calculateKernelDensity(xyzcutPos[1], 'position_ref')
-distributionVel_ref[1] = calculateKernelDensity(xyzcutVel[1], 'velocity_ref')
-for i in range(numConditions):
-    distributionPos[i][1] = calculateKernelDensity(xyzcutPos[1], 'position',  index = i)
-    distributionVel[i][1] = calculateKernelDensity(xyzcutVel[1], 'velocity',  index = i)
-print("Calculations of y-cut distributions finished.")
-
-# Calculate distributions for zcut (x=y=0)
-xyzcutPos[2] = np.array(list(zip(ww,ww,xxPos))).reshape(-1, 3)
-xyzcutVel[2] = np.array(list(zip(ww2,ww2,xxVel))).reshape(-1, 3)
-distributionPos_ref[2] = calculateKernelDensity(xyzcutPos[2], 'position_ref')
-distributionVel_ref[2] = calculateKernelDensity(xyzcutVel[2], 'velocity_ref')
-for i in range(numConditions):
-    distributionPos[i][2] = calculateKernelDensity(xyzcutPos[2], 'position', index = i)
-    distributionVel[i][2] = calculateKernelDensity(xyzcutVel[2], 'velocity', index = i)
-print("Calculations of z-cut distributions finished.")
-
-
-# ## Distribution plots comparisons
-
-# Plot distribution comparisons
-
+# Distribution plots comparisons
 # Create plot
+numbins = 40
 fig = plt.figure(figsize=(15,8))
 gs = fig.add_gridspec(2, 3, hspace=0.3, wspace=0.2)
 ax1, ax2 = gs.subplots() #sharey='row')
+xlabel = [r'$x$', r'$y$', r'$z$']
+#zerolabel = [r'$y=z=0$', r'$x=z=0$', r'$x=y=0$']
+print('Plotting distributions ...')
 
-# Plot position distribution
+# Plot distribution comparisons
 for i in range(3):
-    ax1[i].plot(xxPos,distributionPos_ref[i], '-k', label = 'benchmark')
-    #ax1[i].fill_between(xxPos,distributionPos_ref[i], color='dodgerblue', alpha = 0.15, label = "benchmark")
+    posRef, binEdges = np.histogram(position_ref[:,i], bins=numbins, density=True)
+    binsPosRef = 0.5 * (binEdges[1:] + binEdges[:-1])
+    velRef, binEdges = np.histogram(velocity_ref[:,i], bins=numbins, density=True)
+    binsVelRef = 0.5 * (binEdges[1:] + binEdges[:-1])
+    ax1[i].plot(binsPosRef, posRef, '-k', label='benchmark');
+    ax2[i].plot(binsVelRef, velRef, '-k', label='benchmark');
     for j in range(numConditions):
         index = trajIndexes[j]
-        ax1[i].plot(xxPos,distributionPos[j][i], lineTypeList[j], lw = lwList[j], label = labelList[index])
-    #ax1[i].set_xlim((-4,4))
+        pos, binEdges = np.histogram(position[j][:,i], bins=numbins, density=True)
+        binsPos = 0.5 * (binEdges[1:] + binEdges[:-1])
+        vel, binEdges = np.histogram(velocity[j][:,i], bins=numbins, density=True)
+        binsVel = 0.5 * (binEdges[1:] + binEdges[:-1])
+        ax1[i].plot(binsPos, pos, lineTypeList[j], lw=lwList[j], label=labelList[index]);
+        ax2[i].plot(binsVel, vel, lineTypeList[j], lw=lwList[j], label=labelList[index]);
+
+    ax1[i].set_xlim((-boxsize/2,boxsize/2))
     ax1[i].set_ylim((0,None))
     ax1[i].set_xlabel(xlabel[i] + '-position')
-    if i==0:
-        ax1[i].yaxis.set_ticks(np.arange(0,0.1,0.02)) 
-    else:
-        ax1[i].yaxis.set_ticks(np.arange(0,0.03,0.01)) 
-    
+    #if i==0:
+    #    ax1[i].yaxis.set_ticks(np.arange(0,0.1,0.02))
+    #else:
+    #    ax1[i].yaxis.set_ticks(np.arange(0,0.03,0.01))
 
-    # Plot velocity distribution
-    ax2[i].plot(xxVel,distributionVel_ref[i], '-k', label = 'benchmark')
-    #ax2[i].fill_between(xxVel,distributionVel_ref[i], color='dodgerblue', alpha = 0.15, label = "benchmark")
-    for j in range(numConditions):
-        index = trajIndexes[j]
-        ax2[i].plot(xxVel,distributionVel[j][i], lineTypeList[j],  lw = lwList[j], label = labelList[index])
-    #ax2[i].set_xlim((-0.6,0.6))
+    ax2[i].set_xlim((-1,1))
     ax2[i].set_ylim((0,None))
-    ax2[i].set_xlabel(xlabel[i] + '-velocity' + '\n('+ zerolabel[i] +')')
-    ax2[i].xaxis.set_ticks(np.arange(-0.5,0.6,0.5)) 
-    #ax2[i].yaxis.set_ticks(np.arange(0,1.5,0.5)) 
+    ax2[i].set_xlabel(xlabel[i] + '-velocity') # + '\n('+ zerolabel[i] +')')
+    #ax2[i].xaxis.set_ticks(np.arange(-0.5,0.6,0.5))
 
 ax1[2].legend(bbox_to_anchor=(0.6, 0., 0.5, 1.0), framealpha=1.0)
     
@@ -300,40 +180,7 @@ ax1[2].legend(bbox_to_anchor=(0.6, 0., 0.5, 1.0), framealpha=1.0)
 #plt.tight_layout()
 plt.savefig(plotDirectory + 'distributions_comparison_bistable.pdf')
 plt.clf()
-
-# Plot x-position distribution vs samples from original data
-
-# Create plot
-fig, (ax1, ax2) = plt.subplots(figsize=(8,6), nrows=2, sharex=True)
-
-# Plot x-position distribution
-ax1.plot(xxPos,distributionPos_ref[0], '-k', lw = 0.5)
-#ax1.fill_between(xxPos,distributionPos_ref[0], color='dodgerblue', alpha = 0.15, label = "benchmark (kde)")
-#ax1.plot(xx,distributionPos[0], 'xk', label = 'reduced ' + texlabel)
-ax1.set_ylim((0,0.11)) #None))
-ax1.yaxis.set_ticks(np.arange(0,0.15,0.05)) 
-ax1.legend(bbox_to_anchor=(0.5, 0., 0.5, 1.02)) #, framealpha=1.0, borderpad=0.2)
-
-# Plot velocity distribution
-numsamples = 50000
-idx = np.random.randint(len(position_ref), size=numsamples)
-sampledPosRef = position_ref[idx,:]
-sampledVelRef = velocity_ref[idx,:]
-
-ax2.scatter(sampledPosRef[:,0],sampledPosRef[:,1], marker='o', s=0.1,label='random data samples')
-
-ax2.set_xlabel('position ' + xlabel[0])
-ax2.set_ylabel(r'$y$')
-ax2.set_xlim([-2.5,2.5])
-ax2.set_ylim([-1.5,1.5])
-ax2.xaxis.set_ticks(np.arange(-2,3,1))
-ax2.yaxis.set_ticks(np.arange(-1,2,1)) 
-ax2.legend(loc="upper right", markerscale=20, borderpad=0.1)
-
-plt.subplots_adjust(hspace=0)
-#plt.savefig('kernel_density_estimation.pdf')
-plt.savefig(plotDirectory + 'distributions_n_sampleddata_bistable.pdf')
-plt.clf()
+print('Distributions plots done.')
 
 
 # ## Plot auto-correlation functions comparison
