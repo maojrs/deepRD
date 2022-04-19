@@ -331,3 +331,12 @@ def calculateAutoCorrelationFunction(trajs, lagtimesteps, stride = 1, var = 'pos
         print('Computing ACF for', var, ': ', 100*(lagtime+1)/lagtimesteps , '% complete   ', end="\r")
     ACF = np.array(ACF)
     return ACF
+
+
+def extractParticleTrajectories(trajs, particleIndex, numParticles):
+    output_trajs = []
+    for traj in trajs:
+        particleTraj = traj[particleIndex::numParticles] # Extracts the elements corresponding to the desired particle
+        output_trajs.append(particleTraj)
+    return np.array(output_trajs)
+
