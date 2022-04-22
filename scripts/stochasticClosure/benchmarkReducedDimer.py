@@ -89,7 +89,7 @@ nsigma = parameters['nsigma']
 # Define noise sampler
 nSampler = noiseSampler(dataOnBins)
 
-# Parameters for external potential (will only acts on distinguished particles (type 1))
+# Parameters for pair potential that will only acts on distinguished particles (type 1)
 particleDiameter = 0.5
 x0 = 1.0*particleDiameter # location of first minima
 rad = 1.0*particleDiameter # half the distance between minimas
