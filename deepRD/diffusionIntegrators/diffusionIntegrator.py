@@ -108,8 +108,9 @@ class diffusionIntegrator:
             for ij in list(itertools.combinations(range(len(particleList)), 2)):
                 i = ij[0]
                 j = ij[1]
-                fField[i] += self.pairPotential.calculateForce(particleList[i], particleList[j], currentOrNext)
-                fField[j] -= 1.0 * fField[i]
+                force = self.pairPotential.calculateForce(particleList[i], particleList[j], currentOrNext)
+                fField[i] += force
+                fField[j] -= force
         self.forceField = fField
 
     def setExternalPotential(self, externalPot):
