@@ -48,9 +48,9 @@ class pairPotential:
         if (self.boundary == "periodic" and self.boxsize != None):
             for i in range(3):
                 if (pos2[i] - pos1[i]) > 0.5 * self.boxsize[i]:
-                    p1Periodic[i] += self.boxsize[i]
+                    p1periodic[i] += self.boxsize[i]
                 if (pos2[i] - pos1[i]) < -0.5 * self.boxsize[i]:
-                    p1Periodic[i] -= self.boxsize[i]
+                    p1periodic[i] -= self.boxsize[i]
         return pos2 - p1periodic
 
 
