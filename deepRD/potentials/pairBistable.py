@@ -29,9 +29,9 @@ class pairBistable(pairPotential):
         '''
         force = np.zeros(3)
         if currentOrNext == 'current':
-            relPos = self.relativePosition(particle1.position, particle2.position)
+            relPos = self.relativePosition(particle2.position, particle1.position)
         elif currentOrNext == 'next':
-            relPos = self.relativePosition(particle1.nextPosition, particle2.nextPosition)
+            relPos = self.relativePosition(particle2.nextPosition, particle1.nextPosition)
         else:
             raise NotImplementedError("CurrentOrNext variable must take values of current or next.")
         x = np.linalg.norm(relPos)
