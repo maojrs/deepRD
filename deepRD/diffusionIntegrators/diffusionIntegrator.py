@@ -103,7 +103,7 @@ class diffusionIntegrator:
         fField = [np.zeros(dim)]*len(particleList)
         if self.externalPotential != None:
             for i, particle in enumerate(particleList):
-                fField[i] += self.externalPotential.calculateForce(particle, currentOrNext)
+                fField[i] = fField[i] + self.externalPotential.calculateForce(particle, currentOrNext)
         if self.pairPotential != None:
             for ij in list(itertools.combinations(range(len(particleList)), 2)):
                 i = ij[0]

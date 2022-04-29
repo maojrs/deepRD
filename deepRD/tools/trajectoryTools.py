@@ -299,6 +299,9 @@ def calculateAutoCorrelation(trajs, lagtimesteps, stride = 1, var = 'position', 
     AC = AC/variance
     return AC
 
+def autoCorrelationFromTimeSeries(timeSeriesData, lagtime=1):
+    return np.corrcoef(np.array([timeSeriesData[:-lagtime], timeSeriesData[lagtime:]]))[0,1]
+
 def calculateAutoCorrelationFunction(trajs, lagtimesteps, stride = 1, var = 'position'):
     '''
     Calculates autocorrelation function of trajectories, for a given lagtimesteps (length of time interval in
@@ -329,6 +332,18 @@ def calculateAutoCorrelationFunction(trajs, lagtimesteps, stride = 1, var = 'pos
     for lagtime in range(lagtimesteps):
         ACF.append(calculateAutoCorrelation(trajs, lagtime, stride, var, mean, variance))
         print('Computing ACF for', var, ': ', 100*(lagtime+1)/lagtimesteps , '% complete   ', end="\r")
+    ACF = np.array(ACF)
+    return ACF
+
+def autoCorrelationFunctionFromTimeSeries(timeSeriesData, lagtimesteps, stride = 1):
+    '''
+    Calculates autocorrelation function of time series data, for a given lagtimesteps (length of time interval in
+    timesteps) and stride.
+    '''
+    ACF = []
+    for lagtime in range(lagtimesteps):
+        ACF.append(autoCorrelationFromTimeSeries(timeSeriesData, lagtime*stride + 1))
+        print('Computing ACF: ', 100*(lagtime+1)/lagtimesteps , '% complete   ', end="\r")
     ACF = np.array(ACF)
     return ACF
 
