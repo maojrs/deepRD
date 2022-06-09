@@ -49,7 +49,7 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
 numSimulations = 100 #100 #100
 bsize = 8 #5 #8 #10
-conditionedOn = 'piri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
+conditionedOn = 'pi' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
 outputAux = True #False
 
 # Output data directory
