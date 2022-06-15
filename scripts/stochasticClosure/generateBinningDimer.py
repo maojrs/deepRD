@@ -1,6 +1,7 @@
 import os
 import sys
 import pickle
+import numpy as np
 from itertools import product
 import deepRD.tools.trajectoryTools as trajectoryTools
 import deepRD.tools.analysisTools as analysisTools
@@ -45,7 +46,18 @@ trajs = []
 print("Loading data ...")
 for i in range(nfiles):
     traj = trajectoryTools.loadTrajectory(fnamebase, i)
-    trajs.append(traj)
+    lentraj = np.shape([traj])[1]
+    # Compute and add relativeDistance and relative velocity at end of trajectory
+    relDistVel = np.zeros([lentraj,4])
+    for j in range(int(lentraj/2)):
+        relDist = np.linalg.norm(traj[2*j][1:4] - traj[2*j+1][1:4])
+        relVel = traj[2*j+1][4:7] - traj[2*j][4:7]
+        relDistVel[2*j][0] = relDist
+        relDistVel[2*j+1][0] = relDist
+        relDistVel[2*j][1:4] = relVel
+        relDistVel[2*j+1][1:4] = -1*relVel
+    newtraj = np.concatenate([traj,relDistVel], axis=1)
+    trajs.append(newtraj)
     sys.stdout.write("File " + str(i+1) + " of " + str(nfiles) + " done." + "\r")
 print("\nAll data loaded.")
 print(' ')
@@ -58,7 +70,7 @@ numbins2 = 10 #50
 numbins3 = 5 #50
 nsigma1 = 3 # Only include up to nsigma standard deviations around mean of data. If no value given, includes all.
 nsigma2 = 2
-nsigma3 = 1
+nsigma3 = 2
 
 # Add elements to parameter dictionary
 parameterDictionary['lagTimesteps'] = lagTimesteps

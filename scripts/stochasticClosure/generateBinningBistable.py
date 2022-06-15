@@ -62,7 +62,7 @@ numbins2 = 10 #50
 numbins3 = 5 #50
 nsigma1 = 3 # Only include up to nsigma standard deviations around mean of data. If no value given, includes all.
 nsigma2 = 2
-nsigma3 = 1 #2
+nsigma3 = 2 #2
 
 # Add elements to parameter dictionary
 parameterDictionary['lagTimesteps'] = lagTimesteps

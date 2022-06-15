@@ -174,6 +174,7 @@ ax1.set_xlabel("position (nm)");
 ax1.set_ylabel("distribution");
 ax2.set_xlabel("velocity (nm/ns)");
 ax2.yaxis.tick_right()
+ax2.set_xlim([-0.8,0.8])
 ax2.legend(loc = 'lower left',  bbox_to_anchor=(-0.36, 0.5), framealpha = 1.0);
 plt.savefig(plotDirectory + 'distributions_comparisons_harmonic.pdf', bbox_inches='tight')
 plt.clf()
