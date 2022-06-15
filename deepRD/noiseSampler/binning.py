@@ -133,18 +133,21 @@ class binnedData:
             self.posBoxIndex = 0
 
         # Box indexes for relative distance, relative velocity and aux vars
-        indexes = max(self.posBoxIndex, self.velBoxIndex)
-        indexes.remove(None)
-        maxIndexSoFar = max(indexes) + 3
+        indexes = [self.posBoxIndex, self.velBoxIndex]
+        indexes = list(filter(lambda ele: ele is not None, indexes)) # remove Nones
+        if not indexes: #empty list
+            maxIndexSoFar = 0
+        else:
+            maxIndexSoFar = max(indexes) + 3
         if self.binRelDistance and self.binRelVelocity:
-            self.relDistIndex = maxIndexSoFar
-            self.relVelIndex = maxIndexSoFar + 1
+            self.relDistBoxIndex = maxIndexSoFar
+            self.relVelBoxIndex = maxIndexSoFar + 1
             self.auxBoxIndex = maxIndexSoFar + 4
         elif not self.binRelDistance and self.binRelVelocity:
-            self.relVelIndex = maxIndexSoFar
+            self.relVelBoxIndex = maxIndexSoFar
             self.auxBoxIndex = maxIndexSoFar + 3
         elif self.binRelDistance and not self.binRelVelocity:
-            self.relDistIndex = maxIndexSoFar
+            self.relDistBoxIndex = maxIndexSoFar
             self.auxBoxIndex = maxIndexSoFar + 1
         else:
             self.auxBoxIndex = maxIndexSoFar
