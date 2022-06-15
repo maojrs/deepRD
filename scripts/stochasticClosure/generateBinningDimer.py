@@ -31,7 +31,7 @@ except OSError as error:
 # Load parameters from parameters file
 parameterDictionary = analysisTools.readParameters(parentDirectory + "parameters")
 # Parameters for loading continuous trajectories from files (from original simulation)
-nfiles = 1 #parameterDictionary['numFiles']
+nfiles = parameterDictionary['numFiles']
 dt = parameterDictionary['dt']
 stride = parameterDictionary['stride']
 totalTimeSteps = parameterDictionary['timesteps']
