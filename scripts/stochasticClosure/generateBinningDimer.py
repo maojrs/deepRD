@@ -76,36 +76,44 @@ nsigma3 = 2
 parameterDictionary['lagTimesteps'] = lagTimesteps
 
 # List of possible combinations for binnings
-binPositionList = [False] #[False, True]
-binVelocitiesList = [False, True]
+#binPositionList = [False] #[False, True]
+#binVelocitiesList = [False, True]
+binRelativeDistanceList = [False,True]
+binRelativeVelocityList = [False, True]
 numBinnedAuxVarsList = [2] #[0,1] #[0,1,2]
 
-def getNumberConditionedVariables(binPosition, binVelocity, numBinnedAuxVars):
+def getNumberConditionedVariables(binRelDist, binRelVelocity, numBinnedAuxVars):
     numConditionedVariables = 0
-    if binPosition:
-        numConditionedVariables += 1
-    if binVelocity:
+    if binRelDist:
+        numConditionedVariables += 0 # One dimensional, so we assume it doesn't count
+    if binRelVelocity:
         numConditionedVariables += 1
     for i in range(numBinnedAuxVars):
         numConditionedVariables += 1
     return numConditionedVariables
 
-for parameterCombination in product(*[binPositionList, binVelocitiesList, numBinnedAuxVarsList]):
+for parameterCombination in product(*[binRelativeDistanceList, binRelativeVelocityList, numBinnedAuxVarsList]):
     if parameterCombination != (False,False,0):
-        binPosition, binVelocity, numBinnedAuxVars = parameterCombination
-        numConditionedVariables = getNumberConditionedVariables(binPosition, binVelocity, numBinnedAuxVars)
+        binRelDist, binRelVelocity, numBinnedAuxVars = parameterCombination
+        numConditionedVariables = getNumberConditionedVariables(binRelDist, binRelVelocity, numBinnedAuxVars)
         if numConditionedVariables == 1:
-            dataOnBins = binnedData(boxsizeBinning, numbins1, lagTimesteps, binPosition, binVelocity, numBinnedAuxVars)
+            dataOnBins = binnedData(boxsizeBinning, numbins1, lagTimesteps, binPosition=False, binVelocity=False
+                                    , numBinnedAuxVars=numBinnedAuxVars, binRelDistance = binRelDist,
+                                    binRelVelocity = binRelVelocity)
             dataOnBins.loadData(trajs, nsigma1)
             parameterDictionary['numbins'] = numbins1
             parameterDictionary['nsigma'] = nsigma1
         elif numConditionedVariables == 2:
-            dataOnBins = binnedData(boxsizeBinning, numbins2, lagTimesteps, binPosition, binVelocity, numBinnedAuxVars)
+            dataOnBins = binnedData(boxsizeBinning, numbins2, lagTimesteps, binPosition=False, binVelocity=False
+                                    , numBinnedAuxVars=numBinnedAuxVars, binRelDistance = binRelDist,
+                                    binRelVelocity = binRelVelocity)
             dataOnBins.loadData(trajs, nsigma2)
             parameterDictionary['numbins'] = numbins2
             parameterDictionary['nsigma'] = nsigma2
         else:
-            dataOnBins = binnedData(boxsizeBinning, numbins3, lagTimesteps, binPosition, binVelocity, numBinnedAuxVars)
+            dataOnBins = binnedData(boxsizeBinning, numbins3, lagTimesteps, binPosition=False, binVelocity=False
+                                    , numBinnedAuxVars=numBinnedAuxVars, binRelDistance = binRelDist,
+                                    binRelVelocity = binRelVelocity)
             dataOnBins.loadData(trajs, nsigma3)
             parameterDictionary['numbins'] = numbins3
             parameterDictionary['nsigma'] = nsigma3
