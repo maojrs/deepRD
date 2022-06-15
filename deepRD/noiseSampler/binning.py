@@ -22,11 +22,14 @@ class binnedData:
     '''
 
     def __init__(self, boxsize, numbins = 100, lagTimesteps = 1, binPosition = False,
-                 binVelocity = False, numBinnedAuxVars = 1, adjustPosVelBox = True):
+                 binVelocity = False, numBinnedAuxVars = 1, adjustPosVelBox = True,
+                 binRelDistance = False, binRelVelocity = False):
         self.binPosition = binPosition
         self.binVelocity = binVelocity
         self.numBinnedAuxVars = numBinnedAuxVars
         self.adjustPosVelBox = adjustPosVelBox # If true adjust box limit for position and velocities variables
+        self.binRelDistance = binRelDistance
+        self.binRelVelocity = binRelVelocity
         self.dimension = None
         self.numConditionedVariables = None
         self.binningLabel = ''
@@ -40,12 +43,20 @@ class binnedData:
         self.posIndex = 1  # Index of x position coordinate in trajectory files
         self.velIndex = 4  # Index of x velocity coordinate in trajectory files
         self.auxIndex = 8  # Position of x coordinate of r in trajectory files
+        self.relDistIndex = 11 # Index of relative distance(scalar) in trajectory files
+        self.relVelIndex = 12 # Index of x variable of relative velocity
         self.dataTree = None # dataTree structure to find nearest neighbors
         self.occupiedTuplesArray = None # array of tuples corresponding to occupied bins
         self.parameterDictionary = {}
 
         # Obtain indexes in box array
-        self.posBoxIndex, self.velBoxIndex, self.auxBoxIndex = self.calculateBoxIndexes()
+        self.posBoxIndex = None
+        self.velBoxIndex = None
+        self.auxBoxIndex = None
+        self.relDistBoxIndex = None
+        self.relVelBoxIndex = None
+        self.calculateBoxIndexes()
+
 
         if not isinstance(lagTimesteps, (int)):
             raise Exception('lagTimesteps should be an integer.')
@@ -87,6 +98,16 @@ class binnedData:
             self.binningLabel2 += 'pi'
             self.dimension +=3
             self.numConditionedVariables += 1
+        if self.binRelDistance:
+            self.binningLabel += 'dqi,'
+            self.binningLabel2 += 'dqi'
+            self.dimension +=1
+            self.numConditionedVariables += 1
+        if self.binRelVelocity:
+            self.binningLabel += 'dpi,'
+            self.binningLabel2 += 'dpi'
+            self.dimension +=3
+            self.numConditionedVariables += 1
         for i in range(self.numBinnedAuxVars):
             self.dimension +=3
             self.numConditionedVariables += 1
@@ -102,27 +123,32 @@ class binnedData:
         Determines the indexes correspo0nding to which variable in the box array. It assumes the
         variable are ordered first position, then velocity then aux variables.
         '''
+        # Box indexes for position and velocity
         if self.binPosition and self.binVelocity:
-            posBoxIndex = 0
-            velBoxIndex = 3
-            auxBoxIndex = 6
+            self.posBoxIndex = 0
+            self.velBoxIndex = 3
         elif not self.binPosition and self.binVelocity:
-            posBoxIndex = None
-            velBoxIndex = 0
-            auxBoxIndex = 3
+            self.velBoxIndex = 0
         elif self.binPosition and not self.binVelocity:
-            posBoxIndex = 0
-            velBoxIndex = None
-            auxBoxIndex = 3
-        elif not self.binPosition and not self.binVelocity:
-            posBoxIndex = None
-            velBoxIndex = None
-            auxBoxIndex = 0
+            self.posBoxIndex = 0
+
+        # Box indexes for relative distance, relative velocity and aux vars
+        indexes = max(self.posBoxIndex, self.velBoxIndex)
+        indexes.remove(None)
+        maxIndexSoFar = max(indexes) + 3
+        if self.binRelDistance and self.binRelVelocity:
+            self.relDistIndex = maxIndexSoFar
+            self.relVelIndex = maxIndexSoFar + 1
+            self.auxBoxIndex = maxIndexSoFar + 4
+        elif not self.binRelDistance and self.binRelVelocity:
+            self.relVelIndex = maxIndexSoFar
+            self.auxBoxIndex = maxIndexSoFar + 3
+        elif self.binRelDistance and not self.binRelVelocity:
+            self.relDistIndex = maxIndexSoFar
+            self.auxBoxIndex = maxIndexSoFar + 1
         else:
-            posBoxIndex = None
-            velBoxIndex = None
-            auxBoxIndex = None
-        return posBoxIndex, velBoxIndex, auxBoxIndex
+            self.auxBoxIndex = maxIndexSoFar
+
 
     def adjustBox(self, trajs, variable = 'position', nsigma=-1):
         '''
@@ -135,27 +161,37 @@ class binnedData:
         if variable == 'position':
             trajIndex = self.posIndex
             boxIndex = self.posBoxIndex
+            numvars = 3
         elif variable == 'velocity':
             trajIndex = self.velIndex
             boxIndex = self.velBoxIndex
+            numvars = 3
+        elif variable == 'relDistance':
+            trajIndex = self.relDistIndex
+            boxIndex = self.relDistBoxIndex
+            numvars = 1
+        elif variable == 'relVelocity':
+            trajIndex = self.relVelIndex
+            boxIndex = self.relVelBoxIndex
+            numvars = 3
         else:
-            print('Variable for adjustBox functions must be position or velocity')
+            print('Variable for adjustBox functions must be position, velocity, relDistance or relVelocity')
         if nsigma < 0:
-            minvec = np.array(trajs[0][0][trajIndex: trajIndex + 3])
-            maxvec = np.array(trajs[0][0][trajIndex: trajIndex + 3])
+            minvec = np.array(trajs[0][0][trajIndex: trajIndex + numvars])
+            maxvec = np.array(trajs[0][0][trajIndex: trajIndex + numvars])
             for traj in trajs:
                 for i in range(len(traj)):
-                    condVar = traj[i][trajIndex: trajIndex + 3]
-                    for j in range(3):
+                    condVar = traj[i][trajIndex: trajIndex + numvars]
+                    for j in range(numvars):
                         minvec[j] = min(minvec[j], condVar[j])
                         maxvec[j] = max(maxvec[j], condVar[j])
         else:
-            mean = trajectoryTools.calculateMean(trajs, [trajIndex, trajIndex + 3])
-            stddev = trajectoryTools.calculateStdDev(trajs, [trajIndex, trajIndex + 3], mean)
+            mean = trajectoryTools.calculateMean(trajs, [trajIndex, trajIndex + numvars])
+            stddev = trajectoryTools.calculateStdDev(trajs, [trajIndex, trajIndex + numvars], mean)
             minvec = mean - nsigma * stddev
             maxvec = mean + nsigma * stddev
         # Adjust boxsize and bins accordingly
-        for k in range(3):
+        for k in range(numvars):
             self.boxsize[boxIndex + k] = (maxvec[k] - minvec[k])
             voxeledge = self.boxsize[boxIndex + k] / self.numbins[boxIndex + k]
             self.bins[boxIndex + k] = np.arange(minvec[k], maxvec[k], voxeledge)
@@ -260,6 +296,10 @@ class binnedData:
             self.adjustBox(trajs, 'position', nsigma)
         if self.adjustPosVelBox and self.binVelocity:
             self.adjustBox(trajs, 'velocity', nsigma)
+        if self.adjustPosVelBox and self.binRelDistance:
+            self.adjustBox(trajs, 'relDistance', nsigma)
+        if self.adjustPosVelBox and self.binRelVelocity:
+            self.adjustBox(trajs, 'relVelocity', nsigma)
         if self.numBinnedAuxVars > 0:
             self.adjustBoxAux(trajs, nsigma) # Adjust box limits for r variables
         # Loop over all data and load into dictionary
@@ -274,6 +314,12 @@ class binnedData:
                 if self.binVelocity:
                     pi = traj[i][self.velIndex:self.velIndex + 3]
                     conditionedVars.append(pi)
+                if self.binRelDistance:
+                    dqi = traj[i][self.relDistIndex:self.relDistIndex + 1]
+                    conditionedVars.append(dqi)
+                if self.binRelVelocity:
+                    dpi = traj[i][self.relVelIndex:self.relVelIndex + 3]
+                    conditionedVars.append(dpi)
                 for m in range(self.numBinnedAuxVars):
                     ri = traj[i - m * self.lagTimesteps][self.auxIndex:self.auxIndex + 3]
                     conditionedVars.append(ri)
