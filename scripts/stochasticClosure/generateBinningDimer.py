@@ -97,7 +97,7 @@ def getNumberConditionedVariables(binRelDist, binRelVelocity, binVelocity, numBi
 for parameterCombination in product(*[binRelativeDistanceList, binRelativeVelocityList, binVelocitiesList, numBinnedAuxVarsList]):
     if parameterCombination != (False,False,0):
         binRelDist, binRelVelocity, binVelocity, numBinnedAuxVars = parameterCombination
-        numConditionedVariables = getNumberConditionedVariables(binRelDist, binRelVelocity, numBinnedAuxVars)
+        numConditionedVariables = getNumberConditionedVariables(binRelDist, binRelVelocity, binVelocity, numBinnedAuxVars)
         if numConditionedVariables == 1:
             dataOnBins = binnedData(boxsizeBinning, numbins1, lagTimesteps, binPosition=False, binVelocity=binVelocity
                                     , numBinnedAuxVars=numBinnedAuxVars, binRelDistance = binRelDist,
