@@ -69,9 +69,9 @@ class langevinNoiseSampler(langevin):
         elif self.conditionedOn == 'dqi':
             return (self.relDistance[index])
         elif self.conditionedOn == 'dqiri':
-            return np.concatenate((self.relDistance[index], particle.aux1))
+            return np.concatenate((np.array([self.relDistance[index]]), particle.aux1))
         elif self.conditionedOn == 'dqiririm':
-            return np.concatenate((self.relDistance[index], particle.aux1, particle.aux2))
+            return np.concatenate((np.array([self.relDistance[index]]), particle.aux1, particle.aux2))
         elif self.conditionedOn == 'dpi':
             return (self.relVelocity[index])
         elif self.conditionedOn == 'dpiri':
@@ -79,11 +79,11 @@ class langevinNoiseSampler(langevin):
         elif self.conditionedOn == 'dpiririm':
             return np.concatenate((self.relVelocity[index], particle.aux1, particle.aux2))
         elif self.conditionedOn == 'dqidpi':
-            return ((self.relDistance[index], self.relVelocity[index]))
+            return ((np.array([self.relDistance[index]]), self.relVelocity[index]))
         elif self.conditionedOn == 'dqidpiri':
-            return np.concatenate((self.relDistance[index], self.relVelocity[index], particle.aux1))
+            return np.concatenate((np.array([self.relDistance[index]]), self.relVelocity[index], particle.aux1))
         elif self.conditionedOn == 'dqidpiririm':
-            return np.concatenate((self.relDistance[index], self.relVelocity[index], particle.aux1, particle.aux2))
+            return np.concatenate((np.array([self.relDistance[index]]), self.relVelocity[index], particle.aux1, particle.aux2))
         else:
             sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
 
