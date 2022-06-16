@@ -77,41 +77,43 @@ parameterDictionary['lagTimesteps'] = lagTimesteps
 
 # List of possible combinations for binnings
 #binPositionList = [False] #[False, True]
-#binVelocitiesList = [False, True]
 binRelativeDistanceList = [False,True]
+binVelocitiesList = [False, True]
 binRelativeVelocityList = [False, True]
 numBinnedAuxVarsList = [2] #[0,1] #[0,1,2]
 
-def getNumberConditionedVariables(binRelDist, binRelVelocity, numBinnedAuxVars):
+def getNumberConditionedVariables(binRelDist, binRelVelocity, binVelocity, numBinnedAuxVars):
     numConditionedVariables = 0
     if binRelDist:
         numConditionedVariables += 0 # One dimensional, so we assume it doesn't count
     if binRelVelocity:
         numConditionedVariables += 1
+    if binVelocity:
+        numConditionedVariables += 1
     for i in range(numBinnedAuxVars):
         numConditionedVariables += 1
     return numConditionedVariables
 
-for parameterCombination in product(*[binRelativeDistanceList, binRelativeVelocityList, numBinnedAuxVarsList]):
+for parameterCombination in product(*[binRelativeDistanceList, binRelativeVelocityList, binVelocitiesList, numBinnedAuxVarsList]):
     if parameterCombination != (False,False,0):
-        binRelDist, binRelVelocity, numBinnedAuxVars = parameterCombination
+        binRelDist, binRelVelocity, binVelocity, numBinnedAuxVars = parameterCombination
         numConditionedVariables = getNumberConditionedVariables(binRelDist, binRelVelocity, numBinnedAuxVars)
         if numConditionedVariables == 1:
-            dataOnBins = binnedData(boxsizeBinning, numbins1, lagTimesteps, binPosition=False, binVelocity=False
+            dataOnBins = binnedData(boxsizeBinning, numbins1, lagTimesteps, binPosition=False, binVelocity=binVelocity
                                     , numBinnedAuxVars=numBinnedAuxVars, binRelDistance = binRelDist,
                                     binRelVelocity = binRelVelocity)
             dataOnBins.loadData(trajs, nsigma1)
             parameterDictionary['numbins'] = numbins1
             parameterDictionary['nsigma'] = nsigma1
         elif numConditionedVariables == 2:
-            dataOnBins = binnedData(boxsizeBinning, numbins2, lagTimesteps, binPosition=False, binVelocity=False
+            dataOnBins = binnedData(boxsizeBinning, numbins2, lagTimesteps, binPosition=False, binVelocity=binVelocity
                                     , numBinnedAuxVars=numBinnedAuxVars, binRelDistance = binRelDist,
                                     binRelVelocity = binRelVelocity)
             dataOnBins.loadData(trajs, nsigma2)
             parameterDictionary['numbins'] = numbins2
             parameterDictionary['nsigma'] = nsigma2
         else:
-            dataOnBins = binnedData(boxsizeBinning, numbins3, lagTimesteps, binPosition=False, binVelocity=False
+            dataOnBins = binnedData(boxsizeBinning, numbins3, lagTimesteps, binPosition=False, binVelocity=binVelocity
                                     , numBinnedAuxVars=numBinnedAuxVars, binRelDistance = binRelDist,
                                     binRelVelocity = binRelVelocity)
             dataOnBins.loadData(trajs, nsigma3)
