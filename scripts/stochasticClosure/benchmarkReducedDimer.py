@@ -99,6 +99,7 @@ scalefactor = 2
 integratorStride = 1 #50
 tfinal = 10000
 equilibrationSteps = 10000
+calculateRelPosVel = True
 
 # Create parameter dictionary to write to parameters reference file
 parameterfilename = os.path.join(outputDataDirectory, "parameters")
@@ -132,8 +133,8 @@ def runParallelSims(simnumber):
     # Define external potential
     pairBistablePotential = pairBistable(x0, rad, scalefactor)
 
-    diffIntegrator = langevinNoiseSampler(dt, integratorStride, tfinal, Gamma, nSampler, KbT,
-                                          boxsize, boundaryType, equilibrationSteps, conditionedOn)
+    diffIntegrator = langevinNoiseSampler(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
+                                          boundaryType, equilibrationSteps, conditionedOn, calculateRelPosVel)
 
     diffIntegrator.setPairPotential(pairBistablePotential)
 
