@@ -3,10 +3,6 @@ import sys
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-from scipy.stats import norm
-from sklearn.neighbors import KernelDensity
-from sklearn.model_selection import GridSearchCV
-from deepRD.noiseSampler import binnedData
 import deepRD.tools.trajectoryTools as trajectoryTools
 import deepRD.tools.analysisTools as analysisTools
 matplotlib.rcParams.update({'font.size': 15})
@@ -271,9 +267,9 @@ if (plotFPTs):
     fname1 = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(boxsize) + '/benchmarkFPTcomparison/simMoriZwanzigFPTs_box' + str(boxsize) + '_nsims' + str(numruns) + '.xyz'
     for i in range(len(conditionedList)):
         fname2[i] = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(boxsize) + '/benchmarkFPTreduced/simMoriZwanzigFPTs_' + conditionedList[i] + '_box' + str(boxsize) + '_nsims' + str(numruns) + '.xyz'
-    file2 = [None]*len(conditionedOn)
+    file2 = [None]*len(conditionedList)
     file1 = open(fname1, "r")
-    for i in range(len(conditionedOn)):
+    for i in range(len(conditionedList)):
         file2[i] = open(fname2[i], "r")
 
     # Read files and save to arrays
@@ -282,8 +278,8 @@ if (plotFPTs):
     for i, line in enumerate(filelines):
         benchmarkFPT[i] = int(float(line))
 
-    benchFPTreduced = [None]*len(conditionedOn)
-    for j in range(len(conditionedOn)):
+    benchFPTreduced = [None]*len(conditionedList)
+    for j in range(len(conditionedList)):
         filelines = file2[j].readlines()
         benchmarkFPTreduced = np.zeros(len(filelines), dtype = int)
         for i, line in enumerate(filelines):
@@ -292,7 +288,7 @@ if (plotFPTs):
 
     numbinsFPT = 40
     plt.hist(benchmarkFPT, numbinsFPT, alpha = 0.5, density=True, label='benchmark')
-    for i in range(len(conditionedOn)):
+    for i in range(len(conditionedList)):
         plt.hist(benchFPTreduced[i], numbinsFPT, alpha = 0.5, density=True, label='reduced')
     plt.legend()
 
