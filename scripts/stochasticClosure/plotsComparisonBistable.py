@@ -90,7 +90,7 @@ if (plotDistributions):
 
 # Choose which reduced model to compare (just uncomment one)
 #conditionedList = ['ri', 'qiri', 'pi', 'piri'] #Possibilities 'qi', 'ri', 'qiri', 'qiririm'
-conditionedList = ['piririm'] #['pi', 'piri', 'piririm']
+conditionedList = ['pi','piri','piririm'] #['pi', 'piri', 'piririm']
 trajIndexes = []
 if 'ri' in conditionedList:
     trajIndexes.append(0)
@@ -262,7 +262,7 @@ if(plotACFs):
 if (plotFPTs):
     # Set loading data
     numruns = 1000
-    conditionOn = 'piririm' #Possibilities 'qi', 'ri', 'qiri', 'qiririm'
+    numbinsFPT = 40
     fname2 = [None]*len(conditionedList)
     fname1 = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(boxsize) + '/benchmarkFPTcomparison/simMoriZwanzigFPTs_box' + str(boxsize) + '_nsims' + str(numruns) + '.xyz'
     for i in range(len(conditionedList)):
@@ -286,7 +286,6 @@ if (plotFPTs):
             benchmarkFPTreduced[i] = int(float(line))
         benchFPTreduced[j] = benchmarkFPTreduced
 
-    numbinsFPT = 40
     plt.hist(benchmarkFPT, numbinsFPT, alpha = 0.5, density=True, label='benchmark')
     for i in range(len(conditionedList)):
         plt.hist(benchFPTreduced[i], numbinsFPT, alpha = 0.5, density=True, label='reduced')
@@ -304,8 +303,10 @@ if (plotFPTs):
         ax.plot(binsFPT, FPT, lineTypeList[j], lw=lwList[j], label=labelList[index]);
 
     #ax1.set_xlim((?,?))
+    ax.set_xlim((0, None))
     ax.set_ylim((0, None))
     ax.set_xlabel('time')
+    ax.yaxis.set_ticks(np.arange(0, 0.003, 0.001))
 
     ax.legend(bbox_to_anchor=(0.6, 0., 0.5, 1.0), framealpha=1.0)
 
