@@ -52,7 +52,7 @@ bsize= 5
 conditionedOn = 'piri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
 
 # Output data directory
-foldername = 'bistable/benchmarkReducedFPT'
+foldername = 'bistable/boxsize' + str(bsize) + 'benchmarkReducedFPT'
 outputDataDirectory = os.path.join(localDataDirectory, foldername)
 # Create folder for data
 try:
