@@ -48,7 +48,7 @@ except OSError as error:
 
 # Read relevant parameters
 parameterDictionary = analysisTools.readParameters(parentDirectory + "parameters")
-numSimulations = 10 # parameterDictionary['numFiles']
+numSimulations = parameterDictionary['numFiles']
 dt = parameterDictionary['dt'] 
 integratorStride = parameterDictionary['stride']
 totalTimeSteps = parameterDictionary['timesteps'] 
@@ -261,7 +261,7 @@ if(plotACFs):
 # ## Plot FPTs comparison
 if (plotFPTs):
     # Set loading data
-    numruns = 1000
+    numruns = 5000
     numbinsFPT = 40
     fname2 = [None]*len(conditionedList)
     fname1 = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(boxsize) + '/benchmarkFPTcomparison/simMoriZwanzigFPTs_box' + str(boxsize) + '_nsims' + str(numruns) + '.xyz'
@@ -303,10 +303,10 @@ if (plotFPTs):
         ax.plot(binsFPT, FPT, lineTypeList[j], lw=lwList[j], label=labelList[index]);
 
     #ax1.set_xlim((?,?))
-    ax.set_xlim((0, None))
+    ax.set_xlim((0, 1500))
     ax.set_ylim((0, None))
     ax.set_xlabel('time')
-    ax.yaxis.set_ticks(np.arange(0, 0.003, 0.001))
+    ax.yaxis.set_ticks(np.arange(0, 0.0031, 0.001))
 
     ax.legend(bbox_to_anchor=(0.6, 0., 0.5, 1.0), framealpha=1.0)
 
