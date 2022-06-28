@@ -110,11 +110,11 @@ if 'piririm' in conditionedList:
     trajIndexes.append(7)
 numConditions = len(trajIndexes)
 # Note in plot labels x = q and v = p
-labelList = [r'$\tilde{r}_{i+1}|\tilde{r}_i$', r'$\tilde{r}_{i+1}|\tilde{r}_i, \tilde{r}_{i-1}$',
-             r'$\tilde{r}_{i+1}|\tilde{x}_i$', r'$\tilde{r}_{i+1}|\tilde{x}_i,\tilde{r}_i$',
-             r'$\tilde{r}_{i+1}|\tilde{x}_i, \tilde{r}_i, \tilde{r}_{i-1}$',
-             r'$\tilde{r}_{i+1}|\tilde{v}_i$', r'$\tilde{r}_{i+1}|\tilde{v}_i,\tilde{r}_i$',
-             r'$\tilde{r}_{i+1}|\tilde{v}_i, \tilde{r}_i, \tilde{r}_{i-1}$']
+labelList = [r'$\tilde{r}^{n+1}|\tilde{r}^n$', r'$\tilde{r}^{n+1}|\tilde{r}^n, \tilde{r}^{n-1}$',
+             r'$\tilde{r}^{n+1}|\tilde{x}^n$', r'$\tilde{r}^{n+1}|\tilde{x}^n,\tilde{r}^n$',
+             r'$\tilde{r}^{n+1}|\tilde{x}^n, \tilde{r}^n, \tilde{r}^{n-1}$',
+             r'$\tilde{r}^{n+1}|\tilde{v}^n$', r'$\tilde{r}^{n+1}|\tilde{v}^n,\tilde{r}^n$',
+             r'$\tilde{r}^{n+1}|\tilde{v}^n, \tilde{r}^n, \tilde{r}^{n-1}$']
 #lineTypeList = [':', '-.', '--', 'xk']*2
 #lwList = [4, 2, 2, 2]*2
 
