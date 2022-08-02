@@ -3,6 +3,7 @@ import sys
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+from scipy import stats
 import deepRD.tools.trajectoryTools as trajectoryTools
 import deepRD.tools.analysisTools as analysisTools
 matplotlib.rcParams.update({'font.size': 15})
@@ -37,7 +38,7 @@ redModelfnamebase[6] += '_piri/simMoriZwanzigReduced_'
 redModelfnamebase[7] += '_piririm/simMoriZwanzigReduced_'
 
 # Create plot directory
-plotDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(bsize) + '/plots/'
+plotDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(bsize) + '/plots2/'
 try:
     os.makedirs(plotDirectory)
 except OSError as error:
@@ -174,7 +175,8 @@ if (plotDistributions):
         ax2[i].set_xlabel(xlabel[i] + '-velocity') # + '\n('+ zerolabel[i] +')')
         #ax2[i].xaxis.set_ticks(np.arange(-0.5,0.6,0.5))
 
-    ax1[2].legend(bbox_to_anchor=(0.6, 0., 0.5, 1.0), framealpha=1.0)
+    ax1[2].legend(bbox_to_anchor=(0.6, 0., 0.5, 1.0), framealpha=1.0) # for box8
+    #ax1[2].legend(bbox_to_anchor=(0.7, 0., 0.5, 1.0), framealpha=1.0) #for box5
 
     # displaying plot
     #plt.tight_layout()
@@ -261,8 +263,9 @@ if(plotACFs):
 # ## Plot FPTs comparison
 if (plotFPTs):
     # Set loading data
-    numruns = 5000
-    numbinsFPT = 40
+    numruns = 10000
+    numbinsFPT = 30
+    maxplotTime = 1500
     fname2 = [None]*len(conditionedList)
     fname1 = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(boxsize) + '/benchmarkFPTcomparison/simMoriZwanzigFPTs_box' + str(boxsize) + '_nsims' + str(numruns) + '.xyz'
     for i in range(len(conditionedList)):
@@ -286,30 +289,43 @@ if (plotFPTs):
             benchmarkFPTreduced[i] = int(float(line))
         benchFPTreduced[j] = benchmarkFPTreduced
 
-    plt.hist(benchmarkFPT, numbinsFPT, alpha = 0.5, density=True, label='benchmark')
-    for i in range(len(conditionedList)):
-        plt.hist(benchFPTreduced[i], numbinsFPT, alpha = 0.5, density=True, label='reduced')
-    plt.legend()
+    # plt.hist(benchmarkFPT, numbinsFPT, alpha = 0.5, density=True, label='benchmark')
+    # for i in range(len(conditionedList)):
+    #     plt.hist(benchFPTreduced[i], numbinsFPT, alpha = 0.5, density=True, label='reduced')
+    # plt.legend()
 
     fig, ax = plt.subplots()
+    bw=0.2
+    densityFPT = stats.kde.gaussian_kde(benchmarkFPT,bw)
+    densityFPTreduced = [None]*len(conditionedList)
+    for j in range(numConditions):
+        densityFPTreduced[j] = stats.kde.gaussian_kde(benchFPTreduced[j],bw)
 
-    FPTref, binEdges = np.histogram(benchmarkFPT, bins=numbinsFPT, density=True)
-    binsFPTRef = 0.5 * (binEdges[1:] + binEdges[:-1])
-    ax.plot(binsFPTRef, FPTref, '-k', label='benchmark');
+    time = np.arange(0., 1500., 20)
+    ax.plot(time, densityFPT(time),'-k', label='benchmark')
     for j in range(numConditions):
         index = trajIndexes[j]
-        FPT, binEdges = np.histogram(benchFPTreduced[j], bins=numbinsFPT, density=True)
-        binsFPT = 0.5 * (binEdges[1:] + binEdges[:-1])
-        ax.plot(binsFPT, FPT, lineTypeList[j], lw=lwList[j], label=labelList[index]);
+        ax.plot(time, densityFPTreduced[j](time), lineTypeList[j], lw=lwList[j], label=labelList[index]);
+
+    # FPTref, binEdges = np.histogram(benchmarkFPT, bins=numbinsFPT, range=[0,maxplotTime], density=True)
+    # binsFPTRef = 0.5 * (binEdges[1:] + binEdges[:-1])
+    # ax.plot(binsFPTRef, FPTref, '-k', label='benchmark');
+    # for j in range(numConditions):
+    #     index = trajIndexes[j]
+    #     FPT, binEdges = np.histogram(benchFPTreduced[j], bins=numbinsFPT, range=[0,maxplotTime], density=True)
+    #     binsFPT = 0.5 * (binEdges[1:] + binEdges[:-1])
+    #     ax.plot(binsFPT, FPT, lineTypeList[j], lw=lwList[j], label=labelList[index]);
 
     #ax1.set_xlim((?,?))
-    ax.set_xlim((0, 1500))
+    ax.set_xlim((0, maxplotTime))
     ax.set_ylim((0, None))
-    ax.set_xlabel('time')
+    ax.set_xlabel('time(ns)')
+    ax.set_ylabel('FPT distribution')
     ax.yaxis.set_ticks(np.arange(0, 0.0031, 0.001))
 
     ax.legend(bbox_to_anchor=(0.6, 0., 0.5, 1.0), framealpha=1.0)
 
+    plt.tight_layout()
     plt.savefig(plotDirectory + 'FPT_distributions_bistable.pdf')
     plt.clf()
     print('FPT distributions plots done.')

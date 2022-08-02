@@ -41,6 +41,21 @@ boundaryType = parameterDictionary['boundaryType']
 if bsize != boxsize:
     print('Requested boxsize does not match simulation')
 
+
+def calculateAdditionalConditionings(x1,x2,v1,v2):
+    deltaX = x2 - x1
+    deltaV = v2 - v1
+    velCM = 0.5*(v1 + v2)
+    normDeltaX = np.linalg.norm(deltaX)
+    unitDeltaX = deltaX/normDeltaX
+    axisRelVel = np.dot(deltaV, unitDeltaX)
+    normAxisVelCM = np.dot(velCM, unitDeltaX)
+    axisVelCM = normAxisVelCM * unitDeltaX
+    tangVelCM = velCM - axisVelCM
+    normTangVelCM = np.linalg.norm(tangVelCM)
+    return normDeltaX, axisRelVel, normAxisVelCM, normTangVelCM
+
+
 # Load trajectory data from h5 files (only of distinguished particle)
 trajs = []
 print("Loading data ...")
@@ -48,15 +63,22 @@ for i in range(nfiles):
     traj = trajectoryTools.loadTrajectory(fnamebase, i)
     lentraj = np.shape([traj])[1]
     # Compute and add relativeDistance and relative velocity at end of trajectory
-    relDistVel = np.zeros([lentraj,4])
+    additionalCondtionings = np.zeros([lentraj,4])
     for j in range(int(lentraj/2)):
-        relDist = np.linalg.norm(traj[2*j][1:4] - traj[2*j+1][1:4])
-        relVel = traj[2*j+1][4:7] - traj[2*j][4:7]
-        relDistVel[2*j][0] = relDist
-        relDistVel[2*j+1][0] = relDist
-        relDistVel[2*j][1:4] = relVel
-        relDistVel[2*j+1][1:4] = -1*relVel
-    newtraj = np.concatenate([traj,relDistVel], axis=1)
+        x1 = traj[2*j][1:4]
+        x2 = traj[2*j+1][1:4]
+        v1 = traj[2*j][4:7]
+        v2 = traj[2*j+1][4:7]
+        normDeltaX, axisRelVel, normAxisVelCM, normTangVelCM = calculateAdditionalConditionings(x1,x2,v1,v2)
+        additionalCondtionings[2*j][0] = normDeltaX
+        additionalCondtionings[2*j][1] = axisRelVel
+        additionalCondtionings[2*j][2] = normAxisVelCM
+        additionalCondtionings[2*j][3] = normTangVelCM
+        additionalCondtionings[2*j+1][0] = 1 * normDeltaX
+        additionalCondtionings[2*j+1][1] = 1 * axisRelVel
+        additionalCondtionings[2*j+1][2] = -1 * normAxisVelCM
+        additionalCondtionings[2*j+1][3] = 1 * normTangVelCM
+    newtraj = np.concatenate([traj,additionalCondtionings], axis=1)
     trajs.append(newtraj)
     sys.stdout.write("File " + str(i+1) + " of " + str(nfiles) + " done." + "\r")
 print("\nAll data loaded.")
