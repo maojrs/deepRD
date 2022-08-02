@@ -301,10 +301,9 @@ class binnedDataDimer(binnedData):
     would have dimension 6, 3 for qi and 3 for ri.
     '''
 
-    def __init__(self, boxsize, numbins = 100, lagTimesteps = 1, binPosition = False,
-                 binVelocity = False, numBinnedAuxVars = 1, adjustPosVelBox = True,
-                 binRelDistance = False, binRelSpeed = False, binVelCenterMass = False):
-        super().__init__(boxsize, numbins, lagTimesteps, binPosition, binVelocity, numBinnedAuxVars,
+    def __init__(self, boxsize, numbins = 100, lagTimesteps = 1, binRelDistance = False,
+                 binRelSpeed = False, binVelCenterMass = False, numBinnedAuxVars = 1, adjustPosVelBox = True):
+        super().__init__(boxsize, numbins, lagTimesteps, False, False, numBinnedAuxVars,
                          adjustPosVelBox)
         self.binRelDistance = binRelDistance
         self.binRelSpeed = binRelSpeed

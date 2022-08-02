@@ -5,7 +5,7 @@ import numpy as np
 from itertools import product
 import deepRD.tools.trajectoryTools as trajectoryTools
 import deepRD.tools.analysisTools as analysisTools
-from deepRD.noiseSampler import binnedData
+from deepRD.noiseSampler import binnedDataDimer
 
 '''
 Generates binned data structures on several different conditionings for the stochastic closure model.
@@ -100,44 +100,44 @@ parameterDictionary['lagTimesteps'] = lagTimesteps
 # List of possible combinations for binnings
 #binPositionList = [False] #[False, True]
 binRelativeDistanceList = [False,True]
-binVelocitiesList = [False, True]
-binRelativeVelocityList = [False, True]
+binRelSpeedList = [False, True]
+binVelCenterMassList = [False, True]
 numBinnedAuxVarsList = [2] #[0,1] #[0,1,2]
 
-def getNumberConditionedVariables(binRelDist, binRelVelocity, binVelocity, numBinnedAuxVars):
+def getNumberConditionedVariables(binRelDist, binRelSpeed, binVelCenterMass, numBinnedAuxVars):
     numConditionedVariables = 0
     if binRelDist:
-        numConditionedVariables += 0 # One dimensional, so we assume it doesn't count
-    if binRelVelocity:
+        numConditionedVariables += 1 # One dimensional, so we assume it doesn't count
+    if binRelSpeed:
         numConditionedVariables += 1
-    if binVelocity:
-        numConditionedVariables += 1
+    if binVelCenterMass:
+        numConditionedVariables += 2
     for i in range(numBinnedAuxVars):
-        numConditionedVariables += 1
+        numConditionedVariables += 3
     return numConditionedVariables
 
-for parameterCombination in product(*[binRelativeDistanceList, binRelativeVelocityList, binVelocitiesList, numBinnedAuxVarsList]):
+for parameterCombination in product(*[binRelativeDistanceList, binRelSpeedList, binVelCenterMassList, numBinnedAuxVarsList]):
     if parameterCombination != (False,False,0):
-        binRelDist, binRelVelocity, binVelocity, numBinnedAuxVars = parameterCombination
-        numConditionedVariables = getNumberConditionedVariables(binRelDist, binRelVelocity, binVelocity, numBinnedAuxVars)
-        if numConditionedVariables == 1:
-            dataOnBins = binnedData(boxsizeBinning, numbins1, lagTimesteps, binPosition=False, binVelocity=binVelocity
-                                    , numBinnedAuxVars=numBinnedAuxVars, binRelDistance = binRelDist,
-                                    binRelVelocity = binRelVelocity)
+        binRelDist, binRelSpeed, binVelCenterMass, numBinnedAuxVars = parameterCombination
+        numConditionedVariables = getNumberConditionedVariables(binRelDist, binRelSpeed, binVelCenterMass, numBinnedAuxVars)
+        if numConditionedVariables <= 4:
+            dataOnBins = binnedDataDimer(boxsizeBinning, numbins1, lagTimesteps, binRelDistance = binRelDist,
+                                    binRelSpeed = binRelSpeed, binVelCenterMass = binVelCenterMass,
+                                         numBinnedAuxVars=numBinnedAuxVars)
             dataOnBins.loadData(trajs, nsigma1)
             parameterDictionary['numbins'] = numbins1
             parameterDictionary['nsigma'] = nsigma1
-        elif numConditionedVariables == 2:
-            dataOnBins = binnedData(boxsizeBinning, numbins2, lagTimesteps, binPosition=False, binVelocity=binVelocity
-                                    , numBinnedAuxVars=numBinnedAuxVars, binRelDistance = binRelDist,
-                                    binRelVelocity = binRelVelocity)
+        elif numConditionedVariables <= 7:
+            dataOnBins = binnedDataDimer(boxsizeBinning, numbins2, lagTimesteps, binRelDistance = binRelDist,
+                                         binRelSpeed = binRelSpeed, binVelCenterMass = binVelCenterMass,
+                                         numBinnedAuxVars=numBinnedAuxVars)
             dataOnBins.loadData(trajs, nsigma2)
             parameterDictionary['numbins'] = numbins2
             parameterDictionary['nsigma'] = nsigma2
         else:
-            dataOnBins = binnedData(boxsizeBinning, numbins3, lagTimesteps, binPosition=False, binVelocity=binVelocity
-                                    , numBinnedAuxVars=numBinnedAuxVars, binRelDistance = binRelDist,
-                                    binRelVelocity = binRelVelocity)
+            dataOnBins = binnedDataDimer(boxsizeBinning, numbins3, lagTimesteps, binRelDistance = binRelDist,
+                                    binRelSpeed = binRelSpeed, binVelCenterMass = binVelCenterMass,
+                                         numBinnedAuxVars=numBinnedAuxVars)
             dataOnBins.loadData(trajs, nsigma3)
             parameterDictionary['numbins'] = numbins3
             parameterDictionary['nsigma'] = nsigma3
