@@ -314,7 +314,7 @@ class binnedDataDimer(binnedData):
         self.binningLabel2 = ''
 
         # Calculate dimension and binning label
-        self.calculateDimensionAndBinningLabel()
+        self.calculateDimensionAndBinningLabel2()
 
         # Other important variables
         self.relDistIndex = 11 # Index of relative distance(scalar) in trajectory files (between dimer)
@@ -325,7 +325,7 @@ class binnedDataDimer(binnedData):
         self.relDistBoxIndex = None
         self.relSpeBoxIndex = None
         self.velCenterMassBoxIndex = None
-        self.calculateBoxIndexes()
+        self.calculateBoxIndexes2()
 
         if isinstance(boxsize, (list, tuple, np.ndarray)):
             if len(boxsize) != self.dimension:
@@ -348,7 +348,7 @@ class binnedDataDimer(binnedData):
         self.bins = bins
         self.data = {}
 
-    def calculateDimensionAndBinningLabel(self):
+    def calculateDimensionAndBinningLabel2(self):
         self.binningLabel = 'ri+1|'
         self.binningLabel2 = ''
         self.dimension = 0
@@ -388,7 +388,7 @@ class binnedDataDimer(binnedData):
                 self.binningLabel += 'ri-' +str(i) +','
                 self.binningLabel2 += 'ri' + 'm'*i
 
-    def calculateBoxIndexes(self):
+    def calculateBoxIndexes2(self):
         '''
         Determines the indexes correspo0nding to which variable in the box array. It assumes the
         variable are ordered first position, then velocity then aux variables.
