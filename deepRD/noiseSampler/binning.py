@@ -516,6 +516,9 @@ class binnedDataDimer(binnedData):
                 if self.binRelSpeed:
                     dpi = traj[i][self.relSpeIndex:self.relSpeIndex + 1]
                     conditionedVars.append(dpi)
+                if self.binVelCenterMass:
+                    dpcm = traj[i][self.self.velCenterMassIndex:self.self.velCenterMassIndex + 2]
+                    conditionedVars.append(dpcm)
                 for m in range(self.numBinnedAuxVars):
                     ri = traj[i - m * self.lagTimesteps][self.auxIndex:self.auxIndex + 3]
                     conditionedVars.append(ri)
