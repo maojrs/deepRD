@@ -49,11 +49,12 @@ def calculateAdditionalConditionings(x1,x2,v1,v2):
     normDeltaX = np.linalg.norm(deltaX)
     unitDeltaX = deltaX/normDeltaX
     axisRelVel = np.dot(deltaV, unitDeltaX)
-    normAxisVelCM = np.dot(velCM, unitDeltaX)
-    axisVelCM = normAxisVelCM * unitDeltaX
-    tangVelCM = velCM - axisVelCM
-    normTangVelCM = np.linalg.norm(tangVelCM)
-    return normDeltaX, axisRelVel, normAxisVelCM, normTangVelCM
+    axisVelCM = np.dot(velCM, unitDeltaX)
+    normAxisVelCM = np.linalg.norm(axisVelCM)
+    vecAxisVelCM = axisVelCM * unitDeltaX
+    orthogonalVelCM = velCM - vecAxisVelCM
+    normOrthogonalVelCM = np.linalg.norm(orthogonalVelCM)
+    return normDeltaX, axisRelVel, normAxisVelCM, normOrthogonalVelCM
 
 
 # Load trajectory data from h5 files (only of distinguished particle)
