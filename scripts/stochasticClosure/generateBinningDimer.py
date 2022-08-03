@@ -70,15 +70,15 @@ for i in range(nfiles):
         x2 = traj[2*j+1][1:4]
         v1 = traj[2*j][4:7]
         v2 = traj[2*j+1][4:7]
-        normDeltaX, axisRelVel, normAxisVelCM, normTangVelCM = calculateAdditionalConditionings(x1,x2,v1,v2)
+        normDeltaX, axisRelVel, normAxisVelCM, normOrthogonalVelCM = calculateAdditionalConditionings(x1,x2,v1,v2)
         additionalCondtionings[2*j][0] = normDeltaX
         additionalCondtionings[2*j][1] = axisRelVel
         additionalCondtionings[2*j][2] = normAxisVelCM
-        additionalCondtionings[2*j][3] = normTangVelCM
+        additionalCondtionings[2*j][3] = normOrthogonalVelCM
         additionalCondtionings[2*j+1][0] = 1 * normDeltaX
-        additionalCondtionings[2*j+1][1] = 1 * axisRelVel
-        additionalCondtionings[2*j+1][2] = -1 * normAxisVelCM
-        additionalCondtionings[2*j+1][3] = 1 * normTangVelCM
+        additionalCondtionings[2*j+1][1] = -1 * axisRelVel
+        additionalCondtionings[2*j+1][2] = 1 * normAxisVelCM
+        additionalCondtionings[2*j+1][3] = 1 * normOrthogonalVelCM
     newtraj = np.concatenate([traj,additionalCondtionings], axis=1)
     trajs.append(newtraj)
     sys.stdout.write("File " + str(i+1) + " of " + str(nfiles) + " done." + "\r")
@@ -126,6 +126,8 @@ for parameterCombination in product(*[binRelativeDistanceList, binRelSpeedList, 
                                     binRelSpeed = binRelSpeed, binVelCenterMass = binVelCenterMass,
                                          numBinnedAuxVars=numBinnedAuxVars)
             dataOnBins.loadData(trajs, nsigma1)
+            print(dataOnBins.boxsize)
+            print(dataOnBins.bins)
             parameterDictionary['numbins'] = numbins1
             parameterDictionary['nsigma'] = nsigma1
         elif numConditionedVariables <= 7:
@@ -133,6 +135,8 @@ for parameterCombination in product(*[binRelativeDistanceList, binRelSpeedList, 
                                          binRelSpeed = binRelSpeed, binVelCenterMass = binVelCenterMass,
                                          numBinnedAuxVars=numBinnedAuxVars)
             dataOnBins.loadData(trajs, nsigma2)
+            print(dataOnBins.boxsize)
+            print(dataOnBins.bins)
             parameterDictionary['numbins'] = numbins2
             parameterDictionary['nsigma'] = nsigma2
         else:
@@ -140,6 +144,8 @@ for parameterCombination in product(*[binRelativeDistanceList, binRelSpeedList, 
                                     binRelSpeed = binRelSpeed, binVelCenterMass = binVelCenterMass,
                                          numBinnedAuxVars=numBinnedAuxVars)
             dataOnBins.loadData(trajs, nsigma3)
+            print(dataOnBins.boxsize)
+            print(dataOnBins.bins)
             parameterDictionary['numbins'] = numbins3
             parameterDictionary['nsigma'] = nsigma3
         parameterDictionary['percentageOccupiedBins'] = dataOnBins.percentageOccupiedBins
