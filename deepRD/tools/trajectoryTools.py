@@ -355,3 +355,16 @@ def extractParticleTrajectories(trajs, particleIndex, numParticles):
         output_trajs.append(particleTraj)
     return np.array(output_trajs)
 
+
+def relativePosition(self, pos1, pos2, boundaryType, boxsize):
+    if not isinstance(boxsize, (list, tuple, np.ndarray)):
+        boxsize = [boxsize]*len(pos1)
+    p1periodic = 1.0 * pos1
+    if (boundaryType == "periodic" and boxsize != None):
+        for i in range(3):
+            if (pos2[i] - pos1[i]) > 0.5 * self.boxsize[i]:
+                p1periodic[i] += self.boxsize[i]
+            if (pos2[i] - pos1[i]) < -0.5 * self.boxsize[i]:
+                p1periodic[i] -= self.boxsize[i]
+    return pos2 - p1periodic
+
