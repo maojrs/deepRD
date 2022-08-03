@@ -438,6 +438,7 @@ class binnedDataDimer(binnedData):
         The variable self.pos/velBoxIndex correspond to the index of the x-position/velocity in the
         boxsize array.
         '''
+        onlyPositive = False
         if variable == 'position':
             trajIndex = self.posIndex
             boxIndex = self.posBoxIndex
@@ -449,6 +450,7 @@ class binnedDataDimer(binnedData):
         elif variable == 'relDistance':
             trajIndex = self.relDistIndex
             boxIndex = self.relDistBoxIndex
+            onlyPositive =  True
             numvars = 1
         elif variable == 'relSpeed':
             trajIndex = self.relSpeIndex
@@ -457,6 +459,7 @@ class binnedDataDimer(binnedData):
         elif variable == 'velCenterMass':
             trajIndex = self.velCenterMassIndex
             boxIndex = self.velCenterMassBoxIndex
+            onlyPositive = True
             numvars = 2
         else:
             print('Variable for adjustBox functions must be position, velocity, relDistance, relSpeed or velCenterMass')
@@ -474,6 +477,9 @@ class binnedDataDimer(binnedData):
             stddev = trajectoryTools.calculateStdDev(trajs, [trajIndex, trajIndex + numvars], mean)
             minvec = mean - nsigma * stddev
             maxvec = mean + nsigma * stddev
+            if onlyPositive:
+                for j in range(numvars):
+                    minvec[j] = max(minvec[j], 0.0)
         # Adjust boxsize and bins accordingly
         for k in range(numvars):
             self.boxsize[boxIndex + k] = (maxvec[k] - minvec[k])
