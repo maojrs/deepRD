@@ -534,7 +534,7 @@ class binnedDataDimer(binnedData):
                     self.data[ijk] = [riplus]
             sys.stdout.write("File " + str(k + 1) + " of " + str(len(trajs)) + " done." + "\r")
         self.updateDataStructures()
-        self.percentageOccupiedBins = 100 * len(self.occupiedTuplesArray)/np.product(self.numbins)
+        self.percentageOccupiedBins = 100.0 * len(self.occupiedTuplesArray)/np.product(self.numbins)
         sys.stdout.write("Loaded trajectories into bins. \r" )
         sys.stdout.write("\n" + str(int(self.percentageOccupiedBins)) + "% of bins occupied. \n" )
 
