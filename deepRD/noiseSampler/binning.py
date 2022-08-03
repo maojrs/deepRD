@@ -536,5 +536,5 @@ class binnedDataDimer(binnedData):
         self.updateDataStructures()
         self.percentageOccupiedBins = 100.0 * len(self.occupiedTuplesArray)/np.product(self.numbins)
         sys.stdout.write("Loaded trajectories into bins. \r" )
-        sys.stdout.write("\n" + str(int(self.percentageOccupiedBins)) + "% of bins occupied. \n" )
+        sys.stdout.write("\n" + "{:.2f}".format(self.percentageOccupiedBins) + "% of bins occupied. \n" )
 
