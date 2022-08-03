@@ -409,6 +409,7 @@ class binnedDataDimer(binnedData):
             maxIndexSoFar = 0
         else:
             maxIndexSoFar = max(indexes) + 3
+
         if self.binRelDistance and self.binRelSpeed:
             self.relDistBoxIndex = maxIndexSoFar
             self.relSpeBoxIndex = maxIndexSoFar + 1
@@ -517,7 +518,7 @@ class binnedDataDimer(binnedData):
                     dpi = traj[i][self.relSpeIndex:self.relSpeIndex + 1]
                     conditionedVars.append(dpi)
                 if self.binVelCenterMass:
-                    dpcm = traj[i][self.self.velCenterMassIndex:self.self.velCenterMassIndex + 2]
+                    dpcm = traj[i][self.velCenterMassIndex:self.velCenterMassIndex + 2]
                     conditionedVars.append(dpcm)
                 for m in range(self.numBinnedAuxVars):
                     ri = traj[i - m * self.lagTimesteps][self.auxIndex:self.auxIndex + 3]
