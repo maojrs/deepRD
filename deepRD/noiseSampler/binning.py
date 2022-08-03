@@ -308,10 +308,6 @@ class binnedDataDimer(binnedData):
         self.binRelDistance = binRelDistance
         self.binRelSpeed = binRelSpeed
         self.binVelCenterMass = binVelCenterMass
-        self.dimension = None
-        self.numConditionedVariables = None
-        self.binningLabel = ''
-        self.binningLabel2 = ''
 
         # Calculate dimension and binning label
         self.calculateDimensionAndBinningLabel2()
