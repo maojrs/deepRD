@@ -12,7 +12,7 @@ Generates binned data structures on several different conditionings for the stoc
 Currently implemented on conditioning ri+1 on all the combinations qi,pi,ri,ri-1
 '''
 
-bsize = 5
+bsize = 8
 
 parentDirectory = os.environ['DATA'] + 'stochasticClosure/dimer/boxsize' + str(bsize)+ '/benchmark/'
 fnamebase = parentDirectory + 'simMoriZwanzig_'
@@ -100,10 +100,10 @@ parameterDictionary['lagTimesteps'] = lagTimesteps
 
 # List of possible combinations for binnings
 #binPositionList = [False] #[False, True]
-binRelativeDistanceList = [False,True]
+binRelativeDistanceList = [True]
 binRelSpeedList = [False, True]
 binVelCenterMassList = [False, True]
-numBinnedAuxVarsList = [2] #[0,1] #[0,1,2]
+numBinnedAuxVarsList = [0,1,2] #[0,1] #[0,1,2]
 
 def getNumberConditionedVariables(binRelDist, binRelSpeed, binVelCenterMass, numBinnedAuxVars):
     numConditionedVariables = 0
