@@ -43,7 +43,7 @@ if bsize != boxsize:
 
 
 def calculateAdditionalConditionings(x1,x2,v1,v2):
-    deltaX = x2 - x1
+    deltaX = trajectoryTools.relativePosition(x1,x2,boundaryType, boxsize)
     deltaV = v2 - v1
     velCM = 0.5*(v1 + v2)
     normDeltaX = np.linalg.norm(deltaX)
