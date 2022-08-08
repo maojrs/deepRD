@@ -9,7 +9,7 @@ from deepRD.noiseSampler import binnedDataDimer
 
 '''
 Generates binned data structures on several different conditionings for the stochastic closure model.
-Currently implemented on conditioning ri+1 on all the combinations qi,pi,ri,ri-1
+Currently implemented on conditioning ri+1 on all the combinations dqi,dpi,vi,ri,ri-1
 '''
 
 bsize = 8
