@@ -4,7 +4,7 @@ import os
 import sys
 import pickle
 import deepRD
-from deepRD.diffusionIntegrators import langevinNoiseSampler
+from deepRD.diffusionIntegrators import langevinNoiseSamplerDimer
 from deepRD.potentials import pairBistable
 from deepRD.noiseSampler import noiseSampler
 import deepRD.tools.trajectoryTools as trajectoryTools
@@ -47,7 +47,10 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
 numSimulations = 100
 bsize = 8 #5 #8 #10
-conditionedOn = 'piri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
+# Available conditionings: dqi, dpi, vi,  ri, dqiri, dpiri, dqiririm, dpiririm, etc...
+# dqi:=relative distance between dimer particles, dpi:= relative velocity along dimer axis,
+# vi:=center of mass velocity (first component norm along axis, second one norm of perpendicular part)
+conditionedOn = 'dqi'
 outputAux = True #False
 
 # Output data directory
@@ -133,8 +136,8 @@ def runParallelSims(simnumber):
     # Define external potential
     pairBistablePotential = pairBistable(x0, rad, scalefactor)
 
-    diffIntegrator = langevinNoiseSampler(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
-                                          boundaryType, equilibrationSteps, conditionedOn, calculateRelPosVel)
+    diffIntegrator = langevinNoiseSamplerDimer(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
+                                          boundaryType, equilibrationSteps, conditionedOn)
 
     diffIntegrator.setPairPotential(pairBistablePotential)
 
