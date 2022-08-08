@@ -306,7 +306,7 @@ class binnedDataDimer(binnedData):
         super().__init__(boxsize, numbins, lagTimesteps, False, False, numBinnedAuxVars,
                          adjustPosVelBox)
         self.binRelDistance = binRelDistance
-        self.binRelSpeed = binRelSpeed
+        self.binRelSpeed = binRelSpeed # Same as axisRelVelocity
         self.binVelCenterMass = binVelCenterMass
 
         # Calculate dimension and binning label
@@ -370,8 +370,8 @@ class binnedDataDimer(binnedData):
             self.dimension +=1
             self.numConditionedVariables += 1
         if self.binVelCenterMass:
-            self.binningLabel += 'dpcm,'
-            self.binningLabel2 += 'dpcm'
+            self.binningLabel += 'vi,'
+            self.binningLabel2 += 'vi'
             self.dimension +=2
             self.numConditionedVariables += 1
         for i in range(self.numBinnedAuxVars):
