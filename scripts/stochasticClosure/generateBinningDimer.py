@@ -118,7 +118,7 @@ def getNumberConditionedVariables(binRelDist, binRelSpeed, binVelCenterMass, num
     return numConditionedVariables
 
 for parameterCombination in product(*[binRelativeDistanceList, binRelSpeedList, binVelCenterMassList, numBinnedAuxVarsList]):
-    if parameterCombination != (False,False,0):
+    if parameterCombination != (False,False,False,0):
         binRelDist, binRelSpeed, binVelCenterMass, numBinnedAuxVars = parameterCombination
         numConditionedVariables = getNumberConditionedVariables(binRelDist, binRelSpeed, binVelCenterMass, numBinnedAuxVars)
         if numConditionedVariables <= 4:

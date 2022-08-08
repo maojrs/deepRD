@@ -245,7 +245,9 @@ class langevinNoiseSamplerDimer(langevinNoiseSampler):
             return np.concatenate((np.array([self.relDistance[index]]), np.array([self.axisRelVelocity[index]]), particle.aux1))
         elif self.conditionedOn == 'dqidpiririm':
             return np.concatenate((np.array([self.relDistance[index]]), np.array([self.axisRelVelocity[index]]), particle.aux1, particle.aux2))
-        if self.conditionedOn == 'viri':
+        elif self.conditionedOn == 'vi':
+            return (self.centerMassVelocity[index])
+        elif self.conditionedOn == 'viri':
             return np.concatenate((self.centerMassVelocity[index], particle.aux1))
         elif self.conditionedOn == 'viririm':
             return np.concatenate((self.centerMassVelocity[index], particle.aux1, particle.aux2))
