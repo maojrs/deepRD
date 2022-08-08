@@ -246,27 +246,27 @@ class langevinNoiseSamplerDimer(langevinNoiseSampler):
         elif self.conditionedOn == 'dqidpiririm':
             return np.concatenate((np.array([self.relDistance[index]]), np.array([self.axisRelVelocity[index]]), particle.aux1, particle.aux2))
         if self.conditionedOn == 'viri':
-            return np.concatenate((self.centerMassVelocity, particle.aux1))
+            return np.concatenate((self.centerMassVelocity[index], particle.aux1))
         elif self.conditionedOn == 'viririm':
-            return np.concatenate((self.centerMassVelocity, particle.aux1, particle.aux2))
+            return np.concatenate((self.centerMassVelocity[index], particle.aux1, particle.aux2))
         elif self.conditionedOn == 'dqivi':
-            return np.concatenate((np.array([self.relDistance[index]]), self.centerMassVelocity))
+            return np.concatenate((np.array([self.relDistance[index]]), self.centerMassVelocity[index]))
         elif self.conditionedOn == 'dqiviri':
-            return np.concatenate((np.array([self.relDistance[index]]), self.centerMassVelocity, particle.aux1))
+            return np.concatenate((np.array([self.relDistance[index]]), self.centerMassVelocity[index], particle.aux1))
         elif self.conditionedOn == 'dqiviririm':
-            return np.concatenate((np.array([self.relDistance[index]]), self.centerMassVelocity, particle.aux1, particle.aux2))
+            return np.concatenate((np.array([self.relDistance[index]]), self.centerMassVelocity[index], particle.aux1, particle.aux2))
         elif self.conditionedOn == 'dpivi':
-            return np.concatenate((np.array([self.axisRelVelocity[index]]), self.centerMassVelocity))
+            return np.concatenate((np.array([self.axisRelVelocity[index]]), self.centerMassVelocity[index]))
         elif self.conditionedOn == 'dpiviri':
-            return np.concatenate((np.array([self.axisRelVelocity[index]]), self.centerMassVelocity, particle.aux1))
+            return np.concatenate((np.array([self.axisRelVelocity[index]]), self.centerMassVelocity[index], particle.aux1))
         elif self.conditionedOn == 'dpiviririm':
-            return np.concatenate((np.array([self.axisRelVelocity[index]]), self.centerMassVelocity, particle.aux1, particle.aux2))
+            return np.concatenate((np.array([self.axisRelVelocity[index]]), self.centerMassVelocity[index], particle.aux1, particle.aux2))
         elif self.conditionedOn == 'dqidpivi':
-            return ((np.array([self.relDistance[index]]), np.array([self.axisRelVelocity[index]]), self.centerMassVelocity))
+            return ((np.array([self.relDistance[index]]), np.array([self.axisRelVelocity[index]]), self.centerMassVelocity[index]))
         elif self.conditionedOn == 'dqidpiviri':
-            return np.concatenate((np.array([self.relDistance[index]]), np.array([self.axisRelVelocity[index]]), self.centerMassVelocity, particle.aux1))
+            return np.concatenate((np.array([self.relDistance[index]]), np.array([self.axisRelVelocity[index]]), self.centerMassVelocity[index], particle.aux1))
         elif self.conditionedOn == 'dqidpiviririm':
-            return np.concatenate((np.array([self.relDistance[index]]), np.array([self.axisRelVelocity[index]]), self.centerMassVelocity, particle.aux1, particle.aux2))
+            return np.concatenate((np.array([self.relDistance[index]]), np.array([self.axisRelVelocity[index]]), self.centerMassVelocity[index], particle.aux1, particle.aux2))
         else:
             sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
 
