@@ -198,21 +198,21 @@ class langevinNoiseSamplerDimer(langevinNoiseSampler):
         self.axisRelVelocity = np.zeros(numParticles)
         self.centerMassVelocity = np.zeros([numParticles,2])
         for i in range(int(numParticles/2)):
-            relDist = trajectoryTools.relativePosition(particleList[2 * i].nextPosition, particleList[2 * i + 1].nextPosition,
+            relPos = trajectoryTools.relativePosition(particleList[2 * i].nextPosition, particleList[2 * i + 1].nextPosition,
                                                        self.boundary, self.boxsize)
             relVel = particleList[2 * i + 1].nextVelocity - particleList[2 * i].nextVelocity
 
             velCM = 0.5 * (particleList[2 * i].nextVelocity + particleList[2 * i + 1].nextVelocity)
-            normDeltaX = np.linalg.norm(relDist)
-            unitDeltaX = relDist / normDeltaX
-            axisRelVel = np.dot(relVel, unitDeltaX)
-            axisVelCM = np.dot(velCM, unitDeltaX)
+            normRelPos = np.linalg.norm(relPos)
+            unitRelPos = relPos / normRelPos
+            axisRelVel = np.dot(relVel, unitRelPos)
+            axisVelCM = np.dot(velCM, unitRelPos)
             normAxisVelCM = np.linalg.norm(axisVelCM)
-            vecAxisVelCM = axisVelCM * unitDeltaX
+            vecAxisVelCM = axisVelCM * unitRelPos
             orthogonalVelCM = velCM - vecAxisVelCM
             normOrthogonalVelCM = np.linalg.norm(orthogonalVelCM)
-            self.relDistance[2*i] = relDist
-            self.relDistance[2*i+1] = relDist
+            self.relDistance[2*i] = normRelPos
+            self.relDistance[2*i+1] = normRelPos
             self.axisRelVelocity[2*i] = axisRelVel
             self.axisRelVelocity[2*i+1] = -1*axisRelVel
             self.centerMassVelocity[2*i] = np.array([normAxisVelCM, normOrthogonalVelCM])
