@@ -1,6 +1,8 @@
 import numpy as np
 import sys
 from .langevin import langevin
+from .. import trajectoryTools
+
 
 class langevinNoiseSampler(langevin):
     '''
@@ -13,14 +15,10 @@ class langevinNoiseSampler(langevin):
     '''
 
     def __init__(self, dt, stride, tfinal, Gamma, noiseSampler, kBT=1, boxsize = None,
-                 boundary = 'periodic', equilibrationSteps = 0, conditionedOn = 'qi',
-                 calculateRelPosVel = False):
+                 boundary = 'periodic', equilibrationSteps = 0, conditionedOn = 'qi'):
         self.noiseSampler = noiseSampler
         self.conditionedOn = conditionedOn
         self.integratorType = "dataDrivenABOBA"
-        self.calculateRelPosVel = calculateRelPosVel
-        self.relDistance = None
-        self.relVelocity = None
         # inherit methods from parent class
         super().__init__(dt, stride, tfinal, Gamma, kBT, boxsize, boundary, equilibrationSteps)
 
@@ -66,30 +64,6 @@ class langevinNoiseSampler(langevin):
             return np.concatenate((particle.nextPosition, particle.nextVelocity, particle.aux1))
         elif self.conditionedOn == 'qipiririm':
             return np.concatenate((particle.nextPosition, particle.nextVelocity, particle.aux1, particle.aux2))
-        elif self.conditionedOn == 'dqi':
-            return (self.relDistance[index])
-        elif self.conditionedOn == 'dqiri':
-            return np.concatenate((np.array([self.relDistance[index]]), particle.aux1))
-        elif self.conditionedOn == 'dqiririm':
-            return np.concatenate((np.array([self.relDistance[index]]), particle.aux1, particle.aux2))
-        elif self.conditionedOn == 'dpi':
-            return (self.relVelocity[index])
-        elif self.conditionedOn == 'dpiri':
-            return np.concatenate((self.relVelocity[index], particle.aux1))
-        elif self.conditionedOn == 'dpiririm':
-            return np.concatenate((self.relVelocity[index], particle.aux1, particle.aux2))
-        elif self.conditionedOn == 'dqidpi':
-            return ((np.array([self.relDistance[index]]), self.relVelocity[index]))
-        elif self.conditionedOn == 'dqidpiri':
-            return np.concatenate((np.array([self.relDistance[index]]), self.relVelocity[index], particle.aux1))
-        elif self.conditionedOn == 'dqidpiririm':
-            return np.concatenate((np.array([self.relDistance[index]]), self.relVelocity[index], particle.aux1, particle.aux2))
-        elif self.conditionedOn == 'pidqi':
-            return ((particle.nextVelocity, np.array([self.relDistance[index]])))
-        elif self.conditionedOn == 'pidqiri':
-            return np.concatenate((particle.nextVelocity, np.array([self.relDistance[index]]), particle.aux1))
-        elif self.conditionedOn == 'pidqiririm':
-            return np.concatenate((particle.nextVelocity, np.array([self.relDistance[index]]), particle.aux1, particle.aux2))
         else:
             sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
 
@@ -99,24 +73,10 @@ class langevinNoiseSampler(langevin):
         self.integrateA(particleList, self.dt/2.0)
         self.enforceBoundary(particleList)
         self.calculateForceField(particleList)
-        self.calculateRelDistanceVelocity(particleList) # Only used for dimers example
         self.integrateBOB(particleList, self.dt)
         self.integrateA(particleList, self.dt/2.0)
         self.enforceBoundary(particleList)
         particleList.updatePositionsVelocities()
-
-    def calculateRelDistanceVelocity(self, particleList):
-        if self.calculateRelPosVel:
-            numParticles = len(particleList)
-            self.relDistance = np.zeros(numParticles)
-            self.relVelocity = np.zeros([numParticles,3])
-            for i in range(int(numParticles/2)):
-                relDist = np.linalg.norm(particleList[2 * i + 1].nextPosition - particleList[2 * i].nextPosition)
-                relVel = particleList[2 * i + 1].nextVelocity - particleList[2 * i].nextVelocity
-                self.relDistance[2*i] = relDist
-                self.relDistance[2*i+1] = relDist
-                self.relVelocity[2*i] = relVel
-                self.relVelocity[2*i+1] = -1*relVel
 
 
     def integrateBOB(self, particleList, dt):
@@ -199,4 +159,114 @@ class langevinNoiseSampler(langevin):
                 condition = False
                 return 'success', time
         return 'failed', time
+
+
+
+
+
+class langevinNoiseSamplerDimer(langevinNoiseSampler):
+    '''
+    Specialized version of the langevinNoiseSampler class to integrate the dynamics of a dimer bonded by
+    some potential (e.g. bistable or harmonic).
+    '''
+
+    def __init__(self, dt, stride, tfinal, Gamma, noiseSampler, kBT=1, boxsize = None,
+                 boundary = 'periodic', equilibrationSteps = 0, conditionedOn = 'dqi'):
+        self.noiseSampler = noiseSampler
+        self.conditionedOn = conditionedOn
+        self.integratorType = "dataDrivenABOBA"
+        self.relDistance = None # Between dimer particles
+        self.axisRelVelocity = None # Along axis connecting particles
+        self.centerMassVelocity = None # Divided into norm along axis and norm along perepndicular
+        # inherit methods from parent class
+        super().__init__(dt, stride, tfinal, Gamma, kBT, boxsize, boundary, equilibrationSteps)
+
+    def integrateOne(self, particleList):
+        ''' Integrates one time step of data-driven version of ABOBA '''
+        self.integrateA(particleList, self.dt/2.0)
+        self.enforceBoundary(particleList)
+        self.calculateForceField(particleList)
+        self.calculateRelDistanceVelocity(particleList) # Only used for dimers example
+        self.integrateBOB(particleList, self.dt)
+        self.integrateA(particleList, self.dt/2.0)
+        self.enforceBoundary(particleList)
+        particleList.updatePositionsVelocities()
+
+    def calculateRelDistanceVelocity(self, particleList):
+        numParticles = len(particleList)
+        self.relDistance = np.zeros(numParticles)
+        self.axisRelVelocity = np.zeros(numParticles)
+        self.centerMassVelocity = np.zeros([numParticles,2])
+        for i in range(int(numParticles/2)):
+            relDist = trajectoryTools.relativePosition(particleList[2 * i].nextPosition, particleList[2 * i + 1].nextPosition,
+                                                       self.boundary, self.boxsize)
+            relVel = particleList[2 * i + 1].nextVelocity - particleList[2 * i].nextVelocity
+
+            velCM = 0.5 * (particleList[2 * i].nextVelocity + particleList[2 * i + 1].nextVelocity)
+            normDeltaX = np.linalg.norm(relDist)
+            unitDeltaX = relDist / normDeltaX
+            axisRelVel = np.dot(relVel, unitDeltaX)
+            axisVelCM = np.dot(velCM, unitDeltaX)
+            normAxisVelCM = np.linalg.norm(axisVelCM)
+            vecAxisVelCM = axisVelCM * unitDeltaX
+            orthogonalVelCM = velCM - vecAxisVelCM
+            normOrthogonalVelCM = np.linalg.norm(orthogonalVelCM)
+            self.relDistance[2*i] = relDist
+            self.relDistance[2*i+1] = relDist
+            self.axisRelVelocity[2*i] = axisRelVel
+            self.axisRelVelocity[2*i+1] = -1*axisRelVel
+            self.centerMassVelocity[2*i] = np.array([normAxisVelCM, normOrthogonalVelCM])
+            self.centerMassVelocity[2*i+1] = np.array([normAxisVelCM, normOrthogonalVelCM])
+
+    def getConditionedVars(self, particle, index = None):
+        '''
+        Returns variable upon which the binning is conditioned for the integration. Can extend to
+        incorporate conditioning on velocities.
+        '''
+        if self.conditionedOn == 'ri':
+            return (particle.aux1)
+        elif self.conditionedOn == 'ririm':
+            return np.concatenate((particle.aux1, particle.aux2))
+        elif self.conditionedOn == 'dqi':
+            return (self.relDistance[index])
+        elif self.conditionedOn == 'dqiri':
+            return np.concatenate((np.array([self.relDistance[index]]), particle.aux1))
+        elif self.conditionedOn == 'dqiririm':
+            return np.concatenate((np.array([self.relDistance[index]]), particle.aux1, particle.aux2))
+        elif self.conditionedOn == 'dpi':
+            return (self.axisRelVelocity[index])
+        elif self.conditionedOn == 'dpiri':
+            return np.concatenate((np.array([self.axisRelVelocity[index]]), particle.aux1))
+        elif self.conditionedOn == 'dpiririm':
+            return np.concatenate((np.array([self.axisRelVelocity[index]]), particle.aux1, particle.aux2))
+        elif self.conditionedOn == 'dqidpi':
+            return np.concatenate((np.array([self.relDistance[index]]), np.array([self.axisRelVelocity[index]])))
+        elif self.conditionedOn == 'dqidpiri':
+            return np.concatenate((np.array([self.relDistance[index]]), np.array([self.axisRelVelocity[index]]), particle.aux1))
+        elif self.conditionedOn == 'dqidpiririm':
+            return np.concatenate((np.array([self.relDistance[index]]), np.array([self.axisRelVelocity[index]]), particle.aux1, particle.aux2))
+        if self.conditionedOn == 'viri':
+            return np.concatenate((self.centerMassVelocity, particle.aux1))
+        elif self.conditionedOn == 'viririm':
+            return np.concatenate((self.centerMassVelocity, particle.aux1, particle.aux2))
+        elif self.conditionedOn == 'dqivi':
+            return np.concatenate((np.array([self.relDistance[index]]), self.centerMassVelocity))
+        elif self.conditionedOn == 'dqiviri':
+            return np.concatenate((np.array([self.relDistance[index]]), self.centerMassVelocity, particle.aux1))
+        elif self.conditionedOn == 'dqiviririm':
+            return np.concatenate((np.array([self.relDistance[index]]), self.centerMassVelocity, particle.aux1, particle.aux2))
+        elif self.conditionedOn == 'dpivi':
+            return np.concatenate((np.array([self.axisRelVelocity[index]]), self.centerMassVelocity))
+        elif self.conditionedOn == 'dpiviri':
+            return np.concatenate((np.array([self.axisRelVelocity[index]]), self.centerMassVelocity, particle.aux1))
+        elif self.conditionedOn == 'dpiviririm':
+            return np.concatenate((np.array([self.axisRelVelocity[index]]), self.centerMassVelocity, particle.aux1, particle.aux2))
+        elif self.conditionedOn == 'dqidpivi':
+            return ((np.array([self.relDistance[index]]), np.array([self.axisRelVelocity[index]]), self.centerMassVelocity))
+        elif self.conditionedOn == 'dqidpiviri':
+            return np.concatenate((np.array([self.relDistance[index]]), np.array([self.axisRelVelocity[index]]), self.centerMassVelocity, particle.aux1))
+        elif self.conditionedOn == 'dqidpiviririm':
+            return np.concatenate((np.array([self.relDistance[index]]), np.array([self.axisRelVelocity[index]]), self.centerMassVelocity, particle.aux1, particle.aux2))
+        else:
+            sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
 
