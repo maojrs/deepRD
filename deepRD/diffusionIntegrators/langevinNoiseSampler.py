@@ -172,14 +172,14 @@ class langevinNoiseSamplerDimer(langevinNoiseSampler):
 
     def __init__(self, dt, stride, tfinal, Gamma, noiseSampler, kBT=1, boxsize = None,
                  boundary = 'periodic', equilibrationSteps = 0, conditionedOn = 'dqi'):
-        self.noiseSampler = noiseSampler
-        self.conditionedOn = conditionedOn
-        self.integratorType = "dataDrivenABOBA"
+        # inherit methods from parent class
+        super().__init__(dt, stride, tfinal, Gamma, noiseSampler, kBT, boxsize,
+                 boundary, equilibrationSteps, conditionedOn)
         self.relDistance = None # Between dimer particles
         self.axisRelVelocity = None # Along axis connecting particles
         self.centerMassVelocity = None # Divided into norm along axis and norm along perepndicular
-        # inherit methods from parent class
-        super().__init__(dt, stride, tfinal, Gamma, kBT, boxsize, boundary, equilibrationSteps)
+
+
 
     def integrateOne(self, particleList):
         ''' Integrates one time step of data-driven version of ABOBA '''
