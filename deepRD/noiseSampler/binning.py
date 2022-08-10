@@ -143,20 +143,24 @@ class binnedData:
             numvars = 3
         else:
             print('Variable for adjustBox functions must be position or velocity')
-        if nsigma < 0:
-            minvec = np.array(trajs[0][0][trajIndex: trajIndex + numvars])
-            maxvec = np.array(trajs[0][0][trajIndex: trajIndex + numvars])
-            for traj in trajs:
-                for i in range(len(traj)):
-                    condVar = traj[i][trajIndex: trajIndex + numvars]
-                    for j in range(numvars):
-                        minvec[j] = min(minvec[j], condVar[j])
-                        maxvec[j] = max(maxvec[j], condVar[j])
-        else:
+        # Adjust min and max of box
+        minvec = np.array(trajs[0][0][trajIndex: trajIndex + numvars])
+        maxvec = np.array(trajs[0][0][trajIndex: trajIndex + numvars])
+        for traj in trajs:
+            for i in range(len(traj)):
+                condVar = traj[i][trajIndex: trajIndex + numvars]
+                for j in range(numvars):
+                    minvec[j] = min(minvec[j], condVar[j])
+                    maxvec[j] = max(maxvec[j], condVar[j])
+        # Don't take into account data beyond nsigma standard deviations
+        if nsigma > 0:
             mean = trajectoryTools.calculateMean(trajs, [trajIndex, trajIndex + numvars])
             stddev = trajectoryTools.calculateStdDev(trajs, [trajIndex, trajIndex + numvars], mean)
-            minvec = mean - nsigma * stddev
-            maxvec = mean + nsigma * stddev
+            minvecAlt = mean - nsigma * stddev
+            maxvecAlt = mean + nsigma * stddev
+            for j in range(numvars):
+                minvec[j] = max(minvec[j], minvecAlt[j])
+                maxvec[j] = min(maxvec[j], maxvecAlt[j])
         # Adjust boxsize and bins accordingly
         for k in range(numvars):
             self.boxsize[boxIndex + k] = (maxvec[k] - minvec[k])
@@ -172,20 +176,24 @@ class binnedData:
         aux variable in the boxsize array; numAuxVars corresponds to the number of auxiliary
         variables, e.g. in ri+1|ri,ri-1, it would be two.
         '''
-        if nsigma < 0:
-            minvec = np.array(trajs[0][0][self.auxIndex: self.auxIndex + 3])
-            maxvec = np.array(trajs[0][0][self.auxIndex: self.auxIndex + 3])
-            for traj in trajs:
-                for i in range(len(traj)):
-                    condVar = traj[i][self.auxIndex: self.auxIndex + 3]
-                    for j in range(3):
-                        minvec[j] = min(minvec[j], condVar[j])
-                        maxvec[j] = max(maxvec[j], condVar[j])
-        else:
+        # Adjust min and max of box
+        minvec = np.array(trajs[0][0][self.auxIndex: self.auxIndex + 3])
+        maxvec = np.array(trajs[0][0][self.auxIndex: self.auxIndex + 3])
+        for traj in trajs:
+            for i in range(len(traj)):
+                condVar = traj[i][self.auxIndex: self.auxIndex + 3]
+                for j in range(3):
+                    minvec[j] = min(minvec[j], condVar[j])
+                    maxvec[j] = max(maxvec[j], condVar[j])
+        # Don't take into account data beyond nsigma standard deviations
+        if nsigma > 0:
             mean = trajectoryTools.calculateMean(trajs, [self.auxIndex,self.auxIndex + 3])
             stddev = trajectoryTools.calculateStdDev(trajs, [self.auxIndex,self.auxIndex + 3], mean)
-            minvec = mean - nsigma*stddev
-            maxvec = mean + nsigma*stddev
+            minvecAlt = mean - nsigma*stddev
+            maxvecAlt = mean + nsigma*stddev
+            for j in range(3):
+                minvec[j] = max(minvec[j], minvecAlt[j])
+                maxvec[j] = min(maxvec[j], maxvecAlt[j])
         # Adjust boxsize and bins accordingly
         for m in range(self.numBinnedAuxVars):
             for k in range(3):
