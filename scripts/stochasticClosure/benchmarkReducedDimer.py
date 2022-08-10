@@ -4,6 +4,7 @@ import os
 import sys
 import pickle
 import deepRD
+from deepRD.diffusionIntegrators import langevinNoiseSampler
 from deepRD.diffusionIntegrators import langevinNoiseSamplerDimer
 from deepRD.potentials import pairBistable
 from deepRD.noiseSampler import noiseSampler
@@ -136,8 +137,10 @@ def runParallelSims(simnumber):
     # Define external potential
     pairBistablePotential = pairBistable(x0, rad, scalefactor)
 
-    diffIntegrator = langevinNoiseSamplerDimer(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
+    diffIntegrator = langevinNoiseSampler(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
                                           boundaryType, equilibrationSteps, conditionedOn)
+    #diffIntegrator = langevinNoiseSamplerDimer(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
+    #                                      boundaryType, equilibrationSteps, conditionedOn)
 
     diffIntegrator.setPairPotential(pairBistablePotential)
 
