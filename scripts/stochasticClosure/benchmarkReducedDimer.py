@@ -7,7 +7,7 @@ import deepRD
 from deepRD.diffusionIntegrators import langevinNoiseSampler
 from deepRD.diffusionIntegrators import langevinNoiseSamplerDimer
 from deepRD.potentials import pairBistable
-from deepRD.noiseSampler import noiseSampler
+from deepRD.noiseSampler import noiseSampler, defaultNoiseSampler
 import deepRD.tools.trajectoryTools as trajectoryTools
 import deepRD.tools.analysisTools as analysisTools
 
@@ -92,6 +92,8 @@ nsigma = parameters['nsigma']
 
 # Define noise sampler
 nSampler = noiseSampler(dataOnBins)
+#defaultSampler = defaultNoiseSampler()
+#nSampler = noiseSampler(defaultSampler)
 
 # Parameters for pair potential that will only acts on distinguished particles (type 1)
 particleDiameter = 0.5
