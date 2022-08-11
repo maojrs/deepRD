@@ -64,7 +64,7 @@ def calculateAdditionalConditionings(x1,x2,v1,v2):
     normDeltaX = np.linalg.norm(deltaX)
     unitDeltaX = deltaX/normDeltaX
     axisVel1 = np.dot(v1, unitDeltaX)
-    axisVel2 = np.dot(v2, unitDeltaX)
+    axisVel2 = np.dot(v2, -1.0*unitDeltaX)
     orthogonalVel1 = v1 - axisVel1
     orthogonalVel2 = v2 - axisVel2
     normOrthogonalVel1 = np.linalg.norm(orthogonalVel1)
