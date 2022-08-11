@@ -6,7 +6,9 @@ from itertools import product
 import deepRD.tools.trajectoryTools as trajectoryTools
 import deepRD.tools.analysisTools as analysisTools
 #from deepRD.noiseSampler import binnedDataDimer, binnedData
-from deepRD.noiseSampler import binnedDataDimer2, binnedData
+#from deepRD.noiseSampler import binnedDataDimer2, binnedData
+from deepRD.noiseSampler import binnedDataDimer3, binnedData
+
 
 
 '''
@@ -187,29 +189,52 @@ def getNumberConditionedVariablesAlternative(binDupleVelocity, numBinnedAuxVars)
 if useAlternativeConditionals:
     for parameterCombination in product(*[binComponentVelocityList, numBinnedAuxVarsList]):
         if parameterCombination != (False,0):
-            binComponentVelocity, numBinnedAuxVars = parameterCombination
-            numConditionedVariables = getNumberConditionedVariablesAlternative(binComponentVelocity, numBinnedAuxVars)
-            if numConditionedVariables <= 6: #5:
-                dataOnBins = binnedDataDimer2(boxsizeBinning, numbins1, lagTimesteps,
-                                              binComponentVelocity = binComponentVelocity,
+            binDupleVelocity, numBinnedAuxVars = parameterCombination
+            numConditionedVariables = getNumberConditionedVariablesAlternative(binDupleVelocity, numBinnedAuxVars)
+            if numConditionedVariables <= 6:
+                dataOnBins = binnedDataDimer3(boxsizeBinning, numbins1, lagTimesteps,
+                                              binDupleVelocity=binDupleVelocity,
                                               numBinnedAuxVars=numBinnedAuxVars)
                 dataOnBins.loadData(trajs, nsigma1)
                 parameterDictionary['numbins'] = numbins1
                 parameterDictionary['nsigma'] = nsigma1
-            elif numConditionedVariables <= 9: #8:
-                dataOnBins = binnedDataDimer2(boxsizeBinning, numbins2, lagTimesteps,
-                                              binComponentVelocity = binComponentVelocity,
+            elif numConditionedVariables <= 9:
+                dataOnBins = binnedDataDimer3(boxsizeBinning, numbins2, lagTimesteps,
+                                              binDupleVelocity=binDupleVelocity,
                                               numBinnedAuxVars=numBinnedAuxVars)
                 dataOnBins.loadData(trajs, nsigma2)
                 parameterDictionary['numbins'] = numbins2
                 parameterDictionary['nsigma'] = nsigma2
             else:
-                dataOnBins = binnedDataDimer2(boxsizeBinning, numbins3, lagTimesteps,
-                                              binComponentVelocity = binComponentVelocity,
+                dataOnBins = binnedDataDimer3(boxsizeBinning, numbins3, lagTimesteps,
+                                              binDupleVelocity=binDupleVelocity,
                                               numBinnedAuxVars=numBinnedAuxVars)
                 dataOnBins.loadData(trajs, nsigma3)
                 parameterDictionary['numbins'] = numbins3
                 parameterDictionary['nsigma'] = nsigma3
+            # binComponentVelocity, numBinnedAuxVars = parameterCombination
+            # numConditionedVariables = getNumberConditionedVariablesAlternative(binComponentVelocity, numBinnedAuxVars)
+            # if numConditionedVariables <= 5:
+            #     dataOnBins = binnedDataDimer2(boxsizeBinning, numbins1, lagTimesteps,
+            #                                   binComponentVelocity = binComponentVelocity,
+            #                                   numBinnedAuxVars=numBinnedAuxVars)
+            #     dataOnBins.loadData(trajs, nsigma1)
+            #     parameterDictionary['numbins'] = numbins1
+            #     parameterDictionary['nsigma'] = nsigma1
+            # elif numConditionedVariables <= 8:
+            #     dataOnBins = binnedDataDimer2(boxsizeBinning, numbins2, lagTimesteps,
+            #                                   binComponentVelocity = binComponentVelocity,
+            #                                   numBinnedAuxVars=numBinnedAuxVars)
+            #     dataOnBins.loadData(trajs, nsigma2)
+            #     parameterDictionary['numbins'] = numbins2
+            #     parameterDictionary['nsigma'] = nsigma2
+            # else:
+            #     dataOnBins = binnedDataDimer2(boxsizeBinning, numbins3, lagTimesteps,
+            #                                   binComponentVelocity = binComponentVelocity,
+            #                                   numBinnedAuxVars=numBinnedAuxVars)
+            #     dataOnBins.loadData(trajs, nsigma3)
+            #     parameterDictionary['numbins'] = numbins3
+            #     parameterDictionary['nsigma'] = nsigma3
     # for parameterCombination in product(*[binRelativeDistanceList, binRelSpeedList, binVelCenterMassList, numBinnedAuxVarsList]):
     #     if parameterCombination != (False,False,False,0):
     #         binRelDist, binRelSpeed, binVelCenterMass, numBinnedAuxVars = parameterCombination
