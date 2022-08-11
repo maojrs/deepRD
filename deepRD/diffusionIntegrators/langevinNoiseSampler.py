@@ -311,7 +311,7 @@ class langevinNoiseSamplerDimer2(langevinNoiseSampler):
             vel1 = particleList[2 * i].nextVelocity
             vel2 = particleList[2 * i + 1].nextVelocity
             axisVel1 = np.dot(vel1, unitRelPos)
-            axisVel2 = np.dot(vel2, unitRelPos)
+            axisVel2 = np.dot(vel2, -1.0*unitRelPos)
             orthogonalVel1 = vel1 - axisVel1
             orthogonalVel2 = vel2 - axisVel2
             normOrthogonalVel1 = np.linalg.norm(orthogonalVel1)
