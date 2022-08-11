@@ -329,10 +329,10 @@ class langevinNoiseSamplerDimer2(langevinNoiseSampler):
         elif self.conditionedOn == 'ririm':
             return np.concatenate((particle.aux1, particle.aux2))
         elif self.conditionedOn == 'vi':
-            return (self.centerMassVelocity[index])
+            return (self.componentVelocity[index])
         elif self.conditionedOn == 'viri':
-            return np.concatenate((self.centerMassVelocity[index], particle.aux1))
+            return np.concatenate((self.componentVelocity[index], particle.aux1))
         elif self.conditionedOn == 'viririm':
-            return np.concatenate((self.centerMassVelocity[index], particle.aux1, particle.aux2))
+            return np.concatenate((self.componentVelocity[index], particle.aux1, particle.aux2))
         else:
             sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
