@@ -21,7 +21,7 @@ class defaultNoiseSampler:
     '''
     Default sampler to be fed into noise sampler for testing cases
     '''
-    def __init__(self, mean = [0,0,0], covariance = [[0.01, 0, 0], [0, 0.01, 0], [0, 0, 0.01]]):
+    def __init__(self, mean = [0,0,0], covariance = [[0.00001, 0, 0], [0, 0.00001, 0], [0, 0, 0.00001]]):
         self.mean = mean
         self.covariance = covariance
 
