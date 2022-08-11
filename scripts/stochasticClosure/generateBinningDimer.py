@@ -81,17 +81,24 @@ for i in range(nfiles):
     if useAlternativeConditionals:
         lentraj = np.shape([traj])[1]
         #additionalCondtionings = np.zeros([lentraj,4])
-        additionalCondtionings = np.zeros([lentraj, 2])
+        #additionalCondtionings = np.zeros([lentraj, 2])
+        additionalCondtionings = np.zeros([lentraj, 6])
         for j in range(int(lentraj/2)):
             x1 = traj[2*j][1:4]
             x2 = traj[2*j+1][1:4]
             v1 = traj[2*j][4:7]
             v2 = traj[2*j+1][4:7]
-            axisVel1, axisVel2, normOrthogonalVel1, normOrthogonalVel2 = calculateAdditionalConditionings(x1, x2, v1, v2)
-            additionalCondtionings[2 * j][0] = axisVel1
-            additionalCondtionings[2 * j][1] = normOrthogonalVel1
-            additionalCondtionings[2 * j + 1][0] = axisVel2
-            additionalCondtionings[2 * j + 1][1] = normOrthogonalVel2
+            additionalCondtionings[2 * j][0:3] = v1
+            additionalCondtionings[2 * j][3:6] = v2
+            additionalCondtionings[2 * j + 1][0:3] = v2
+            additionalCondtionings[2 * j + 1][3:6] =v1
+            #________________________________________________
+            # axisVel1, axisVel2, normOrthogonalVel1, normOrthogonalVel2 = calculateAdditionalConditionings(x1, x2, v1, v2)
+            # additionalCondtionings[2 * j][0] = axisVel1
+            # additionalCondtionings[2 * j][1] = normOrthogonalVel1
+            # additionalCondtionings[2 * j + 1][0] = axisVel2
+            # additionalCondtionings[2 * j + 1][1] = normOrthogonalVel2
+            #_________________________________________________
             # normDeltaX, axisRelVel, normAxisVelCM, normOrthogonalVelCM = calculateAdditionalConditionings(x1,x2,v1,v2)
             # additionalCondtionings[2*j][0] = normDeltaX
             # additionalCondtionings[2*j][1] = axisRelVel
@@ -160,29 +167,36 @@ def getNumberConditionedVariables(binPosition, binVelocity, numBinnedAuxVars):
 #         numConditionedVariables += 3
 #     return numConditionedVariables
 
-def getNumberConditionedVariablesAlternative(binComponentVelocity, numBinnedAuxVars):
+# def getNumberConditionedVariablesAlternative(binComponentVelocity, numBinnedAuxVars):
+#     numConditionedVariables = 0
+#     if binComponentVelocity:
+#         numConditionedVariables += 2 # Two dimensional
+#     for i in range(numBinnedAuxVars):
+#         numConditionedVariables += 3
+#     return numConditionedVariables
+
+def getNumberConditionedVariablesAlternative(binDupleVelocity, numBinnedAuxVars):
     numConditionedVariables = 0
-    if binComponentVelocity:
-        numConditionedVariables += 2 # Two dimensional
+    if binDupleVelocity:
+        numConditionedVariables += 6 # Two dimensional
     for i in range(numBinnedAuxVars):
         numConditionedVariables += 3
     return numConditionedVariables
 
-# WORKING HERE WIP!!!!!
 
 if useAlternativeConditionals:
     for parameterCombination in product(*[binComponentVelocityList, numBinnedAuxVarsList]):
         if parameterCombination != (False,0):
             binComponentVelocity, numBinnedAuxVars = parameterCombination
             numConditionedVariables = getNumberConditionedVariablesAlternative(binComponentVelocity, numBinnedAuxVars)
-            if numConditionedVariables <= 5:
+            if numConditionedVariables <= 6: #5:
                 dataOnBins = binnedDataDimer2(boxsizeBinning, numbins1, lagTimesteps,
                                               binComponentVelocity = binComponentVelocity,
                                               numBinnedAuxVars=numBinnedAuxVars)
                 dataOnBins.loadData(trajs, nsigma1)
                 parameterDictionary['numbins'] = numbins1
                 parameterDictionary['nsigma'] = nsigma1
-            elif numConditionedVariables <= 8:
+            elif numConditionedVariables <= 9: #8:
                 dataOnBins = binnedDataDimer2(boxsizeBinning, numbins2, lagTimesteps,
                                               binComponentVelocity = binComponentVelocity,
                                               numBinnedAuxVars=numBinnedAuxVars)
