@@ -336,3 +336,56 @@ class langevinNoiseSamplerDimer2(langevinNoiseSampler):
             return np.concatenate((self.componentVelocity[index], particle.aux1, particle.aux2))
         else:
             sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
+
+class langevinNoiseSamplerDimer3(langevinNoiseSampler):
+    '''
+    Alternative specialized version of the langevinNoiseSampler class to integrate the dynamics of a dimer bonded by
+    some potential (e.g. bistable or harmonic).
+    '''
+
+    def __init__(self, dt, stride, tfinal, Gamma, noiseSampler, kBT=1, boxsize = None,
+                 boundary = 'periodic', equilibrationSteps = 0, conditionedOn = 'v2i'):
+        # inherit methods from parent class
+        super().__init__(dt, stride, tfinal, Gamma, noiseSampler, kBT, boxsize,
+                 boundary, equilibrationSteps, conditionedOn)
+        self.dupleVelocity = None # Divided into norm along axis and norm along perepndicular
+
+
+
+    def integrateOne(self, particleList):
+        ''' Integrates one time step of data-driven version of ABOBA '''
+        self.integrateA(particleList, self.dt/2.0)
+        self.enforceBoundary(particleList)
+        self.calculateForceField(particleList)
+        self.calculateDupleVelocity(particleList)
+        self.integrateBOB(particleList, self.dt)
+        self.integrateA(particleList, self.dt/2.0)
+        self.enforceBoundary(particleList)
+        particleList.updatePositionsVelocities()
+
+    def calculateDupleVelocity(self, particleList):
+        numParticles = len(particleList)
+        self.dupleVelocity = np.zeros([numParticles,6])
+        for i in range(int(numParticles/2)):
+            vel1 = particleList[2 * i].nextVelocity
+            vel2 = particleList[2 * i + 1].nextVelocity
+            self.dupleVelocity[2*i] = np.concatenate((vel1,vel2))
+            self.dupleVelocity[2*i+1] = np.concatenate((vel2,vel1))
+
+    def getConditionedVars(self, particle, index = None):
+        '''
+        Returns variable upon which the binning is conditioned for the integration. Can extend to
+        incorporate conditioning on velocities.
+        '''
+        if self.conditionedOn == 'ri':
+            return (particle.aux1)
+        elif self.conditionedOn == 'ririm':
+            return np.concatenate((particle.aux1, particle.aux2))
+        elif self.conditionedOn == 'v2i':
+            return (self.dupleVelocity[index])
+        elif self.conditionedOn == 'v2iri':
+            return np.concatenate((self.dupleVelocity[index], particle.aux1))
+        elif self.conditionedOn == 'v2iririm':
+            return np.concatenate((self.dupleVelocity[index], particle.aux1, particle.aux2))
+        else:
+            sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
