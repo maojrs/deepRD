@@ -186,7 +186,7 @@ class langevinNoiseSamplerDimer(langevinNoiseSampler):
         self.integrateA(particleList, self.dt/2.0)
         self.enforceBoundary(particleList)
         self.calculateForceField(particleList)
-        self.calculateRelDistanceVelocity(particleList) # Only used for dimers example
+        self.calculateRelDistanceVelocity(particleList)
         self.integrateBOB(particleList, self.dt)
         self.integrateA(particleList, self.dt/2.0)
         self.enforceBoundary(particleList)
@@ -272,3 +272,67 @@ class langevinNoiseSamplerDimer(langevinNoiseSampler):
         else:
             sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
 
+
+
+class langevinNoiseSamplerDimer2(langevinNoiseSampler):
+    '''
+    Alternative specialized version of the langevinNoiseSampler class to integrate the dynamics of a dimer bonded by
+    some potential (e.g. bistable or harmonic).
+    '''
+
+    def __init__(self, dt, stride, tfinal, Gamma, noiseSampler, kBT=1, boxsize = None,
+                 boundary = 'periodic', equilibrationSteps = 0, conditionedOn = 'vi'):
+        # inherit methods from parent class
+        super().__init__(dt, stride, tfinal, Gamma, noiseSampler, kBT, boxsize,
+                 boundary, equilibrationSteps, conditionedOn)
+        self.componentVelocity = None # Divided into norm along axis and norm along perepndicular
+
+
+
+    def integrateOne(self, particleList):
+        ''' Integrates one time step of data-driven version of ABOBA '''
+        self.integrateA(particleList, self.dt/2.0)
+        self.enforceBoundary(particleList)
+        self.calculateForceField(particleList)
+        self.calculateComponentVelocity(particleList)
+        self.integrateBOB(particleList, self.dt)
+        self.integrateA(particleList, self.dt/2.0)
+        self.enforceBoundary(particleList)
+        particleList.updatePositionsVelocities()
+
+    def calculateComponentVelocity(self, particleList):
+        numParticles = len(particleList)
+        self.componentVelocity = np.zeros([numParticles,2])
+        for i in range(int(numParticles/2)):
+            relPos = trajectoryTools.relativePosition(particleList[2 * i].nextPosition, particleList[2 * i + 1].nextPosition,
+                                                       self.boundary, self.boxsize)
+            normRelPos = np.linalg.norm(relPos)
+            unitRelPos = relPos / normRelPos
+            vel1 = particleList[2 * i].nextVelocity
+            vel2 = particleList[2 * i + 1].nextVelocity
+            axisVel1 = np.dot(vel1, unitRelPos)
+            axisVel2 = np.dot(vel2, unitRelPos)
+            orthogonalVel1 = vel1 - axisVel1
+            orthogonalVel2 = vel2 - axisVel2
+            normOrthogonalVel1 = np.linalg.norm(orthogonalVel1)
+            normOrthogonalVel2 = np.linalg.norm(orthogonalVel2)
+            self.componentVelocity[2*i] = np.array([axisVel1, normOrthogonalVel1])
+            self.componentVelocity[2*i+1] = np.array([axisVel2, normOrthogonalVel2])
+
+    def getConditionedVars(self, particle, index = None):
+        '''
+        Returns variable upon which the binning is conditioned for the integration. Can extend to
+        incorporate conditioning on velocities.
+        '''
+        if self.conditionedOn == 'ri':
+            return (particle.aux1)
+        elif self.conditionedOn == 'ririm':
+            return np.concatenate((particle.aux1, particle.aux2))
+        elif self.conditionedOn == 'vi':
+            return (self.centerMassVelocity[index])
+        elif self.conditionedOn == 'viri':
+            return np.concatenate((self.centerMassVelocity[index], particle.aux1))
+        elif self.conditionedOn == 'viririm':
+            return np.concatenate((self.centerMassVelocity[index], particle.aux1, particle.aux2))
+        else:
+            sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
