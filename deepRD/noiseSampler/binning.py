@@ -744,23 +744,24 @@ class binnedDataDimer2(binnedData):
 
 class binnedDataDimer3(binnedData):
     '''
-    Another specialized version of binnedData for dimer example
+    Another specialized version of binnedData for dimer example, that works with rotated velocities
     '''
 
-    def __init__(self, boxsize, numbins = 100, lagTimesteps = 1, binDupleVelocity = False,
-                 numBinnedAuxVars = 1, adjustPosVelBox = True):
+    def __init__(self, boxsize, numbins = 100, lagTimesteps = 1,
+                 binRotatedVelocity = False, numBinnedAuxVars = 1, adjustPosVelBox = True):
         super().__init__(boxsize, numbins, lagTimesteps, False, False, numBinnedAuxVars,
                          adjustPosVelBox)
-        self.binDupleVelocity = binDupleVelocity
+        self.binRotatedVelocity = binRotatedVelocity
 
         # Calculate dimension and binning label
         self.calculateDimensionAndBinningLabel2()
 
         # Other important variables
-        self.dupleVelocityIndex = 11 # Index of component velocity in trajectory files (between dimer)
+        self.relPositionIndex = 11
+        self.rotatedVelocityIndex = 14 # Index of component velocity in trajectory files (between dimer)
 
         # Obtain indexes in box array
-        self.dupleVelocityBoxIndex = None
+        self.rotatedVelocityBoxIndex = None
         self.calculateBoxIndexes2()
 
         if isinstance(boxsize, (list, tuple, np.ndarray)):
@@ -799,10 +800,10 @@ class binnedDataDimer3(binnedData):
             self.binningLabel2 += 'pi'
             self.dimension +=3
             self.numConditionedVariables += 1
-        if self.binDupleVelocity:
-            self.binningLabel += 'v2i,'
-            self.binningLabel2 += 'v2i'
-            self.dimension +=6
+        if self.binRotatedVelocity:
+            self.binningLabel += 'vi,'
+            self.binningLabel2 += 'vi'
+            self.dimension +=3
             self.numConditionedVariables += 1
         for i in range(self.numBinnedAuxVars):
             self.dimension +=3
@@ -836,9 +837,9 @@ class binnedDataDimer3(binnedData):
         else:
             maxIndexSoFar = max(indexes) + 3
 
-        if self.binDupleVelocity:
-            self.dupleVelocityBoxIndex = maxIndexSoFar
-            self.auxBoxIndex = maxIndexSoFar + 6
+        if self.binRotatedVelocity:
+            self.rotatedVelocityBoxIndex = maxIndexSoFar
+            self.auxBoxIndex = maxIndexSoFar + 3
         else:
             self.auxBoxIndex = maxIndexSoFar
 
@@ -862,10 +863,10 @@ class binnedDataDimer3(binnedData):
             boxIndex = self.velBoxIndex
             numvars = 3
             onlyPositive = [False]*numvars
-        elif variable == 'dupleVelocity':
-            trajIndex = self.dupleVelocityIndex
-            boxIndex = self.dupleVelocityBoxIndex
-            numvars = 6
+        elif variable == 'rotatedVelocity':
+            trajIndex = self.rotatedVelocityIndex
+            boxIndex = self.rotatedVelocityBoxIndex
+            numvars = 3
             onlyPositive = [False]*numvars
         else:
             print('Variable for adjustBox functions must be position, velocity, relDistance, relSpeed or velCenterMass')
@@ -903,8 +904,8 @@ class binnedDataDimer3(binnedData):
             self.adjustBox(trajs, 'position', nsigma)
         if self.adjustPosVelBox and self.binVelocity:
             self.adjustBox(trajs, 'velocity', nsigma)
-        if self.adjustPosVelBox and self.binDupleVelocity:
-            self.adjustBox(trajs, 'dupleVelocity', nsigma)
+        if self.adjustPosVelBox and self.binRotatedVelocity:
+            self.adjustBox(trajs, 'rotatedVelocity', nsigma)
         if self.numBinnedAuxVars > 0:
             self.adjustBoxAux(trajs, nsigma) # Adjust box limits for r variables
         # Loop over all data and load into dictionary
@@ -919,14 +920,17 @@ class binnedDataDimer3(binnedData):
                 if self.binVelocity:
                     pi = traj[i][self.velIndex:self.velIndex + 3]
                     conditionedVars.append(pi)
-                if self.binDupleVelocity:
-                    vi = traj[i][self.dupleVelocityIndex:self.dupleVelocityIndex + 6]
+                if self.binRotatedVelocity:
+                    vi = traj[i][self.rotatedVelocityIndex:self.rotatedVelocityIndex + 3]
                     conditionedVars.append(vi)
                 for m in range(self.numBinnedAuxVars):
                     ri = traj[i - m * self.lagTimesteps][self.auxIndex:self.auxIndex + 3]
                     conditionedVars.append(ri)
                 conditionedVars = np.concatenate(conditionedVars)
+                # NEED TO ROTATE THIS BAD BOY
+                deltaX = traj[i][self.relPositionIndex:self.relPositionIndex + 3]
                 riplus = traj[i + self.lagTimesteps][self.auxIndex:self.auxIndex + 3]
+                riplus = trajectoryTools.rotate2vec(deltaX,riplus)
                 ijk = self.getBinIndex(conditionedVars)
                 try:
                     self.data[ijk].append(riplus)

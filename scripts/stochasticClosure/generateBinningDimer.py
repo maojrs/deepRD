@@ -36,7 +36,7 @@ except OSError as error:
 # Load parameters from parameters file
 parameterDictionary = analysisTools.readParameters(parentDirectory + "parameters")
 # Parameters for loading continuous trajectories from files (from original simulation)
-nfiles = 5 #parameterDictionary['numFiles']
+nfiles = parameterDictionary['numFiles']
 dt = parameterDictionary['dt']
 stride = parameterDictionary['stride']
 totalTimeSteps = parameterDictionary['timesteps']
@@ -61,17 +61,25 @@ if bsize != boxsize:
 #     normOrthogonalVelCM = np.linalg.norm(orthogonalVelCM)
 #     return normDeltaX, axisRelVel, normAxisVelCM, normOrthogonalVelCM
 
+# def calculateAdditionalConditionings(x1,x2,v1,v2):
+#     deltaX = trajectoryTools.relativePosition(x1,x2,boundaryType, boxsize)
+#     normDeltaX = np.linalg.norm(deltaX)
+#     unitDeltaX = deltaX/normDeltaX
+#     axisVel1 = np.dot(v1, unitDeltaX)
+#     axisVel2 = np.dot(v2, -1.0*unitDeltaX)
+#     orthogonalVel1 = v1 - axisVel1
+#     orthogonalVel2 = v2 - axisVel2
+#     normOrthogonalVel1 = np.linalg.norm(orthogonalVel1)
+#     normOrthogonalVel2 = np.linalg.norm(orthogonalVel2)
+#     return axisVel1, axisVel2, normOrthogonalVel1, normOrthogonalVel2
+
 def calculateAdditionalConditionings(x1,x2,v1,v2):
     deltaX = trajectoryTools.relativePosition(x1,x2,boundaryType, boxsize)
     normDeltaX = np.linalg.norm(deltaX)
     unitDeltaX = deltaX/normDeltaX
-    axisVel1 = np.dot(v1, unitDeltaX)
-    axisVel2 = np.dot(v2, -1.0*unitDeltaX)
-    orthogonalVel1 = v1 - axisVel1
-    orthogonalVel2 = v2 - axisVel2
-    normOrthogonalVel1 = np.linalg.norm(orthogonalVel1)
-    normOrthogonalVel2 = np.linalg.norm(orthogonalVel2)
-    return axisVel1, axisVel2, normOrthogonalVel1, normOrthogonalVel2
+    rotatedVel1 = trajectoryTools.rotate2vec(unitDeltaX,v1)
+    rotatedVel2 = trajectoryTools.rotate2vec(-1*unitDeltaX,v2)
+    return deltaX, -1*deltaX, rotatedVel1, rotatedVel2
 
 
 # Load trajectory data from h5 files (only of distinguished particle)
@@ -79,7 +87,7 @@ trajs = []
 print("Loading data ...")
 for i in range(nfiles):
     traj = trajectoryTools.loadTrajectory(fnamebase, i)
-    # Compute and add relativeDistance and relative velocity at end of trajectory
+    # Compute and add relativeDistance and rotated velocity at end of trajectory
     if useAlternativeConditionals:
         lentraj = np.shape([traj])[1]
         #additionalCondtionings = np.zeros([lentraj,4])
@@ -90,10 +98,11 @@ for i in range(nfiles):
             x2 = traj[2*j+1][1:4]
             v1 = traj[2*j][4:7]
             v2 = traj[2*j+1][4:7]
-            additionalCondtionings[2 * j][0:3] = v1
-            additionalCondtionings[2 * j][3:6] = v2
-            additionalCondtionings[2 * j + 1][0:3] = v2
-            additionalCondtionings[2 * j + 1][3:6] =v1
+            deltaX1, deltaX2, rotatedVel1, rotatedVel2 = calculateAdditionalConditionings(x1, x2, v1, v2)
+            additionalCondtionings[2 * j][0:3] = deltaX1
+            additionalCondtionings[2 * j][3:6] = rotatedVel1
+            additionalCondtionings[2 * j + 1][0:3] = deltaX2
+            additionalCondtionings[2 * j + 1][3:6] = rotatedVel2
             #________________________________________________
             # axisVel1, axisVel2, normOrthogonalVel1, normOrthogonalVel2 = calculateAdditionalConditionings(x1, x2, v1, v2)
             # additionalCondtionings[2 * j][0] = axisVel1
@@ -147,6 +156,10 @@ numBinnedAuxVarsList = [0,1,2] #[0,1] #[0,1,2]
 binComponentVelocityList = [True]
 numBinnedAuxVarsList = [0,1,2] #[0,1] #[0,1,2]
 
+# List of alternative possible combinations for binnings
+binRotatedVelocityList = [True]
+numBinnedAuxVarsList = [0,1,2] #[0,1] #[0,1,2]
+
 def getNumberConditionedVariables(binPosition, binVelocity, numBinnedAuxVars):
     numConditionedVariables = 0
     if binPosition:
@@ -177,37 +190,45 @@ def getNumberConditionedVariables(binPosition, binVelocity, numBinnedAuxVars):
 #         numConditionedVariables += 3
 #     return numConditionedVariables
 
-def getNumberConditionedVariablesAlternative(binDupleVelocity, numBinnedAuxVars):
+# def getNumberConditionedVariablesAlternative(binDupleVelocity, numBinnedAuxVars):
+#     numConditionedVariables = 0
+#     if binDupleVelocity:
+#         numConditionedVariables += 6 # Two dimensional
+#     for i in range(numBinnedAuxVars):
+#         numConditionedVariables += 3
+#     return numConditionedVariables
+
+def getNumberConditionedVariablesAlternative(binRotatedVelocity, numBinnedAuxVars):
     numConditionedVariables = 0
-    if binDupleVelocity:
-        numConditionedVariables += 6 # Two dimensional
+    if binRotatedVelocity:
+        numConditionedVariables += 3
     for i in range(numBinnedAuxVars):
         numConditionedVariables += 3
     return numConditionedVariables
 
 
 if useAlternativeConditionals:
-    for parameterCombination in product(*[binComponentVelocityList, numBinnedAuxVarsList]):
+    for parameterCombination in product(*[binRotatedVelocityList, numBinnedAuxVarsList]):
         if parameterCombination != (False,0):
-            binDupleVelocity, numBinnedAuxVars = parameterCombination
-            numConditionedVariables = getNumberConditionedVariablesAlternative(binDupleVelocity, numBinnedAuxVars)
+            binRotatedVelocity, numBinnedAuxVars = parameterCombination
+            numConditionedVariables = getNumberConditionedVariablesAlternative(binRotatedVelocity, numBinnedAuxVars)
             if numConditionedVariables <= 6:
                 dataOnBins = binnedDataDimer3(boxsizeBinning, numbins1, lagTimesteps,
-                                              binDupleVelocity=binDupleVelocity,
+                                              binRotatedVelocity=binRotatedVelocity,
                                               numBinnedAuxVars=numBinnedAuxVars)
                 dataOnBins.loadData(trajs, nsigma1)
                 parameterDictionary['numbins'] = numbins1
                 parameterDictionary['nsigma'] = nsigma1
             elif numConditionedVariables <= 9:
                 dataOnBins = binnedDataDimer3(boxsizeBinning, numbins2, lagTimesteps,
-                                              binDupleVelocity=binDupleVelocity,
+                                              binRotatedVelocity=binRotatedVelocity,
                                               numBinnedAuxVars=numBinnedAuxVars)
                 dataOnBins.loadData(trajs, nsigma2)
                 parameterDictionary['numbins'] = numbins2
                 parameterDictionary['nsigma'] = nsigma2
             else:
                 dataOnBins = binnedDataDimer3(boxsizeBinning, numbins3, lagTimesteps,
-                                              binDupleVelocity=binDupleVelocity,
+                                              binRotatedVelocity=binRotatedVelocity,
                                               numBinnedAuxVars=numBinnedAuxVars)
                 dataOnBins.loadData(trajs, nsigma3)
                 parameterDictionary['numbins'] = numbins3
