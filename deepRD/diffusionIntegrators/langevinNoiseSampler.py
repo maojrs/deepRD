@@ -370,7 +370,7 @@ class langevinNoiseSamplerDimer3(langevinNoiseSampler):
             relPos = trajectoryTools.relativePosition(particleList[2 * i].nextPosition,
                                                       particleList[2 * i + 1].nextPosition,
                                                       self.boundary, self.boxsize)
-            relPosUnit = relPos/np.linalgo.norm(relPos)
+            relPosUnit = relPos/np.linalg.norm(relPos)
             self.rotatedVelocity[2*i] = trajectoryTools.rotate2vec(relPosUnit, particleList[2*i].nextVelocity)
             self.rotatedVelocity[2*i+1] = trajectoryTools.rotate2vec(-1*relPosUnit, particleList[2*i+1].nextVelocity)
 
