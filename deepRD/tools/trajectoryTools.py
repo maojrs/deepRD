@@ -382,6 +382,19 @@ def rotate2vec(unitvec, vec):
     vec = rotateZaxis(vec, phi)
     return vec
 
+def rotate2vecInverse(unitvec, vec):
+    '''
+    Inverse rotation than that of rotate2vec
+    '''
+    unitvecNorm = np.linalg.norm(unitvec)
+    if unitvecNorm != 1:
+        unitvec = unitvec/unitvecNorm
+    theta = np.arccos(unitvec[2])
+    phi = np.arctan2(unitvec[1],unitvec[0])
+    vec = rotateZaxis(vec, -1*phi)
+    vec = rotateYaxis(vec, -1*(theta-np.pi/2.0))
+    return vec
+
 
 def rotateXaxis(vec, theta):
     rotMatrix = np.array([[1, 0, 0],
