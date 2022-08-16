@@ -348,6 +348,7 @@ class langevinNoiseSamplerDimer3(langevinNoiseSampler):
         # inherit methods from parent class
         super().__init__(dt, stride, tfinal, Gamma, noiseSampler, kBT, boxsize,
                  boundary, equilibrationSteps, conditionedOn)
+        self.relPosition = None
         self.rotatedVelocity = None
 
 
@@ -358,19 +359,46 @@ class langevinNoiseSamplerDimer3(langevinNoiseSampler):
         self.enforceBoundary(particleList)
         self.calculateForceField(particleList)
         self.calculateRotatedVelocity(particleList)
-        self.integrateBOB(particleList, self.dt)
+        self.integrateBOB2(particleList, self.dt)
         self.integrateA(particleList, self.dt/2.0)
         self.enforceBoundary(particleList)
         particleList.updatePositionsVelocities()
 
+    def integrateBOB2(self, particleList, dt):
+        '''Integrates BOB integrations step at once. This is required to separate the noise Sampler from the
+        external potential. '''
+        for i, particle in enumerate(particleList):
+            # Calculate friction term and external potential term
+            expterm = np.exp(-dt * self.Gamma / particle.mass)
+            frictionForceTerm = particle.nextVelocity * expterm
+            frictionForceTerm += (1 + expterm) * self.forceField[i] * dt/(2*particle.mass)
+            # Calculate interaction and noise term from noise sampler
+            conditionedVars = self.getConditionedVars(particle, i)
+            rotatedInteractionNoiseTerm = self.noiseSampler.sample(conditionedVars)
+
+            # Rotate back riplus
+            interactionNoiseTerm = trajectoryTools.rotate2vecInverse(self.relPosition[i], rotatedInteractionNoiseTerm)
+
+            ## For testing and consistency.
+            #xi = np.sqrt(self.kBT * particle.mass * (1 - np.exp(-2 * self.Gamma * dt / particle.mass)))
+            #interactionNoiseTerm = xi / particle.mass * np.random.normal(0., 1, particle.dimension)
+
+            particle.aux2 = 1.0 * particle.aux1
+            particle.aux1 = 1.0 * interactionNoiseTerm
+            particle.nextVelocity = frictionForceTerm + interactionNoiseTerm
+
+
     def calculateRotatedVelocity(self, particleList):
         numParticles = len(particleList)
+        self.relPosition = np.zeros([numParticles,3])
         self.rotatedVelocity = np.zeros([numParticles,3])
         for i in range(int(numParticles/2)):
             relPos = trajectoryTools.relativePosition(particleList[2 * i].nextPosition,
                                                       particleList[2 * i + 1].nextPosition,
                                                       self.boundary, self.boxsize)
             relPosUnit = relPos/np.linalg.norm(relPos)
+            self.relPosition[2*i] = relPos
+            self.relPosition[2*i+1] = -1*relPos
             self.rotatedVelocity[2*i] = trajectoryTools.rotate2vec(relPosUnit, particleList[2*i].nextVelocity)
             self.rotatedVelocity[2*i+1] = trajectoryTools.rotate2vec(-1*relPosUnit, particleList[2*i+1].nextVelocity)
 
