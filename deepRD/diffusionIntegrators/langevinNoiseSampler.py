@@ -348,7 +348,7 @@ class langevinNoiseSamplerDimer3(langevinNoiseSampler):
         # inherit methods from parent class
         super().__init__(dt, stride, tfinal, Gamma, noiseSampler, kBT, boxsize,
                  boundary, equilibrationSteps, conditionedOn)
-        self.dupleVelocity = None # Divided into norm along axis and norm along perepndicular
+        self.rotatedVelocity = None
 
 
 
@@ -357,20 +357,22 @@ class langevinNoiseSamplerDimer3(langevinNoiseSampler):
         self.integrateA(particleList, self.dt/2.0)
         self.enforceBoundary(particleList)
         self.calculateForceField(particleList)
-        self.calculateDupleVelocity(particleList)
+        self.calculateRotatedVelocity(particleList)
         self.integrateBOB(particleList, self.dt)
         self.integrateA(particleList, self.dt/2.0)
         self.enforceBoundary(particleList)
         particleList.updatePositionsVelocities()
 
-    def calculateDupleVelocity(self, particleList):
+    def calculateRotatedVelocity(self, particleList):
         numParticles = len(particleList)
-        self.dupleVelocity = np.zeros([numParticles,6])
+        self.rotatedVelocity = np.zeros([numParticles,3])
         for i in range(int(numParticles/2)):
-            vel1 = particleList[2 * i].nextVelocity
-            vel2 = particleList[2 * i + 1].nextVelocity
-            self.dupleVelocity[2*i] = np.concatenate((vel1,vel2))
-            self.dupleVelocity[2*i+1] = np.concatenate((vel2,vel1))
+            relPos = trajectoryTools.relativePosition(particleList[2 * i].nextPosition,
+                                                      particleList[2 * i + 1].nextPosition,
+                                                      self.boundary, self.boxsize)
+            relPosUnit = relPos/np.linalgo.norm(relPos)
+            self.rotatedVelocity[2*i] = trajectoryTools.rotate2vec(relPosUnit, particleList[2*i].nextVelocity)
+            self.rotatedVelocity[2*i+1] = trajectoryTools.rotate2vec(-1*relPosUnit, particleList[2*i+1].nextVelocity)
 
     def getConditionedVars(self, particle, index = None):
         '''
@@ -381,11 +383,11 @@ class langevinNoiseSamplerDimer3(langevinNoiseSampler):
             return (particle.aux1)
         elif self.conditionedOn == 'ririm':
             return np.concatenate((particle.aux1, particle.aux2))
-        elif self.conditionedOn == 'v2i':
-            return (self.dupleVelocity[index])
-        elif self.conditionedOn == 'v2iri':
-            return np.concatenate((self.dupleVelocity[index], particle.aux1))
-        elif self.conditionedOn == 'v2iririm':
-            return np.concatenate((self.dupleVelocity[index], particle.aux1, particle.aux2))
+        elif self.conditionedOn == 'vi':
+            return (self.rotatedVelocity[index])
+        elif self.conditionedOn == 'viri':
+            return np.concatenate((self.rotatedVelocity[index], particle.aux1))
+        elif self.conditionedOn == 'viririm':
+            return np.concatenate((self.rotatedVelocity[index], particle.aux1, particle.aux2))
         else:
             sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
