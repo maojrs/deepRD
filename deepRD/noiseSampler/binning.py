@@ -930,7 +930,7 @@ class binnedDataDimer3(binnedData):
                 # NEED TO ROTATE THIS BAD BOY
                 deltaX = traj[i][self.relPositionIndex:self.relPositionIndex + 3]
                 riplus = traj[i + self.lagTimesteps][self.auxIndex:self.auxIndex + 3]
-                riplus = trajectoryTools.rotate2vec(deltaX,riplus)
+                riplus = trajectoryTools.rotateVec(deltaX,riplus)
                 ijk = self.getBinIndex(conditionedVars)
                 try:
                     self.data[ijk].append(riplus)
