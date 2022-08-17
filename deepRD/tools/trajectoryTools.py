@@ -368,7 +368,7 @@ def relativePosition(pos1, pos2, boundaryType, boxsize):
                 p1periodic[i] -= boxsize[i]
     return pos2 - p1periodic
 
-def rotate2vec(unitvec, vec):
+def rotateVec(unitvec, vec):
     '''
     Rotates vec to match new frame of reference where unitvec corresponds to the
     direction of the x axis. If unitvec is not unitary it automatically normalizes it.
@@ -378,11 +378,11 @@ def rotate2vec(unitvec, vec):
         unitvec = unitvec/unitvecNorm
     theta = np.arccos(unitvec[2])
     phi = np.arctan2(unitvec[1],unitvec[0])
-    vec = rotateYaxis(vec, theta-np.pi/2.0)
-    vec = rotateZaxis(vec, phi)
+    vec = rotateZaxis(vec, -1 * phi)
+    vec = rotateYaxis(vec, -1 * (theta - np.pi / 2.0))
     return vec
 
-def rotate2vecInverse(unitvec, vec):
+def rotateVecInverse(unitvec, vec):
     '''
     Inverse rotation than that of rotate2vec
     '''
@@ -391,8 +391,8 @@ def rotate2vecInverse(unitvec, vec):
         unitvec = unitvec/unitvecNorm
     theta = np.arccos(unitvec[2])
     phi = np.arctan2(unitvec[1],unitvec[0])
-    vec = rotateZaxis(vec, -1*phi)
-    vec = rotateYaxis(vec, -1*(theta-np.pi/2.0))
+    vec = rotateYaxis(vec, theta-np.pi/2.0)
+    vec = rotateZaxis(vec, phi)
     return vec
 
 

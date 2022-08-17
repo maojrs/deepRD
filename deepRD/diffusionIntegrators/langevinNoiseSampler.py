@@ -377,7 +377,7 @@ class langevinNoiseSamplerDimer3(langevinNoiseSampler):
             rotatedInteractionNoiseTerm = self.noiseSampler.sample(conditionedVars)
 
             # Rotate back riplus
-            interactionNoiseTerm = trajectoryTools.rotate2vecInverse(self.relPosition[i], rotatedInteractionNoiseTerm)
+            interactionNoiseTerm = trajectoryTools.rotateVecInverse(self.relPosition[i], rotatedInteractionNoiseTerm)
 
             ## For testing and consistency.
             #xi = np.sqrt(self.kBT * particle.mass * (1 - np.exp(-2 * self.Gamma * dt / particle.mass)))
@@ -399,8 +399,8 @@ class langevinNoiseSamplerDimer3(langevinNoiseSampler):
             relPosUnit = relPos/np.linalg.norm(relPos)
             self.relPosition[2*i] = relPos
             self.relPosition[2*i+1] = -1*relPos
-            self.rotatedVelocity[2*i] = trajectoryTools.rotate2vec(relPosUnit, particleList[2*i].nextVelocity)
-            self.rotatedVelocity[2*i+1] = trajectoryTools.rotate2vec(-1*relPosUnit, particleList[2*i+1].nextVelocity)
+            self.rotatedVelocity[2*i] = trajectoryTools.rotateVec(relPosUnit, particleList[2*i].nextVelocity)
+            self.rotatedVelocity[2*i+1] = trajectoryTools.rotateVec(-1*relPosUnit, particleList[2*i+1].nextVelocity)
 
     def getConditionedVars(self, particle, index = None):
         '''
