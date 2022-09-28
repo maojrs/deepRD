@@ -7,7 +7,8 @@ import deepRD.tools.trajectoryTools as trajectoryTools
 import deepRD.tools.analysisTools as analysisTools
 #from deepRD.noiseSampler import binnedDataDimer, binnedData
 #from deepRD.noiseSampler import binnedDataDimer2, binnedData
-from deepRD.noiseSampler import binnedDataDimer3, binnedData
+#from deepRD.noiseSampler import binnedDataDimer3, binnedData
+from deepRD.noiseSampler import binnedDataDimerConstrained1D
 
 
 
@@ -17,7 +18,7 @@ Currently implemented on conditioning ri+1 on all the combinations dqi,dpi,vi,ri
 '''
 
 bsize = 8
-useAlternativeConditionals = True
+useAlternativeConditionals = False #True
 
 parentDirectory = os.environ['DATA'] + 'stochasticClosure/dimer/boxsize' + str(bsize)+ '/benchmark/'
 fnamebase = parentDirectory + 'simMoriZwanzig_'
@@ -198,13 +199,13 @@ def getNumberConditionedVariables(binPosition, binVelocity, numBinnedAuxVars):
 #         numConditionedVariables += 3
 #     return numConditionedVariables
 
-def getNumberConditionedVariablesAlternative(binRotatedVelocity, numBinnedAuxVars):
-    numConditionedVariables = 0
-    if binRotatedVelocity:
-        numConditionedVariables += 3
-    for i in range(numBinnedAuxVars):
-        numConditionedVariables += 3
-    return numConditionedVariables
+# def getNumberConditionedVariablesAlternative(binRotatedVelocity, numBinnedAuxVars):
+#     numConditionedVariables = 0
+#     if binRotatedVelocity:
+#         numConditionedVariables += 3
+#     for i in range(numBinnedAuxVars):
+#         numConditionedVariables += 3
+#     return numConditionedVariables
 
 
 if useAlternativeConditionals:
@@ -299,20 +300,28 @@ else:
         if parameterCombination != (False, False, 0):
             binPosition, binVelocity, numBinnedAuxVars = parameterCombination
             numConditionedVariables = getNumberConditionedVariables(binPosition, binVelocity, numBinnedAuxVars)
-            if numConditionedVariables == 1:
-                dataOnBins = binnedData(boxsizeBinning, numbins1, lagTimesteps, binPosition, binVelocity,
+            if numConditionedVariables <= 3:
+                #if numConditionedVariables == 1:
+                #dataOnBins = binnedData(boxsizeBinning, numbins1, lagTimesteps, binPosition, binVelocity,
+                #                        numBinnedAuxVars)
+                dataOnBins = binnedDataDimerConstrained1D(boxsizeBinning, numbins1, lagTimesteps, binPosition, binVelocity,
                                         numBinnedAuxVars)
                 dataOnBins.loadData(trajs, nsigma1)
                 parameterDictionary['numbins'] = numbins1
                 parameterDictionary['nsigma'] = nsigma1
-            elif numConditionedVariables == 2:
-                dataOnBins = binnedData(boxsizeBinning, numbins2, lagTimesteps, binPosition, binVelocity,
+            elif numConditionedVariables <= 6:
+                #elif numConditionedVariables == 2:
+                #dataOnBins = binnedData(boxsizeBinning, numbins2, lagTimesteps, binPosition, binVelocity,
+                #                        numBinnedAuxVars)
+                dataOnBins = binnedDataDimerConstrained1D(boxsizeBinning, numbins2, lagTimesteps, binPosition, binVelocity,
                                         numBinnedAuxVars)
                 dataOnBins.loadData(trajs, nsigma2)
                 parameterDictionary['numbins'] = numbins2
                 parameterDictionary['nsigma'] = nsigma2
             else:
-                dataOnBins = binnedData(boxsizeBinning, numbins3, lagTimesteps, binPosition, binVelocity,
+                #dataOnBins = binnedData(boxsizeBinning, numbins3, lagTimesteps, binPosition, binVelocity,
+                #                        numBinnedAuxVars)
+                dataOnBins = binnedDataDimerConstrained1D(boxsizeBinning, numbins3, lagTimesteps, binPosition, binVelocity,
                                         numBinnedAuxVars)
                 dataOnBins.loadData(trajs, nsigma3)
                 parameterDictionary['numbins'] = numbins3
