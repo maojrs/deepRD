@@ -1078,6 +1078,42 @@ class binnedDataDimerConstrained1D(binnedData):
             self.bins[boxIndex + k] = np.arange(minvec[k], maxvec[k], voxeledge)
 
 
+    def adjustBoxAux(self, trajs, nsigma=-1):
+        '''
+        Calculate boxlimits of auxiliary variables from trajectories for binning and
+        adjust boxsize accordingly. If nsigma < 0, it creates a box around all data.
+        If it is a numerical value, it includes up to nsigma standard deviations around the mean.
+        The variable self.auxBoxIndex correspond to the index of the x-coordinate of the first
+        aux variable in the boxsize array; numAuxVars corresponds to the number of auxiliary
+        variables, e.g. in ri+1|ri,ri-1, it would be two.
+        '''
+        # Adjust min and max of box
+        minvec = np.array(trajs[0][0][self.auxIndex: self.auxIndex + 1])
+        maxvec = np.array(trajs[0][0][self.auxIndex: self.auxIndex + 1])
+        for traj in trajs:
+            for i in range(len(traj)):
+                condVar = traj[i][self.auxIndex: self.auxIndex + 1]
+                for j in range(1):
+                    minvec[j] = min(minvec[j], condVar[j])
+                    maxvec[j] = max(maxvec[j], condVar[j])
+        # Don't take into account data beyond nsigma standard deviations
+        if nsigma > 0:
+            mean = trajectoryTools.calculateMean(trajs, [self.auxIndex,self.auxIndex + 1])
+            stddev = trajectoryTools.calculateStdDev(trajs, [self.auxIndex,self.auxIndex + 1], mean)
+            minvecAlt = mean - nsigma*stddev
+            maxvecAlt = mean + nsigma*stddev
+            for j in range(1):
+                minvec[j] = max(minvec[j], minvecAlt[j])
+                maxvec[j] = min(maxvec[j], maxvecAlt[j])
+        # Adjust boxsize and bins accordingly
+        for m in range(self.numBinnedAuxVars):
+            for k in range(1):
+                boxIndex = self.auxBoxIndex + k + m
+                self.boxsize[boxIndex] = (maxvec[k] - minvec[k])
+                voxeledge = self.boxsize[boxIndex] / self.numbins[boxIndex]
+                self.bins[boxIndex] = np.arange(minvec[k], maxvec[k], voxeledge)
+
+
     def loadData(self, trajs, nsigma=-1):
         '''
         Loads data into binning class. If nsigma < 0, it creates a box around all data.
