@@ -439,27 +439,27 @@ class langevinNoiseSamplerDimerConstrained1D(langevinNoiseSampler):
         incorporate conditioning on velocities.
         '''
         if self.conditionedOn == 'ri':
-            return (particle.aux1[j])
+            return np.array([particle.aux1[j]])
         elif self.conditionedOn == 'ririm':
-            return np.concatenate((particle.aux1[j], particle.aux2[j]))
+            return np.array([particle.aux1[j], particle.aux2[j]])
         elif self.conditionedOn == 'qi':
-            return (particle.nextPosition[j])
+            return np.array([particle.nextPosition[j]])
         elif self.conditionedOn == 'qiri':
-            return np.concatenate((particle.nextPosition[j], particle.aux1[j]))
+            return np.array([particle.nextPosition[j], particle.aux1[j]])
         elif self.conditionedOn == 'qiririm':
-            return np.concatenate((particle.nextPosition[j], particle.aux1[j], particle.aux2[j]))
+            return np.array([particle.nextPosition[j], particle.aux1[j], particle.aux2[j]])
         elif self.conditionedOn == 'pi':
-            return (particle.nextVelocity[j])
+            return np.array([particle.nextVelocity[j]])
         elif self.conditionedOn == 'piri':
-            return np.concatenate((particle.nextVelocity[j], particle.aux1[j]))
+            return np.array([particle.nextVelocity[j], particle.aux1[j]])
         elif self.conditionedOn == 'piririm':
-            return np.concatenate((particle.nextVelocity[j], particle.aux1[j], particle.aux2[j]))
+            return np.array([particle.nextVelocity[j], particle.aux1[j], particle.aux2[j]])
         elif self.conditionedOn == 'qipi':
-            return ((particle.nextPosition, particle.nextVelocity[j]))
+            return np.array([particle.nextPosition[j], particle.nextVelocity[j]])
         elif self.conditionedOn == 'qipiri':
-            return np.concatenate((particle.nextPosition[j], particle.nextVelocity[j], particle.aux1[j]))
+            return np.array([particle.nextPosition[j], particle.nextVelocity[j], particle.aux1[j]])
         elif self.conditionedOn == 'qipiririm':
-            return np.concatenate((particle.nextPosition[j], particle.nextVelocity[j], particle.aux1[j], particle.aux2[j]))
+            return np.array([particle.nextPosition[j], particle.nextVelocity[j], particle.aux1[j], particle.aux2[j]])
         else:
             sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
 
