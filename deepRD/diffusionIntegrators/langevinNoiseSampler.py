@@ -433,13 +433,42 @@ class langevinNoiseSamplerDimerConstrained1D(langevinNoiseSampler):
         super().__init__(dt, stride, tfinal, Gamma, noiseSampler, kBT, boxsize,
                  boundary, equilibrationSteps, conditionedOn)
 
+    def getConditionedVars1D(self, particle, index = None, j = 0):
+        '''
+        Returns variable upon which the binning is conditioned for the integration. Can extend to
+        incorporate conditioning on velocities.
+        '''
+        if self.conditionedOn == 'ri':
+            return (particle.aux1[j])
+        elif self.conditionedOn == 'ririm':
+            return np.concatenate((particle.aux1[j], particle.aux2[j]))
+        elif self.conditionedOn == 'qi':
+            return (particle.nextPosition[j])
+        elif self.conditionedOn == 'qiri':
+            return np.concatenate((particle.nextPosition[j], particle.aux1[j]))
+        elif self.conditionedOn == 'qiririm':
+            return np.concatenate((particle.nextPosition[j], particle.aux1[j], particle.aux2[j]))
+        elif self.conditionedOn == 'pi':
+            return (particle.nextVelocity[j])
+        elif self.conditionedOn == 'piri':
+            return np.concatenate((particle.nextVelocity[j], particle.aux1[j]))
+        elif self.conditionedOn == 'piririm':
+            return np.concatenate((particle.nextVelocity[j], particle.aux1[j], particle.aux2[j]))
+        elif self.conditionedOn == 'qipi':
+            return ((particle.nextPosition, particle.nextVelocity[j]))
+        elif self.conditionedOn == 'qipiri':
+            return np.concatenate((particle.nextPosition[j], particle.nextVelocity[j], particle.aux1[j]))
+        elif self.conditionedOn == 'qipiririm':
+            return np.concatenate((particle.nextPosition[j], particle.nextVelocity[j], particle.aux1[j], particle.aux2[j]))
+        else:
+            sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
+
 
     def integrateOne(self, particleList):
         ''' Integrates one time step of data-driven version of ABOBA '''
         self.integrateA(particleList, self.dt/2.0)
         self.enforceBoundary(particleList)
         self.calculateForceField(particleList)
-        self.calculateRelDistanceVelocity(particleList)
         self.integrateBOB(particleList, self.dt)
         self.integrateA(particleList, self.dt/2.0)
         self.enforceBoundary(particleList)
@@ -454,7 +483,7 @@ class langevinNoiseSamplerDimerConstrained1D(langevinNoiseSampler):
             frictionForceTerm = particle.nextVelocity * expterm
             frictionForceTerm += (1 + expterm) * self.forceField[i] * dt/(2*particle.mass)
             # Calculate interaction and noise term from noise sampler
-            conditionedVars = self.getConditionedVars(particle, i)
+            conditionedVars = self.getConditionedVars1D(particle, i, 0)
             interactionNoiseTerm = self.noiseSampler.sample(conditionedVars)
 
             ## For testing and consistency.
@@ -465,33 +494,3 @@ class langevinNoiseSamplerDimerConstrained1D(langevinNoiseSampler):
             particle.aux1 = 1.0 * interactionNoiseTerm
             interactionNoiseTerm = np.append(interactionNoiseTerm, np.array([0.,0]))
             particle.nextVelocity = frictionForceTerm + interactionNoiseTerm
-
-    def getConditionedVars(self, particle, index = None):
-        '''
-        Returns variable upon which the binning is conditioned for the integration. Can extend to
-        incorporate conditioning on velocities.
-        '''
-        if self.conditionedOn == 'ri':
-            return (particle.aux1)
-        elif self.conditionedOn == 'ririm':
-            return np.concatenate((particle.aux1, particle.aux2))
-        elif self.conditionedOn == 'dqi':
-            return (self.relDistance[index])
-        elif self.conditionedOn == 'dqiri':
-            return np.concatenate((np.array([self.relDistance[index]]), particle.aux1))
-        elif self.conditionedOn == 'dqiririm':
-            return np.concatenate((np.array([self.relDistance[index]]), particle.aux1, particle.aux2))
-        elif self.conditionedOn == 'dpi':
-            return (self.axisRelVelocity[index])
-        elif self.conditionedOn == 'dpiri':
-            return np.concatenate((np.array([self.axisRelVelocity[index]]), particle.aux1))
-        elif self.conditionedOn == 'dpiririm':
-            return np.concatenate((np.array([self.axisRelVelocity[index]]), particle.aux1, particle.aux2))
-        elif self.conditionedOn == 'dqidpi':
-            return np.concatenate((np.array([self.relDistance[index]]), np.array([self.axisRelVelocity[index]])))
-        elif self.conditionedOn == 'dqidpiri':
-            return np.concatenate((np.array([self.relDistance[index]]), np.array([self.axisRelVelocity[index]]), particle.aux1))
-        elif self.conditionedOn == 'dqidpiririm':
-            return np.concatenate((np.array([self.relDistance[index]]), np.array([self.axisRelVelocity[index]]), particle.aux1, particle.aux2))
-        else:
-            sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
