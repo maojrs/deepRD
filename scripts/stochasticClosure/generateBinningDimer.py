@@ -48,6 +48,11 @@ if bsize != boxsize:
     print('Requested boxsize does not match simulation')
 
 
+def calculateRelDistance(x1,x2):
+     deltaX = trajectoryTools.relativePosition(x1,x2,boundaryType, boxsize)
+     normDeltaX = np.linalg.norm(deltaX)
+     return normDeltaX
+
 # def calculateAdditionalConditionings(x1,x2,v1,v2):
 #     deltaX = trajectoryTools.relativePosition(x1,x2,boundaryType, boxsize)
 #     deltaV = v2 - v1
@@ -123,6 +128,15 @@ for i in range(nfiles):
         newtraj = np.concatenate([traj,additionalCondtionings], axis=1)
         trajs.append(newtraj)
     else:
+        lentraj = np.shape([traj])[1]
+        additionalCondtionings = np.zeros([lentraj, 1])
+        for j in range(int(lentraj / 2)):
+            x1 = traj[2 * j][1:4]
+            x2 = traj[2 * j + 1][1:4]
+            deltaX = calculateRelDistance(x1, x2)
+            additionalCondtionings[2 * j][0:1] = deltaX
+            additionalCondtionings[2 * j + 1][0:1] = -1 * deltaX
+        newtraj = np.concatenate([traj, additionalCondtionings], axis=1)
         trajs.append(traj)
     sys.stdout.write("File " + str(i+1) + " of " + str(nfiles) + " done." + "\r")
 print("\nAll data loaded.")
