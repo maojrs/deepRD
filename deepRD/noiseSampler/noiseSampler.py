@@ -17,7 +17,7 @@ class noiseSampler:
         except:
             raise NotImplementedError("Please Implement sample method for given conditioned variables")
 
-class defaultNoiseSampler:
+class defaultSamplingModel:
     '''
     Default sampler to be fed into noise sampler for testing cases
     '''
@@ -27,4 +27,7 @@ class defaultNoiseSampler:
 
 
     def sample(self, conditionedVariables):
-        return np.random.multivariate_normal(self.mean, self.covariance)
+        if isinstance(self.mean, list) and isinstance(self.covariance, list):
+            return np.random.multivariate_normal(self.mean, self.covariance)
+        else:
+            return np.random.normal(self.mean, self.covariance)

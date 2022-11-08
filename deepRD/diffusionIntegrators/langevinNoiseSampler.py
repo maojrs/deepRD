@@ -274,7 +274,7 @@ class langevinNoiseSamplerDimer(langevinNoiseSampler):
 
 
 
-class langevinNoiseSamplerDimer2(langevinNoiseSampler):
+class langevinNoiseSamplerDimer2(langevinNoiseSamplerDimer):
     '''
     Alternative specialized version of the langevinNoiseSampler class to integrate the dynamics of a dimer bonded by
     some potential (e.g. bistable or harmonic).
@@ -294,6 +294,7 @@ class langevinNoiseSamplerDimer2(langevinNoiseSampler):
         self.integrateA(particleList, self.dt/2.0)
         self.enforceBoundary(particleList)
         self.calculateForceField(particleList)
+        self.calculateRelDistanceVelocity(particleList)
         self.calculateComponentVelocity(particleList)
         self.integrateBOB(particleList, self.dt)
         self.integrateA(particleList, self.dt/2.0)
@@ -469,12 +470,12 @@ class langevinNoiseSamplerDimerConstrained1D(langevinNoiseSampler):
         self.integrateA(particleList, self.dt/2.0)
         self.enforceBoundary(particleList)
         self.calculateForceField(particleList)
-        self.integrateBOB(particleList, self.dt)
+        self.integrateBOB1D(particleList, self.dt)
         self.integrateA(particleList, self.dt/2.0)
         self.enforceBoundary(particleList)
         particleList.updatePositionsVelocitiesIndex(0)
 
-    def integrateBOB(self, particleList, dt):
+    def integrateBOB1D(self, particleList, dt):
         '''Integrates BOB integrations step at once. This is required to separate the noise Sampler from the
         external potential. '''
         for i, particle in enumerate(particleList):
@@ -490,7 +491,7 @@ class langevinNoiseSamplerDimerConstrained1D(langevinNoiseSampler):
             #xi = np.sqrt(self.kBT * particle.mass * (1 - np.exp(-2 * self.Gamma * dt / particle.mass)))
             #interactionNoiseTerm = xi / particle.mass * np.random.normal(0., 1, particle.dimension)
 
-            particle.aux2 = 1.0 * particle.aux1
+            particle.aux2 = 1.0* particle.aux1
             particle.aux1 = 1.0 * interactionNoiseTerm
             interactionNoiseTerm = np.append(interactionNoiseTerm, np.array([0.,0]))
             particle.nextVelocity = frictionForceTerm + interactionNoiseTerm

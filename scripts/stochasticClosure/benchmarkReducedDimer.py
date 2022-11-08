@@ -8,7 +8,7 @@ import deepRD
 #from deepRD.diffusionIntegrators import langevinNoiseSamplerDimer2, langevinNoiseSamplerDimer3
 from deepRD.diffusionIntegrators import langevinNoiseSamplerDimerConstrained1D
 from deepRD.potentials import pairBistable
-from deepRD.noiseSampler import noiseSampler, defaultNoiseSampler
+from deepRD.noiseSampler import noiseSampler, defaultSamplingModel
 import deepRD.tools.trajectoryTools as trajectoryTools
 import deepRD.tools.analysisTools as analysisTools
 
@@ -47,16 +47,16 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 # Simulation parameters
 #localDataDirectory = '../../data/stochasticClosure/'
 localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
-numSimulations = 100
+numSimulations = 5 #10 #100
 bsize = 8 #5 #8 #10
 # Available conditionings: dqi, dpi, vi,  ri, dqiri, dpiri, dqiririm, dpiririm, etc...
 # dqi:=relative distance between dimer particles, dpi:= relative velocity along dimer axis,
 # vi:=center of mass velocity (first component norm along axis, second one norm of perpendicular part)
-conditionedOn = 'dqi'
+conditionedOn = 'dqi' #'pi'
 outputAux = True #False
 
 # Output data directory
-foldername = 'dimer/boxsize' + str(bsize) + '/benchmarkReduced_' + conditionedOn
+foldername = 'dimer1D/boxsize' + str(bsize) + '/benchmarkReduced_' + conditionedOn
 outputDataDirectory = os.path.join(localDataDirectory, foldername)
 # Create folder for data
 try:
@@ -69,7 +69,7 @@ except OSError as error:
 
 # Load binning sampling models
 print("Loading binned data ...")
-binnedDataFilename = localDataDirectory + 'dimer/boxsize' + str(bsize) + '/binnedData/' + conditionedOn + 'BinnedData.pickle'
+binnedDataFilename = localDataDirectory + 'dimer1D/boxsize' + str(bsize) + '/binnedData/' + conditionedOn + 'BinnedData.pickle'
 dataOnBins = pickle.load(open(binnedDataFilename, "rb" ))
 parameters = dataOnBins.parameterDictionary
 print('Binned data loaded')
@@ -94,7 +94,7 @@ nsigma = parameters['nsigma']
 # Define noise sampler
 nSampler = noiseSampler(dataOnBins)
 # For testing
-#defaultSampler = defaultNoiseSampler()
+#defaultSampler = defaultSamplingModel(mean=0, covariance=0.005)
 #nSampler = noiseSampler(defaultSampler)
 
 # Parameters for pair potential that will only acts on distinguished particles (type 1)
@@ -131,9 +131,9 @@ def runParallelSims(simnumber):
     # Define particle list
     seed = int(simnumber)
     random.seed(seed)
-    position1 = [0, 0, 0]
-    position2 = [x0, 0, 0]
-    velocity = [0, 0, 0]
+    position1 = [0.0, 0.0, 0.0]
+    position2 = [x0, 0.0, 0.0]
+    velocity = [0.0, 0.0, 0.0]
     particle1 = deepRD.particle(position1, velocity = velocity, mass=mass)
     particle2 = deepRD.particle(position2, velocity = velocity, mass=mass)
     particleList = deepRD.particleList([particle1, particle2])
@@ -160,14 +160,14 @@ def runParallelSims(simnumber):
 
 
     # Write dynamics into trjactory
-    #traj = trajectoryTools.convert2trajectory(t, [X, V])
-    traj = trajectoryTools.convert2trajectory(t, [X, V, Raux])
+    traj = trajectoryTools.convert2trajectory(t, [X, V])
+    #traj = trajectoryTools.convert2trajectory(t, [X, V, Raux])
     trajectoryTools.writeTrajectory(traj,basefilename,simnumber)
 
     print("Simulation " + str(simnumber) + ", done.")
 
 
-# Runs several simulations in parallel
+## Runs several simulations in parallel
 print('Simulation for ri+1|' + conditionedOn + ' begins ...')
 num_cores =  multiprocessing.cpu_count() - 1
 pool = Pool(processes=num_cores)
