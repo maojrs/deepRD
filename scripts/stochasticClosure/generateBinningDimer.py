@@ -144,6 +144,7 @@ parameterDictionary['lagTimesteps'] = lagTimesteps
 # List of possible combinations for binnings
 binPositionList = [False] #[False, True]
 binVelocitiesList = [True]
+binRelDistance = [True]
 numBinnedAuxVarsList = [0,1,2] #[0,1] #[0,1,2]
 
 # List of alternative possible combinations for binnings
@@ -305,7 +306,7 @@ else:
                 #dataOnBins = binnedData(boxsizeBinning, numbins1, lagTimesteps, binPosition, binVelocity,
                 #                        numBinnedAuxVars)
                 dataOnBins = binnedDataDimerConstrained1D(boxsizeBinning, numbins1, lagTimesteps, binPosition, binVelocity,
-                                        numBinnedAuxVars)
+                                        binRelDistance, numBinnedAuxVars)
                 dataOnBins.loadData(trajs, nsigma1)
                 parameterDictionary['numbins'] = numbins1
                 parameterDictionary['nsigma'] = nsigma1
@@ -314,7 +315,7 @@ else:
                 #dataOnBins = binnedData(boxsizeBinning, numbins2, lagTimesteps, binPosition, binVelocity,
                 #                        numBinnedAuxVars)
                 dataOnBins = binnedDataDimerConstrained1D(boxsizeBinning, numbins2, lagTimesteps, binPosition, binVelocity,
-                                        numBinnedAuxVars)
+                                        binRelDistance, numBinnedAuxVars)
                 dataOnBins.loadData(trajs, nsigma2)
                 parameterDictionary['numbins'] = numbins2
                 parameterDictionary['nsigma'] = nsigma2
@@ -322,7 +323,7 @@ else:
                 #dataOnBins = binnedData(boxsizeBinning, numbins3, lagTimesteps, binPosition, binVelocity,
                 #                        numBinnedAuxVars)
                 dataOnBins = binnedDataDimerConstrained1D(boxsizeBinning, numbins3, lagTimesteps, binPosition, binVelocity,
-                                        numBinnedAuxVars)
+                                        binRelDistance, numBinnedAuxVars)
                 dataOnBins.loadData(trajs, nsigma3)
                 parameterDictionary['numbins'] = numbins3
                 parameterDictionary['nsigma'] = nsigma3
