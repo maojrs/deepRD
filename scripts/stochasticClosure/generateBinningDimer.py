@@ -137,7 +137,7 @@ for i in range(nfiles):
             additionalCondtionings[2 * j][0:1] = deltaX
             additionalCondtionings[2 * j + 1][0:1] = -1 * deltaX
         newtraj = np.concatenate([traj, additionalCondtionings], axis=1)
-        trajs.append(traj)
+        trajs.append(newtraj)
     sys.stdout.write("File " + str(i+1) + " of " + str(nfiles) + " done." + "\r")
 print("\nAll data loaded.")
 print(' ')
