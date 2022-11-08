@@ -1067,9 +1067,10 @@ class binnedDataDimerConstrained1D(binnedData):
             boxIndex = self.velBoxIndex
             numvars = 1
             onlyPositive = [False]*numvars
-        elif variable == 'relSpeed':
-            trajIndex = self.relSpeIndex
-            boxIndex = self.relSpeBoxIndex
+        elif variable == 'relDistance':
+            trajIndex = self.relDistIndex
+            boxIndex = self.relDistBoxIndex
+            onlyPositive = True
             numvars = 1
         else:
             print('Variable for adjustBox functions must be position, velocity')
