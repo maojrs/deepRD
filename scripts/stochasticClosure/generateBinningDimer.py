@@ -20,10 +20,10 @@ Currently implemented on conditioning ri+1 on all the combinations dqi,dpi,vi,ri
 bsize = 8
 useAlternativeConditionals = False #True
 
-parentDirectory = os.environ['DATA'] + 'stochasticClosure/dimer/boxsize' + str(bsize)+ '/benchmark/'
+parentDirectory = os.environ['DATA'] + 'stochasticClosure/dimer1D/boxsize' + str(bsize)+ '/benchmark/'
 fnamebase = parentDirectory + 'simMoriZwanzig_'
 foldername = 'binnedData/'
-binningDataDirectory = os.path.join(os.environ['DATA'] + 'stochasticClosure/dimer/boxsize' + str(bsize) + '/', foldername)
+binningDataDirectory = os.path.join(os.environ['DATA'] + 'stochasticClosure/dimer1D/boxsize' + str(bsize) + '/', foldername)
 
 
 try:
@@ -143,8 +143,8 @@ parameterDictionary['lagTimesteps'] = lagTimesteps
 
 # List of possible combinations for binnings
 binPositionList = [False] #[False, True]
-binVelocitiesList = [True]
-binRelDistance = [True]
+binVelocitiesList = [False, True]
+binRelativeDistanceList = [True]
 numBinnedAuxVarsList = [0,1,2] #[0,1] #[0,1,2]
 
 # List of alternative possible combinations for binnings
@@ -162,11 +162,13 @@ numBinnedAuxVarsList = [0,1,2] #[0,1] #[0,1,2]
 binRotatedVelocityList = [True]
 numBinnedAuxVarsList = [0,1,2] #[0,1] #[0,1,2]
 
-def getNumberConditionedVariables(binPosition, binVelocity, numBinnedAuxVars):
+def getNumberConditionedVariables(binPosition, binVelocity, binRelDistance, numBinnedAuxVars):
     numConditionedVariables = 0
     if binPosition:
         numConditionedVariables += 1
     if binVelocity:
+        numConditionedVariables += 1
+    if binRelDistance:
         numConditionedVariables += 1
     for i in range(numBinnedAuxVars):
         numConditionedVariables += 1
@@ -299,8 +301,8 @@ if useAlternativeConditionals:
 else:
     for parameterCombination in product(*[binPositionList, binVelocitiesList, numBinnedAuxVarsList]):
         if parameterCombination != (False, False, 0):
-            binPosition, binVelocity, numBinnedAuxVars = parameterCombination
-            numConditionedVariables = getNumberConditionedVariables(binPosition, binVelocity, numBinnedAuxVars)
+            binPosition, binVelocity, binRelDistance, numBinnedAuxVars = parameterCombination
+            numConditionedVariables = getNumberConditionedVariables(binPosition, binVelocity, binRelDistance, numBinnedAuxVars)
             if numConditionedVariables <= 3:
                 #if numConditionedVariables == 1:
                 #dataOnBins = binnedData(boxsizeBinning, numbins1, lagTimesteps, binPosition, binVelocity,
