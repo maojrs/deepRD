@@ -299,7 +299,7 @@ if useAlternativeConditionals:
             print(' ')
             del dataOnBins
 else:
-    for parameterCombination in product(*[binPositionList, binVelocitiesList, numBinnedAuxVarsList]):
+    for parameterCombination in product(*[binPositionList, binVelocitiesList, binRelativeDistanceList, numBinnedAuxVarsList]):
         if parameterCombination != (False, False, 0):
             binPosition, binVelocity, binRelDistance, numBinnedAuxVars = parameterCombination
             numConditionedVariables = getNumberConditionedVariables(binPosition, binVelocity, binRelDistance, numBinnedAuxVars)
