@@ -55,7 +55,8 @@ def calculateRelDistance(x1,x2):
 
 
 def calculateRelVelocity(v1, v2):
-    return v2-v1
+    relVelocity = v2 - v1
+    return relVelocity[0]
 
 # def calculateAdditionalConditionings(x1,x2,v1,v2):
 #     deltaX = trajectoryTools.relativePosition(x1,x2,boundaryType, boxsize)
@@ -133,7 +134,7 @@ for i in range(nfiles):
         trajs.append(newtraj)
     else:
         lentraj = np.shape([traj])[1]
-        additionalCondtionings = np.zeros([lentraj, 1])
+        additionalCondtionings = np.zeros([lentraj, 2])
         for j in range(int(lentraj / 2)):
             x1 = traj[2 * j][1:4]
             x2 = traj[2 * j + 1][1:4]
@@ -325,7 +326,7 @@ if useAlternativeConditionals:
             print(' ')
             del dataOnBins
 else:
-    for parameterCombination in product(*[binPositionList, binVelocitiesList, binRelativeDistanceList, numBinnedAuxVarsList]):
+    for parameterCombination in product(*[binPositionList, binVelocitiesList, binRelativeDistanceList, binRelativeSpeedList, numBinnedAuxVarsList]):
         if parameterCombination != (False, False, 0):
             binPosition, binVelocity, binRelDistance, binRelSpeed, numBinnedAuxVars = parameterCombination
             numConditionedVariables = getNumberConditionedVariables(binPosition, binVelocity, binRelDistance, binRelSpeed, numBinnedAuxVars)
