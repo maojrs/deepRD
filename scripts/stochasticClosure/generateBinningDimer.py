@@ -167,25 +167,25 @@ parameterDictionary['lagTimesteps'] = lagTimesteps
 
 # List of possible combinations for binnings
 binPositionList = [False] #[False, True]
-binVelocitiesList = [False, True]
-binRelativeDistanceList = [True]
+binVelocitiesList = [False]
+binRelativeDistanceList = [False, True]
 binRelativeSpeedList = [True]
 numBinnedAuxVarsList = [0,1,2] #[0,1] #[0,1,2]
 
-# List of alternative possible combinations for binnings
-#binPositionList = [False] #[False, True]
-binRelativeDistanceList = [True]
-binRelSpeedList = [False, True]
-binVelCenterMassList = [False, True]
-numBinnedAuxVarsList = [0,1,2] #[0,1] #[0,1,2]
+# # List of alternative possible combinations for binnings
+# #binPositionList = [False] #[False, True]
+# binRelativeDistanceList = [True]
+# binRelSpeedList = [False, True]
+# binVelCenterMassList = [False, True]
+# numBinnedAuxVarsList = [0,1,2] #[0,1] #[0,1,2]
 
-# Another alternative of possible conditionins
-binComponentVelocityList = [True]
-numBinnedAuxVarsList = [0,1,2] #[0,1] #[0,1,2]
+# # Another alternative of possible conditionins
+# binComponentVelocityList = [True]
+# numBinnedAuxVarsList = [0,1,2] #[0,1] #[0,1,2]
 
-# List of alternative possible combinations for binnings
-binRotatedVelocityList = [True]
-numBinnedAuxVarsList = [0,1,2] #[0,1] #[0,1,2]
+# # List of alternative possible combinations for binnings
+# binRotatedVelocityList = [True]
+# numBinnedAuxVarsList = [0,1,2] #[0,1] #[0,1,2]
 
 def getNumberConditionedVariables(binPosition, binVelocity, binRelDistance, binRelSpeed, numBinnedAuxVars):
     numConditionedVariables = 0
