@@ -952,20 +952,23 @@ class binnedDataDimerConstrained1D(binnedData):
     '''
 
     def __init__(self, boxsize, numbins = 100, lagTimesteps = 1, binPosition = False,
-                 binVelocity = False, binRelDistance = False, numBinnedAuxVars = 1, adjustPosVelBox = True):
+                 binVelocity = False, binRelDistance = False, binRelSpeed = False, numBinnedAuxVars = 1, adjustPosVelBox = True):
         super().__init__(boxsize, numbins, lagTimesteps, binPosition, binVelocity, numBinnedAuxVars,
                          adjustPosVelBox)
 
         self.binRelDistance = binRelDistance
+        self.binRelSpeed = binRelSpeed
 
         # Calculate dimension and binning label
         self.calculateDimensionAndBinningLabel2()
 
         # Other important variables
         self.relDistIndex = 11
+        self.relSpeIndex = 12
 
         # Obtain indexes in box array
         self.relDistBoxIndex = None
+        self.relSpeBoxIndex = None
         self.calculateBoxIndexes2()
 
         if isinstance(boxsize, (list, tuple, np.ndarray)):
@@ -1008,6 +1011,11 @@ class binnedDataDimerConstrained1D(binnedData):
             self.binningLabel += 'dqi,'
             self.binningLabel2 += 'dqi'
             self.dimension +=1
+        if self.binRelSpeed:
+            self.binningLabel += 'dpi,'
+            self.binningLabel2 += 'dpi'
+            self.dimension +=1
+            self.numConditionedVariables += 1
         for i in range(self.numBinnedAuxVars):
             self.dimension +=1
             self.numConditionedVariables += 1
@@ -1040,10 +1048,17 @@ class binnedDataDimerConstrained1D(binnedData):
         else:
             maxIndexSoFar = max(indexes) + 1
 
-        # Index for relDistance
-        if self.binRelDistance:
+        # Index for relDistance and relSpeed
+        if self.binRelDistance and self.binRelSpeed:
             self.relDistBoxIndex = maxIndexSoFar
+            self.relSpeBoxIndex = maxIndexSoFar + 1
+            maxIndexSoFar += 2
+        elif not self.binRelDistance and self.binRelSpeed:
+            self.relSpeBoxIndex = maxIndexSoFar
             maxIndexSoFar += 1
+        elif self.binRelDistance and not self.binRelSpeed:
+            self.relDistBoxIndex = maxIndexSoFar
+            maxIndexSoFar = + 1
 
         self.auxBoxIndex = maxIndexSoFar
 
@@ -1070,6 +1085,11 @@ class binnedDataDimerConstrained1D(binnedData):
         elif variable == 'relDistance':
             trajIndex = self.relDistIndex
             boxIndex = self.relDistBoxIndex
+            numvars = 1
+            onlyPositive = [False]*numvars
+        elif variable == 'relSpeed':
+            trajIndex = self.relSpeIndex
+            boxIndex = self.relSpeBoxIndex
             numvars = 1
             onlyPositive = [False]*numvars
         else:
@@ -1146,6 +1166,8 @@ class binnedDataDimerConstrained1D(binnedData):
             self.adjustBox(trajs, 'velocity', nsigma)
         if self.adjustPosVelBox and self.binRelDistance:
             self.adjustBox(trajs, 'relDistance', nsigma)
+        if self.adjustPosVelBox and self.binRelSpeed:
+            self.adjustBox(trajs, 'relSpeed', nsigma)
         if self.numBinnedAuxVars > 0:
             self.adjustBoxAux(trajs, nsigma) # Adjust box limits for r variables
         # Loop over all data and load into dictionary
@@ -1163,6 +1185,9 @@ class binnedDataDimerConstrained1D(binnedData):
                 if self.binRelDistance:
                     dqi = traj[i][self.relDistIndex:self.relDistIndex + 1]
                     conditionedVars.append(dqi)
+                if self.binRelSpeed:
+                    dpi = traj[i][self.relSpeIndex:self.relSpeIndex + 1]
+                    conditionedVars.append(dpi)
                 for m in range(self.numBinnedAuxVars):
                     ri = traj[i - m * self.lagTimesteps][self.auxIndex:self.auxIndex + 1]
                     conditionedVars.append(ri)
