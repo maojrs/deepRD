@@ -1375,7 +1375,7 @@ class binnedDataDimerConstrained1DGlobal(binnedData):
         if variable == 'position' or variable == 'velocity':
             for l in range(self.numparticles):
                 for k in range(numvars):
-                    currentBoxindex = boxIndex + self.numparticles * l + k
+                    currentBoxindex = boxIndex + self.numvars * l + k
                     self.boxsize[currentBoxindex] = (maxvec[k] - minvec[k])
                     voxeledge = self.boxsize[currentBoxindex] / self.numbins[currentBoxindex]
                     self.bins[currentBoxindex] = np.arange(minvec[k], maxvec[k], voxeledge)
