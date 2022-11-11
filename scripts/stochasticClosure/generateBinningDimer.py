@@ -20,7 +20,7 @@ Currently implemented on conditioning ri+1 on all the combinations dqi,dpi,vi,ri
 bsize = 8
 useAlternativeConditionals = False #True
 
-parentDirectory = os.environ['DATA'] + 'stochasticClosure/dimer1DGlobal/boxsize' + str(bsize)+ '/benchmark/'
+parentDirectory = os.environ['DATA'] + 'stochasticClosure/dimer1D/boxsize' + str(bsize)+ '/benchmark/'
 fnamebase = parentDirectory + 'simMoriZwanzig_'
 foldername = 'binnedData/'
 binningDataDirectory = os.path.join(os.environ['DATA'] + 'stochasticClosure/dimer1DGlobal/boxsize' + str(bsize) + '/', foldername)
@@ -327,7 +327,7 @@ if useAlternativeConditionals:
             del dataOnBins
 else:
     for parameterCombination in product(*[binPositionList, binVelocitiesList, binRelativeDistanceList, binRelativeSpeedList, numBinnedAuxVarsList]):
-        if parameterCombination != (False, False, 0):
+        if parameterCombination != (False, False, False, False, 0):
             binPosition, binVelocity, binRelDistance, binRelSpeed, numBinnedAuxVars = parameterCombination
             numConditionedVariables = getNumberConditionedVariables(binPosition, binVelocity, binRelDistance, binRelSpeed, numBinnedAuxVars)
             if numConditionedVariables <= 3:

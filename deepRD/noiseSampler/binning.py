@@ -1407,10 +1407,11 @@ class binnedDataDimerConstrained1DGlobal(binnedData):
         # Adjust boxsize and bins accordingly
         for m in range(self.numBinnedAuxVars):
             for k in range(2):
+                kk = 1
                 boxIndex = self.auxBoxIndex + k + m
-                self.boxsize[boxIndex] = (maxvec[k] - minvec[k])
+                self.boxsize[boxIndex] = (maxvec[kk] - minvec[kk])
                 voxeledge = self.boxsize[boxIndex] / self.numbins[boxIndex]
-                self.bins[boxIndex] = np.arange(minvec[k], maxvec[k], voxeledge)
+                self.bins[boxIndex] = np.arange(minvec[kk], maxvec[kk], voxeledge)
 
 
     def loadData(self, trajs, nsigma=-1):
