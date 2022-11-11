@@ -8,7 +8,7 @@ import deepRD.tools.analysisTools as analysisTools
 #from deepRD.noiseSampler import binnedDataDimer, binnedData
 #from deepRD.noiseSampler import binnedDataDimer2, binnedData
 #from deepRD.noiseSampler import binnedDataDimer3, binnedData
-from deepRD.noiseSampler import binnedDataDimerConstrained1D
+from deepRD.noiseSampler import binnedDataDimerConstrained1DGlobal # binnedDataDimerConstrained1D
 
 
 
@@ -20,10 +20,10 @@ Currently implemented on conditioning ri+1 on all the combinations dqi,dpi,vi,ri
 bsize = 8
 useAlternativeConditionals = False #True
 
-parentDirectory = os.environ['DATA'] + 'stochasticClosure/dimer1D/boxsize' + str(bsize)+ '/benchmark/'
+parentDirectory = os.environ['DATA'] + 'stochasticClosure/dimer1DGlobal/boxsize' + str(bsize)+ '/benchmark/'
 fnamebase = parentDirectory + 'simMoriZwanzig_'
 foldername = 'binnedData/'
-binningDataDirectory = os.path.join(os.environ['DATA'] + 'stochasticClosure/dimer1D/boxsize' + str(bsize) + '/', foldername)
+binningDataDirectory = os.path.join(os.environ['DATA'] + 'stochasticClosure/dimer1DGlobal/boxsize' + str(bsize) + '/', foldername)
 
 
 try:
@@ -334,7 +334,7 @@ else:
                 #if numConditionedVariables == 1:
                 #dataOnBins = binnedData(boxsizeBinning, numbins1, lagTimesteps, binPosition, binVelocity,
                 #                        numBinnedAuxVars)
-                dataOnBins = binnedDataDimerConstrained1D(boxsizeBinning, numbins1, lagTimesteps, binPosition, binVelocity,
+                dataOnBins = binnedDataDimerConstrained1DGlobal(boxsizeBinning, numbins1, lagTimesteps, binPosition, binVelocity,
                                         binRelDistance, binRelSpeed, numBinnedAuxVars)
                 dataOnBins.loadData(trajs, nsigma1)
                 parameterDictionary['numbins'] = numbins1
@@ -343,7 +343,7 @@ else:
                 #elif numConditionedVariables == 2:
                 #dataOnBins = binnedData(boxsizeBinning, numbins2, lagTimesteps, binPosition, binVelocity,
                 #                        numBinnedAuxVars)
-                dataOnBins = binnedDataDimerConstrained1D(boxsizeBinning, numbins2, lagTimesteps, binPosition, binVelocity,
+                dataOnBins = binnedDataDimerConstrained1DGlobal(boxsizeBinning, numbins2, lagTimesteps, binPosition, binVelocity,
                                         binRelDistance, binRelSpeed, numBinnedAuxVars)
                 dataOnBins.loadData(trajs, nsigma2)
                 parameterDictionary['numbins'] = numbins2
@@ -351,7 +351,7 @@ else:
             else:
                 #dataOnBins = binnedData(boxsizeBinning, numbins3, lagTimesteps, binPosition, binVelocity,
                 #                        numBinnedAuxVars)
-                dataOnBins = binnedDataDimerConstrained1D(boxsizeBinning, numbins3, lagTimesteps, binPosition, binVelocity,
+                dataOnBins = binnedDataDimerConstrained1DGlobal(boxsizeBinning, numbins3, lagTimesteps, binPosition, binVelocity,
                                         binRelDistance, binRelSpeed, numBinnedAuxVars)
                 dataOnBins.loadData(trajs, nsigma3)
                 parameterDictionary['numbins'] = numbins3
