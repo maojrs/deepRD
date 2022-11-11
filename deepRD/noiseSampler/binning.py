@@ -1220,6 +1220,7 @@ class binnedDataDimerConstrained1DGlobal(binnedData):
 
         # Calculate dimension and binning label
         self.calculateDimensionAndBinningLabel2()
+        self.numparticles = 2
 
         # Other important variables
         self.relDistIndex = 11
@@ -1305,7 +1306,7 @@ class binnedDataDimerConstrained1DGlobal(binnedData):
         if not indexes: #empty list
             maxIndexSoFar = 0
         else:
-            maxIndexSoFar = max(indexes) + 1
+            maxIndexSoFar = max(indexes) + 2
 
         # Index for relDistance and relSpeed
         if self.binRelDistance and self.binRelSpeed:
@@ -1334,12 +1335,12 @@ class binnedDataDimerConstrained1DGlobal(binnedData):
         if variable == 'position':
             trajIndex = self.posIndex
             boxIndex = self.posBoxIndex
-            numvars = 2
+            numvars = 1
             onlyPositive = [False]*numvars
         elif variable == 'velocity':
             trajIndex = self.velIndex
             boxIndex = self.velBoxIndex
-            numvars = 2
+            numvars = 1
             onlyPositive = [False]*numvars
         elif variable == 'relDistance':
             trajIndex = self.relDistIndex
@@ -1371,10 +1372,12 @@ class binnedDataDimerConstrained1DGlobal(binnedData):
                 if onlyPositive[j]:
                     minvec[j] = max(minvec[j], 0.0)
         # Adjust boxsize and bins accordingly
-        for k in range(numvars):
-            self.boxsize[boxIndex + k] = (maxvec[k] - minvec[k])
-            voxeledge = self.boxsize[boxIndex + k] / self.numbins[boxIndex + k]
-            self.bins[boxIndex + k] = np.arange(minvec[k], maxvec[k], voxeledge)
+        for l in range(self.numparticles):
+            for k in range(numvars):
+                currentBoxindex = boxIndex + self.numparticles * l + k
+                self.boxsize[currentBoxindex] = (maxvec[k] - minvec[k])
+                voxeledge = self.boxsize[currentBoxindex] / self.numbins[currentBoxindex]
+                self.bins[currentBoxindex] = np.arange(minvec[k], maxvec[k], voxeledge)
 
 
     def adjustBoxAux(self, trajs, nsigma=-1):
@@ -1433,7 +1436,7 @@ class binnedDataDimerConstrained1DGlobal(binnedData):
         # Loop over all data and load into dictionary
         print('Binning data for ' + self.binningLabel + ' ...')
         for k, traj in enumerate(trajs):
-            for j in range(int( (len(traj)/2 - self.numBinnedAuxVars * self.lagTimesteps) )):
+            for j in range(int( (len(traj)/2 - (self.numBinnedAuxVars + 1) * self.lagTimesteps) )):
                 i = j + self.numBinnedAuxVars * self.lagTimesteps
                 conditionedVars = []
                 if self.binPosition:
