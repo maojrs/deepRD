@@ -1407,7 +1407,7 @@ class binnedDataDimerConstrained1DGlobal(binnedData):
         # Adjust boxsize and bins accordingly
         for m in range(self.numBinnedAuxVars):
             for k in range(2):
-                kk = 1
+                kk = 0
                 boxIndex = self.auxBoxIndex + k + m
                 self.boxsize[boxIndex] = (maxvec[kk] - minvec[kk])
                 voxeledge = self.boxsize[boxIndex] / self.numbins[boxIndex]
@@ -1433,8 +1433,8 @@ class binnedDataDimerConstrained1DGlobal(binnedData):
         # Loop over all data and load into dictionary
         print('Binning data for ' + self.binningLabel + ' ...')
         for k, traj in enumerate(trajs):
-            for j in range(int((len(traj) - self.numBinnedAuxVars * self.lagTimesteps)/2)):
-                i = j + (self.numBinnedAuxVars - 1) * self.lagTimesteps
+            for j in range(int( (len(traj)/2 - self.numBinnedAuxVars * self.lagTimesteps) )):
+                i = j + self.numBinnedAuxVars * self.lagTimesteps
                 conditionedVars = []
                 if self.binPosition:
                     qi1 = traj[2*i][self.posIndex:self.posIndex + 1]
