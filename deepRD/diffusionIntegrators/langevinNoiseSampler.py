@@ -534,15 +534,21 @@ class langevinNoiseSamplerDimerConstrained1DGlobal(langevinNoiseSamplerDimer):
         elif self.conditionedOn == 'dqi':
             return (self.relDistance[index])
         elif self.conditionedOn == 'dqiri':
-            return np.concatenate((np.array([self.relDistance[index]]), particle1.aux1[j], particle2.aux1[j]))
+            return np.concatenate((np.array([self.relDistance[index]]), particle1.aux1, particle2.aux1))
         elif self.conditionedOn == 'dqiririm':
-            return np.concatenate((np.array([self.relDistance[index]]), particle1.aux1[j], particle2.aux1[j], particle1.aux2[j], particle2.aux2[j]))
+            return np.concatenate((np.array([self.relDistance[index]]), particle1.aux1, particle2.aux1, particle1.aux2, particle2.aux2))
         elif self.conditionedOn == 'dpi':
             return (self.axisRelVelocity[index])
         elif self.conditionedOn == 'dpiri':
-            return np.concatenate((np.array([self.axisRelVelocity[index]]), particle1.aux1[j], particle2.aux1[j]))
+            return np.concatenate((np.array([self.axisRelVelocity[index]]), particle1.aux1, particle2.aux1))
         elif self.conditionedOn == 'dpiririm':
-            return np.concatenate((np.array([self.axisRelVelocity[index]]), particle1.aux1[j], particle2.aux1[j], particle1.aux2[j], particle2.aux2[j]))
+            return np.concatenate((np.array([self.axisRelVelocity[index]]), particle1.aux1, particle2.aux1, particle1.aux2, particle2.aux2))
+        elif self.conditionedOn == 'dqidpi':
+            return np.concatenate((np.array([self.relDistance[index]]), self.axisRelVelocity[index]))
+        elif self.conditionedOn == 'dqidpiri':
+            return np.concatenate((np.array([self.axisRelVelocity[index]]), particle1.aux1, particle2.aux1))
+        elif self.conditionedOn == 'dqidpiririm':
+            return np.concatenate((np.array([self.axisRelVelocity[index]]), particle1.aux1, particle2.aux1, particle1.aux2, particle2.aux2))
         elif self.conditionedOn == 'qi':
             return np.array([particle1.nextPosition[j], particle2.nextPosition[j]])
         elif self.conditionedOn == 'qiri':
@@ -579,7 +585,7 @@ class langevinNoiseSamplerDimerConstrained1DGlobal(langevinNoiseSamplerDimer):
     def integrateBOB1D(self, particleList, dt):
         '''Integrates BOB integrations step at once. This is required to separate the noise Sampler from the
         external potential. '''
-        for i in range(len(particleList)/2):
+        for i in range(int(len(particleList)/2)):
             particle1 = particleList[2*i]
             particle2 = particleList[2*i+1]
             # Calculate friction term and external potential term
@@ -599,8 +605,8 @@ class langevinNoiseSamplerDimerConstrained1DGlobal(langevinNoiseSamplerDimer):
 
             particleList[2*i].aux2 = 1.0 * particleList[2*i].aux1
             particleList[2*i+1].aux2 = 1.0 * particleList[2*i+1].aux1
-            particleList[2*i].aux1 = 1.0 * interactionNoiseTerm[0]
-            particleList[2*i+1].aux1 = 1.0 * interactionNoiseTerm[1]
+            particleList[2*i].aux1 = np.array([1.0 * interactionNoiseTerm[0]])
+            particleList[2*i+1].aux1 = np.array([1.0 * interactionNoiseTerm[1]])
 
             interactionNoiseTerm1 = np.append(interactionNoiseTerm[0], np.array([0.,0]))
             interactionNoiseTerm2 = np.append(interactionNoiseTerm[1], np.array([0.,0]))
