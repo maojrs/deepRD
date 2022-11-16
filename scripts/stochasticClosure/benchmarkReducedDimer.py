@@ -6,7 +6,7 @@ import pickle
 import deepRD
 #from deepRD.diffusionIntegrators import langevinNoiseSampler, langevinNoiseSamplerDimer, \
 #from deepRD.diffusionIntegrators import langevinNoiseSamplerDimer2, langevinNoiseSamplerDimer3
-from deepRD.diffusionIntegrators import langevinNoiseSamplerDimerConstrained1D
+from deepRD.diffusionIntegrators import langevinNoiseSamplerDimerConstrained1DGlobal #, langevinNoiseSamplerDimerConstrained1D
 from deepRD.potentials import pairBistable
 from deepRD.noiseSampler import noiseSampler, defaultSamplingModel
 import deepRD.tools.trajectoryTools as trajectoryTools
@@ -47,7 +47,7 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 # Simulation parameters
 #localDataDirectory = '../../data/stochasticClosure/'
 localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
-numSimulations = 5 #10 #100
+numSimulations = 10 #10 #100
 bsize = 8 #5 #8 #10
 # Available conditionings: dqi, dpi, vi,  ri, dqiri, dpiri, dqiririm, dpiririm, etc...
 # dqi:=relative distance between dimer particles, dpi:= relative velocity along dimer axis,
@@ -149,7 +149,7 @@ def runParallelSims(simnumber):
     #                                      boundaryType, equilibrationSteps, conditionedOn)
     #diffIntegrator = langevinNoiseSamplerDimer3(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
     #                                            boundaryType, equilibrationSteps, conditionedOn)
-    diffIntegrator = langevinNoiseSamplerDimerConstrained1D(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
+    diffIntegrator = langevinNoiseSamplerDimerConstrained1DGlobal(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
                                           boundaryType, equilibrationSteps, conditionedOn)
 
     diffIntegrator.setPairPotential(pairBistablePotential)
