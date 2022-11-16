@@ -422,7 +422,7 @@ class langevinNoiseSamplerDimer3(langevinNoiseSampler):
             sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
 
 
-class langevinNoiseSamplerDimerConstrained1D(langevinNoiseSampler):
+class langevinNoiseSamplerDimerConstrained1D(langevinNoiseSamplerDimer):
     '''
     Specialized version of the langevinNoiseSampler class to integrate the dynamics of a dimer bonded by
     some potential (e.g. bistable or harmonic).
@@ -510,7 +510,7 @@ class langevinNoiseSamplerDimerConstrained1D(langevinNoiseSampler):
             particle.nextVelocity = frictionForceTerm + interactionNoiseTerm
 
 
-class langevinNoiseSamplerDimerConstrained1DGlobal(langevinNoiseSampler):
+class langevinNoiseSamplerDimerConstrained1DGlobal(langevinNoiseSamplerDimer):
     '''
     Specialized version of the langevinNoiseSampler class to integrate the dynamics of a dimer bonded by
     some potential (e.g. bistable or harmonic).
