@@ -56,7 +56,7 @@ conditionedOn = 'dqi' #'pi'
 outputAux = True #False
 
 # Output data directory
-foldername = 'dimer1D/boxsize' + str(bsize) + '/benchmarkReduced_' + conditionedOn
+foldername = 'dimer1DGlobal/boxsize' + str(bsize) + '/benchmarkReduced_' + conditionedOn
 outputDataDirectory = os.path.join(localDataDirectory, foldername)
 # Create folder for data
 try:
@@ -69,7 +69,7 @@ except OSError as error:
 
 # Load binning sampling models
 print("Loading binned data ...")
-binnedDataFilename = localDataDirectory + 'dimer1D/boxsize' + str(bsize) + '/binnedData/' + conditionedOn + 'BinnedData.pickle'
+binnedDataFilename = localDataDirectory + 'dimer1DGlobal/boxsize' + str(bsize) + '/binnedData/' + conditionedOn + 'BinnedData.pickle'
 dataOnBins = pickle.load(open(binnedDataFilename, "rb" ))
 parameters = dataOnBins.parameterDictionary
 print('Binned data loaded')
