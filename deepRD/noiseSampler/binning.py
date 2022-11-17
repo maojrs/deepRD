@@ -378,7 +378,7 @@ class binnedDataDimer(binnedData):
         if self.binVelCenterMass:
             self.binningLabel += 'vi,'
             self.binningLabel2 += 'vi'
-            self.dimension +=2
+            self.dimension +=1
             self.numConditionedVariables += 1
         for i in range(self.numBinnedAuxVars):
             self.dimension +=3
@@ -1211,14 +1211,14 @@ class binnedDataDimerConstrained1DGlobal(binnedData):
     '''
 
     def __init__(self, boxsize, numbins = 100, lagTimesteps = 1, binPosition = False,
-                 binVelocity = False, binRelDistance = False, binRelSpeed = False, binCMspeed = False,
+                 binVelocity = False, binRelDistance = False, binRelSpeed = False, binCMvelocity = False,
                  numBinnedAuxVars = 1, adjustPosVelBox = True):
         super().__init__(boxsize, numbins, lagTimesteps, binPosition, binVelocity, numBinnedAuxVars,
                          adjustPosVelBox)
 
         self.binRelDistance = binRelDistance
         self.binRelSpeed = binRelSpeed
-        self.binCMspeed = binCMspeed
+        self.binCMvelocity = binCMvelocity
 
         # Calculate dimension and binning label
         self.calculateDimensionAndBinningLabel2()
@@ -1227,12 +1227,12 @@ class binnedDataDimerConstrained1DGlobal(binnedData):
         # Other important variables
         self.relDistIndex = 11
         self.relSpeIndex = 12
-        self.CMspeedIndex = 13
+        self.CMvelocityIndex = 13
 
         # Obtain indexes in box array
         self.relDistBoxIndex = None
         self.relSpeBoxIndex = None
-        self.CMspeedBoxIndex = None
+        self.CMvelocityBoxIndex = None
         self.calculateBoxIndexes2()
 
         if isinstance(boxsize, (list, tuple, np.ndarray)):
@@ -1280,10 +1280,10 @@ class binnedDataDimerConstrained1DGlobal(binnedData):
             self.binningLabel2 += 'dpi'
             self.dimension +=1
             self.numConditionedVariables += 1
-        if self.binCMSpeed:
-            self.binningLabel += 'si,'
-            self.binningLabel2 += 'si'
-            self.dimension +=1
+        if self.binCMvelocity:
+            self.binningLabel += 'vi,'
+            self.binningLabel2 += 'vi'
+            self.dimension +=2
             self.numConditionedVariables += 1
         for i in range(self.numBinnedAuxVars):
             self.dimension +=2
@@ -1329,8 +1329,8 @@ class binnedDataDimerConstrained1DGlobal(binnedData):
             self.relDistBoxIndex = maxIndexSoFar
             maxIndexSoFar = + 1
 
-        if self.binCMspeed:
-            self.CMspeedBoxIndex = maxIndexSoFar
+        if self.binCMvelocity:
+            self.CMvelocityBoxIndex = maxIndexSoFar
             maxIndexSoFar = + 1
 
         self.auxBoxIndex = maxIndexSoFar
@@ -1365,9 +1365,9 @@ class binnedDataDimerConstrained1DGlobal(binnedData):
             boxIndex = self.relSpeBoxIndex
             numvars = 1
             onlyPositive = [False]*numvars
-        elif variable == 'CMspeed':
-            trajIndex = self.CMspeedIndex
-            boxIndex = self.CMspeedBoxIndex
+        elif variable == 'CMvelocity':
+            trajIndex = self.CMvelocityIndex
+            boxIndex = self.CMvelocityBoxIndex
             numvars = 1
             onlyPositive = [False] * numvars
         else:
@@ -1456,8 +1456,8 @@ class binnedDataDimerConstrained1DGlobal(binnedData):
             self.adjustBox(trajs, 'relDistance', nsigma)
         if self.adjustPosVelBox and self.binRelSpeed:
             self.adjustBox(trajs, 'relSpeed', nsigma)
-        if self.adjustPosVelBox and self.binCMspeed:
-            self.adjustBox(trajs, 'CMspeed', nsigma)
+        if self.adjustPosVelBox and self.binCMvelocity:
+            self.adjustBox(trajs, 'CMvelocity', nsigma)
         if self.numBinnedAuxVars > 0:
             self.adjustBoxAux(trajs, nsigma) # Adjust box limits for r variables
         # Loop over all data and load into dictionary
@@ -1482,8 +1482,8 @@ class binnedDataDimerConstrained1DGlobal(binnedData):
                 if self.binRelSpeed:
                     dpi = traj[2*i][self.relSpeIndex:self.relSpeIndex + 1]
                     conditionedVars.append(dpi)
-                if self.binCMspeed:
-                    si = traj[2*i][self.CMspeedIndex:self.CMspeedIndex + 1]
+                if self.binCMvelocity:
+                    si = traj[2*i][self.CMvelocityIndex:self.CMvelocityIndex + 1]
                     conditionedVars.append(si)
                 for m in range(self.numBinnedAuxVars):
                     ii = i - m * self.lagTimesteps
