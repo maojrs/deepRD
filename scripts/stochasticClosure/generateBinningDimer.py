@@ -8,7 +8,7 @@ import deepRD.tools.analysisTools as analysisTools
 #from deepRD.noiseSampler import binnedDataDimer, binnedData
 #from deepRD.noiseSampler import binnedDataDimer2, binnedData
 #from deepRD.noiseSampler import binnedDataDimer3, binnedData
-from deepRD.noiseSampler import binnedDataDimerConstrained1DGlobal # binnedDataDimerConstrained1D
+from deepRD.noiseSampler import binnedDataDimerGlobal #binnedDataDimerConstrained1DGlobal # binnedDataDimerConstrained1D
 
 
 
@@ -56,7 +56,7 @@ def calculateRelDistance(x1,x2):
 
 def calculateRelVelocity(v1, v2):
     relVelocity = v2 - v1
-    return relVelocity[0]
+    return np.linalg.norm(relVelocity)
 
 def calculateCMvelocity(v1, v2):
     CMvelocity = (v1 + v2)/2.0
@@ -152,9 +152,11 @@ for i in range(nfiles):
             additionalCondtionings[2 * j][0:1] = deltaX
             additionalCondtionings[2 * j][1:2] = deltaV
             additionalCondtionings[2 * j][2:3] = CMvel
+            additionalCondtionings[2 * j][3:4] = 0.0
             additionalCondtionings[2 * j + 1][0:1] = -1 * deltaX
             additionalCondtionings[2 * j + 1][1:2] = -1*deltaV
             additionalCondtionings[2 * j + 1][2:3] = CMvel
+            additionalCondtionings[2 * j + 1][3:4] = 0.0
         newtraj = np.concatenate([traj, additionalCondtionings], axis=1)
         trajs.append(newtraj)
     sys.stdout.write("File " + str(i+1) + " of " + str(nfiles) + " done." + "\r")
@@ -176,10 +178,10 @@ parameterDictionary['lagTimesteps'] = lagTimesteps
 
 # List of possible combinations for binnings
 binPositionList = [False] #[False, True]
-binVelocitiesList = [False]
+binVelocitiesList = [True]
 binRelativeDistanceList = [False]
-binRelativeSpeedList = [True]
-binCMvelocityList = [True]
+binRelativeSpeedList = [False]
+binCMvelocityList = [False]
 numBinnedAuxVarsList = [0,1,2] #[0,1] #[0,1,2]
 
 # # List of alternative possible combinations for binnings
@@ -201,17 +203,17 @@ def getNumberConditionedVariables(binPosition, binVelocity, binRelDistance,
                                   binRelSpeed, binCMvelocity, numBinnedAuxVars):
     numConditionedVariables = 0
     if binPosition:
-        numConditionedVariables += 1
+        numConditionedVariables += 6 #1
     if binVelocity:
-        numConditionedVariables += 1
+        numConditionedVariables += 6 #1
     if binRelDistance:
         numConditionedVariables += 1
     if binRelSpeed:
         numConditionedVariables += 1
     if binCMvelocity:
-        numConditionedVariables += 1
+        numConditionedVariables += 2 #1
     for i in range(numBinnedAuxVars):
-        numConditionedVariables += 1
+        numConditionedVariables += 6 #1
     return numConditionedVariables
 
 # def getNumberConditionedVariablesAlternative(binRelDist, binRelSpeed, binVelCenterMass, numBinnedAuxVars):
@@ -345,20 +347,20 @@ else:
             binPosition, binVelocity, binRelDistance, binRelSpeed, binCMvelocity, numBinnedAuxVars = parameterCombination
             numConditionedVariables = getNumberConditionedVariables(binPosition, binVelocity, binRelDistance,
                                                                     binRelSpeed, binCMvelocity, numBinnedAuxVars)
-            if numConditionedVariables <= 3:
+            if numConditionedVariables <= 6: #3:
                 #if numConditionedVariables == 1:
                 #dataOnBins = binnedData(boxsizeBinning, numbins1, lagTimesteps, binPosition, binVelocity,
                 #                        numBinnedAuxVars)
-                dataOnBins = binnedDataDimerConstrained1DGlobal(boxsizeBinning, numbins1, lagTimesteps, binPosition, binVelocity,
+                dataOnBins = binnedDataDimerGlobal(boxsizeBinning, numbins1, lagTimesteps, binPosition, binVelocity,
                                         binRelDistance, binRelSpeed, binCMvelocity, numBinnedAuxVars)
                 dataOnBins.loadData(trajs, nsigma1)
                 parameterDictionary['numbins'] = numbins1
                 parameterDictionary['nsigma'] = nsigma1
-            elif numConditionedVariables <= 6:
+            elif numConditionedVariables <= 12: #6:
                 #elif numConditionedVariables == 2:
                 #dataOnBins = binnedData(boxsizeBinning, numbins2, lagTimesteps, binPosition, binVelocity,
                 #                        numBinnedAuxVars)
-                dataOnBins = binnedDataDimerConstrained1DGlobal(boxsizeBinning, numbins2, lagTimesteps, binPosition,
+                dataOnBins = binnedDataDimerGlobal(boxsizeBinning, numbins2, lagTimesteps, binPosition,
                                                                 binVelocity, binRelDistance,
                                                                 binRelSpeed, binCMvelocity, numBinnedAuxVars)
                 dataOnBins.loadData(trajs, nsigma2)
@@ -367,7 +369,7 @@ else:
             else:
                 #dataOnBins = binnedData(boxsizeBinning, numbins3, lagTimesteps, binPosition, binVelocity,
                 #                        numBinnedAuxVars)
-                dataOnBins = binnedDataDimerConstrained1DGlobal(boxsizeBinning, numbins3, lagTimesteps, binPosition,
+                dataOnBins = binnedDataDimerGlobal(boxsizeBinning, numbins3, lagTimesteps, binPosition,
                                                                 binVelocity, binRelDistance,
                                                                 binRelSpeed, binCMvelocity, numBinnedAuxVars)
                 dataOnBins.loadData(trajs, nsigma3)
