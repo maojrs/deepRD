@@ -544,11 +544,11 @@ class langevinNoiseSamplerDimerConstrained1DGlobal(langevinNoiseSamplerDimer):
         elif self.conditionedOn == 'dpiririm':
             return np.concatenate((np.array([self.axisRelVelocity[index]]), particle1.aux1, particle2.aux1, particle1.aux2, particle2.aux2))
         elif self.conditionedOn == 'dqidpi':
-            return np.concatenate((np.array([self.relDistance[index]]), self.axisRelVelocity[index]))
+            return np.array([self.relDistance[index], self.axisRelVelocity[index]])
         elif self.conditionedOn == 'dqidpiri':
-            return np.concatenate((np.array([self.axisRelVelocity[index]]), particle1.aux1, particle2.aux1))
+            return np.concatenate((np.array([self.relDistance[index]]), np.array([self.axisRelVelocity[index]]), particle1.aux1, particle2.aux1))
         elif self.conditionedOn == 'dqidpiririm':
-            return np.concatenate((np.array([self.axisRelVelocity[index]]), particle1.aux1, particle2.aux1, particle1.aux2, particle2.aux2))
+            return np.concatenate((np.array([self.relDistance[index]]),np.array([self.axisRelVelocity[index]]), particle1.aux1, particle2.aux1, particle1.aux2, particle2.aux2))
         elif self.conditionedOn == 'qi':
             return np.array([particle1.nextPosition[j], particle2.nextPosition[j]])
         elif self.conditionedOn == 'qiri':
