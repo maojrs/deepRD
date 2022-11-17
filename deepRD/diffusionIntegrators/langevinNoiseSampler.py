@@ -543,6 +543,12 @@ class langevinNoiseSamplerDimerConstrained1DGlobal(langevinNoiseSamplerDimer):
             return np.concatenate((np.array([self.axisRelVelocity[index]]), particle1.aux1, particle2.aux1))
         elif self.conditionedOn == 'dpiririm':
             return np.concatenate((np.array([self.axisRelVelocity[index]]), particle1.aux1, particle2.aux1, particle1.aux2, particle2.aux2))
+        elif self.conditionedOn == 'dpivi':
+            return np.array([self.axisRelVelocity[index], self.centerMassVelocity[index]])
+        elif self.conditionedOn == 'dpiviri':
+            return np.concatenate((np.array([self.axisRelVelocity[index]]), np.array([self.centerMassVelocity[index]]), particle1.aux1, particle2.aux1))
+        elif self.conditionedOn == 'dpiviririm':
+            return np.concatenate((np.array([self.axisRelVelocity[index]]), np.array([self.centerMassVelocity[index]]), particle1.aux1, particle2.aux1, particle1.aux2, particle2.aux2))
         elif self.conditionedOn == 'dqidpi':
             return np.array([self.relDistance[index], self.axisRelVelocity[index]])
         elif self.conditionedOn == 'dqidpiri':
