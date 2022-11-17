@@ -58,6 +58,12 @@ def calculateRelVelocity(v1, v2):
     relVelocity = v2 - v1
     return relVelocity[0]
 
+def calculateCMvelocity(v1, v2):
+    CMvelocity = (v1 + v2)/2.0
+    return np.linalg.norm(CMvelocity)
+
+
+
 # def calculateAdditionalConditionings(x1,x2,v1,v2):
 #     deltaX = trajectoryTools.relativePosition(x1,x2,boundaryType, boxsize)
 #     deltaV = v2 - v1
@@ -134,7 +140,7 @@ for i in range(nfiles):
         trajs.append(newtraj)
     else:
         lentraj = np.shape([traj])[1]
-        additionalCondtionings = np.zeros([lentraj, 2])
+        additionalCondtionings = np.zeros([lentraj, 3])
         for j in range(int(lentraj / 2)):
             x1 = traj[2 * j][1:4]
             x2 = traj[2 * j + 1][1:4]
@@ -142,10 +148,13 @@ for i in range(nfiles):
             v2 = traj[2 * j + 1][4:7]
             deltaX = calculateRelDistance(x1, x2)
             deltaV = calculateRelVelocity(v1,v2)
+            CMvel = calculateCMvelocity(v1,v2)
             additionalCondtionings[2 * j][0:1] = deltaX
             additionalCondtionings[2 * j][1:2] = deltaV
+            additionalCondtionings[2 * j][2:3] = CMvel
             additionalCondtionings[2 * j + 1][0:1] = -1 * deltaX
             additionalCondtionings[2 * j + 1][1:2] = -1*deltaV
+            additionalCondtionings[2 * j + 1][2:3] = CMvel
         newtraj = np.concatenate([traj, additionalCondtionings], axis=1)
         trajs.append(newtraj)
     sys.stdout.write("File " + str(i+1) + " of " + str(nfiles) + " done." + "\r")
@@ -170,7 +179,7 @@ binPositionList = [False] #[False, True]
 binVelocitiesList = [False]
 binRelativeDistanceList = [False]
 binRelativeSpeedList = [True]
-binCMspeedList = [True]
+binCMvelocityList = [True]
 numBinnedAuxVarsList = [0,1,2] #[0,1] #[0,1,2]
 
 # # List of alternative possible combinations for binnings
@@ -188,18 +197,18 @@ numBinnedAuxVarsList = [0,1,2] #[0,1] #[0,1,2]
 # binRotatedVelocityList = [True]
 # numBinnedAuxVarsList = [0,1,2] #[0,1] #[0,1,2]
 
-def getNumberConditionedVariables(binPosition, binVelocity, binCMspeed,
-                                  binRelDistance, binRelSpeed, numBinnedAuxVars):
+def getNumberConditionedVariables(binPosition, binVelocity, binRelDistance,
+                                  binRelSpeed, binCMvelocity, numBinnedAuxVars):
     numConditionedVariables = 0
     if binPosition:
         numConditionedVariables += 1
     if binVelocity:
         numConditionedVariables += 1
-    if binCMspeed:
-        numConditionedVariables += 1
     if binRelDistance:
         numConditionedVariables += 1
     if binRelSpeed:
+        numConditionedVariables += 1
+    if binCMvelocity:
         numConditionedVariables += 1
     for i in range(numBinnedAuxVars):
         numConditionedVariables += 1
@@ -330,17 +339,18 @@ if useAlternativeConditionals:
             print(' ')
             del dataOnBins
 else:
-    for parameterCombination in product(*[binPositionList, binVelocitiesList, binCMspeedList, binRelativeDistanceList, binRelativeSpeedList, numBinnedAuxVarsList]):
+    for parameterCombination in product(*[binPositionList, binVelocitiesList, binRelativeDistanceList,
+                                          binRelativeSpeedList, binCMvelocityList, numBinnedAuxVarsList]):
         if parameterCombination != (False, False, False, False, False, 0):
-            binPosition, binVelocity, binCMspeed, binRelDistance, binRelSpeed, numBinnedAuxVars = parameterCombination
-            numConditionedVariables = getNumberConditionedVariables(binPosition, binVelocity, binCMspeed,
-                                                                    binRelDistance, binRelSpeed, numBinnedAuxVars)
+            binPosition, binVelocity, binRelDistance, binRelSpeed, binCMvelocity, numBinnedAuxVars = parameterCombination
+            numConditionedVariables = getNumberConditionedVariables(binPosition, binVelocity, binRelDistance,
+                                                                    binRelSpeed, binCMvelocity, numBinnedAuxVars)
             if numConditionedVariables <= 3:
                 #if numConditionedVariables == 1:
                 #dataOnBins = binnedData(boxsizeBinning, numbins1, lagTimesteps, binPosition, binVelocity,
                 #                        numBinnedAuxVars)
                 dataOnBins = binnedDataDimerConstrained1DGlobal(boxsizeBinning, numbins1, lagTimesteps, binPosition, binVelocity,
-                                        binRelDistance, binRelSpeed, numBinnedAuxVars)
+                                        binRelDistance, binRelSpeed, binCMvelocity, numBinnedAuxVars)
                 dataOnBins.loadData(trajs, nsigma1)
                 parameterDictionary['numbins'] = numbins1
                 parameterDictionary['nsigma'] = nsigma1
@@ -349,8 +359,8 @@ else:
                 #dataOnBins = binnedData(boxsizeBinning, numbins2, lagTimesteps, binPosition, binVelocity,
                 #                        numBinnedAuxVars)
                 dataOnBins = binnedDataDimerConstrained1DGlobal(boxsizeBinning, numbins2, lagTimesteps, binPosition,
-                                                                binVelocity, binCMspeed, binRelDistance,
-                                                                binRelSpeed, numBinnedAuxVars)
+                                                                binVelocity, binRelDistance,
+                                                                binRelSpeed, binCMvelocity, numBinnedAuxVars)
                 dataOnBins.loadData(trajs, nsigma2)
                 parameterDictionary['numbins'] = numbins2
                 parameterDictionary['nsigma'] = nsigma2
@@ -358,8 +368,8 @@ else:
                 #dataOnBins = binnedData(boxsizeBinning, numbins3, lagTimesteps, binPosition, binVelocity,
                 #                        numBinnedAuxVars)
                 dataOnBins = binnedDataDimerConstrained1DGlobal(boxsizeBinning, numbins3, lagTimesteps, binPosition,
-                                                                binVelocity, binCMspeed, binRelDistance,
-                                                                binRelSpeed, numBinnedAuxVars)
+                                                                binVelocity, binRelDistance,
+                                                                binRelSpeed, binCMvelocity, numBinnedAuxVars)
                 dataOnBins.loadData(trajs, nsigma3)
                 parameterDictionary['numbins'] = numbins3
                 parameterDictionary['nsigma'] = nsigma3
