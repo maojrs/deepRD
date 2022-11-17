@@ -545,6 +545,308 @@ class binnedDataDimer(binnedData):
         sys.stdout.write("\n" + "{:.2f}".format(self.percentageOccupiedBins) + "% of bins occupied. \n" )
 
 
+class binnedDataDimerGlobal(binnedData):
+    '''
+    Same as binnedDataDimer class, but applied to global state (ri+1 is 6 dimensions instead of 3)
+    '''
+
+    def __init__(self, boxsize, numbins = 100, lagTimesteps = 1, binPosition = False,
+                 binVelocity = False, binRelDistance = False, binRelSpeed = False, binCMvelocity = False,
+                 numBinnedAuxVars = 1, adjustPosVelBox = True):
+        super().__init__(boxsize, numbins, lagTimesteps, binPosition, binVelocity, numBinnedAuxVars,
+                         adjustPosVelBox)
+
+        self.binRelDistance = binRelDistance
+        self.binRelSpeed = binRelSpeed
+        self.binCMvelocity = binCMvelocity
+
+        # Calculate dimension and binning label
+        self.calculateDimensionAndBinningLabel2()
+        self.numparticles = 2
+
+        # Other important variables
+        self.relDistIndex = 11
+        self.relSpeIndex = 12
+        self.CMvelocityIndex = 13
+
+        # Obtain indexes in box array
+        self.relDistBoxIndex = None
+        self.relSpeBoxIndex = None
+        self.CMvelocityBoxIndex = None
+        self.calculateBoxIndexes2()
+
+        if isinstance(boxsize, (list, tuple, np.ndarray)):
+            if len(boxsize) != self.dimension:
+                raise Exception('Boxsize should be a scalar or an array matching the chosen dimension')
+            self.boxsize = boxsize
+        else:
+            self.boxsize = [boxsize]*self.dimension
+
+        if isinstance(numbins, (list, tuple, np.ndarray)):
+            if len(numbins) != self.dimension:
+                raise Exception('Numbins should be a scalar or an array matching the chosen dimension')
+            self.numbins = numbins
+        else:
+            self.numbins = [numbins]*self.dimension
+
+        # Create bins
+        bins = [None]*self.dimension
+        for i in range(self.dimension):
+            bins[i] = np.arange(-self.boxsize[i] / 2., self.boxsize[i] / 2., self.boxsize[i] / self.numbins[i])
+        self.bins = bins
+        self.data = {}
+
+    def calculateDimensionAndBinningLabel2(self):
+        self.binningLabel = 'ri+1|'
+        self.binningLabel2 = ''
+        self.dimension = 0
+        self.numConditionedVariables = 0
+        if self.binPosition:
+            self.binningLabel += 'qi,'
+            self.binningLabel2 += 'qi'
+            self.dimension +=6
+            self.numConditionedVariables += 1
+        if self.binVelocity:
+            self.binningLabel += 'pi,'
+            self.binningLabel2 += 'pi'
+            self.dimension +=6
+            self.numConditionedVariables += 1
+        if self.binRelDistance:
+            self.binningLabel += 'dqi,'
+            self.binningLabel2 += 'dqi'
+            self.dimension +=1
+        if self.binRelSpeed:
+            self.binningLabel += 'dpi,'
+            self.binningLabel2 += 'dpi'
+            self.dimension +=1
+            self.numConditionedVariables += 1
+        if self.binCMvelocity:
+            self.binningLabel += 'vi,'
+            self.binningLabel2 += 'vi'
+            self.dimension +=2
+            self.numConditionedVariables += 1
+        for i in range(self.numBinnedAuxVars):
+            self.dimension +=6
+            self.numConditionedVariables += 1
+            if i == 0:
+                self.binningLabel += 'ri,'
+                self.binningLabel2 += 'ri'
+            else:
+                self.binningLabel += 'ri-' +str(i) +','
+                self.binningLabel2 += 'ri' + 'm'*i
+
+    def calculateBoxIndexes2(self):
+        '''
+        Determines the indexes correspo0nding to which variable in the box array. It assumes the
+        variable are ordered first position, then velocity then aux variables.
+        '''
+        # Box indexes for position and velocity
+        if self.binPosition and self.binVelocity:
+            self.posBoxIndex = 0
+            self.velBoxIndex = 6
+        elif not self.binPosition and self.binVelocity:
+            self.velBoxIndex = 0
+        elif self.binPosition and not self.binVelocity:
+            self.posBoxIndex = 0
+
+        # Box indexes for component velocity and aux vars
+        indexes = [self.posBoxIndex, self.velBoxIndex]
+        indexes = list(filter(lambda ele: ele is not None, indexes)) # remove Nones
+        if not indexes: #empty list
+            maxIndexSoFar = 0
+        else:
+            maxIndexSoFar = max(indexes) + 6
+
+        # Index for relDistance and relSpeed
+        if self.binRelDistance and self.binRelSpeed:
+            self.relDistBoxIndex = maxIndexSoFar
+            self.relSpeBoxIndex = maxIndexSoFar + 1
+            maxIndexSoFar += 2
+        elif not self.binRelDistance and self.binRelSpeed:
+            self.relSpeBoxIndex = maxIndexSoFar
+            maxIndexSoFar += 1
+        elif self.binRelDistance and not self.binRelSpeed:
+            self.relDistBoxIndex = maxIndexSoFar
+            maxIndexSoFar = + 1
+
+        if self.binCMvelocity:
+            self.CMvelocityBoxIndex = maxIndexSoFar
+            maxIndexSoFar = + 2
+
+        self.auxBoxIndex = maxIndexSoFar
+
+
+    def adjustBox(self, trajs, variable = 'position', nsigma=-1):
+        '''
+        Calculate boxlimits of position or velocity variables from trajectories for binning and
+        adjust boxsize accordingly. If nsigma < 0, it creates a box around all data.
+        If it is a numerical value, it includes up to nsigma standard deviations around the mean.
+        The variable self.pos/velBoxIndex correspond to the index of the x-position/velocity in the
+        boxsize array.
+        '''
+        onlyPositive = False
+        if variable == 'position':
+            trajIndex = self.posIndex
+            boxIndex = self.posBoxIndex
+            numvars = 3
+            onlyPositive = [False]*numvars
+        elif variable == 'velocity':
+            trajIndex = self.velIndex
+            boxIndex = self.velBoxIndex
+            numvars = 3
+            onlyPositive = [False]*numvars
+        elif variable == 'relDistance':
+            trajIndex = self.relDistIndex
+            boxIndex = self.relDistBoxIndex
+            numvars = 1
+            onlyPositive = [False]*numvars
+        elif variable == 'relSpeed':
+            trajIndex = self.relSpeIndex
+            boxIndex = self.relSpeBoxIndex
+            numvars = 1
+            onlyPositive = [False]*numvars
+        elif variable == 'CMvelocity':
+            trajIndex = self.CMvelocityIndex
+            boxIndex = self.CMvelocityBoxIndex
+            numvars = 2
+            onlyPositive = [False] * numvars
+        else:
+            print('Variable for adjustBox functions must be position, velocity')
+        if nsigma < 0:
+            minvec = np.array(trajs[0][0][trajIndex: trajIndex + numvars])
+            maxvec = np.array(trajs[0][0][trajIndex: trajIndex + numvars])
+            for traj in trajs:
+                for i in range(len(traj)):
+                    condVar = traj[i][trajIndex: trajIndex + numvars]
+                    for j in range(numvars):
+                        minvec[j] = min(minvec[j], condVar[j])
+                        maxvec[j] = max(maxvec[j], condVar[j])
+        else:
+            mean = trajectoryTools.calculateMean(trajs, [trajIndex, trajIndex + numvars])
+            stddev = trajectoryTools.calculateStdDev(trajs, [trajIndex, trajIndex + numvars], mean)
+            minvec = mean - nsigma * stddev
+            maxvec = mean + nsigma * stddev
+            for j in range(numvars):
+                if onlyPositive[j]:
+                    minvec[j] = max(minvec[j], 0.0)
+        # Adjust boxsize and bins accordingly
+        if variable == 'position' or variable == 'velocity':
+            for l in range(self.numparticles):
+                for k in range(numvars):
+                    currentBoxindex = boxIndex + numvars * l + k
+                    self.boxsize[currentBoxindex] = (maxvec[k] - minvec[k])
+                    voxeledge = self.boxsize[currentBoxindex] / self.numbins[currentBoxindex]
+                    self.bins[currentBoxindex] = np.arange(minvec[k], maxvec[k], voxeledge)
+        else:
+            for k in range(numvars):
+                currentBoxindex = boxIndex + k
+                self.boxsize[currentBoxindex] = (maxvec[k] - minvec[k])
+                voxeledge = self.boxsize[currentBoxindex] / self.numbins[currentBoxindex]
+                self.bins[currentBoxindex] = np.arange(minvec[k], maxvec[k], voxeledge)
+
+
+    def adjustBoxAux(self, trajs, nsigma=-1):
+        '''
+        Calculate boxlimits of auxiliary variables from trajectories for binning and
+        adjust boxsize accordingly. If nsigma < 0, it creates a box around all data.
+        If it is a numerical value, it includes up to nsigma standard deviations around the mean.
+        The variable self.auxBoxIndex correspond to the index of the x-coordinate of the first
+        aux variable in the boxsize array; numAuxVars corresponds to the number of auxiliary
+        variables, e.g. in ri+1|ri,ri-1, it would be two.
+        '''
+        # Adjust min and max of box
+        minvec = np.array(trajs[0][0][self.auxIndex: self.auxIndex + 6])
+        maxvec = np.array(trajs[0][0][self.auxIndex: self.auxIndex + 6])
+        for traj in trajs:
+            for i in range(len(traj)):
+                condVar = traj[i][self.auxIndex: self.auxIndex + 6]
+                for j in range(6):
+                    minvec[j] = min(minvec[j], condVar[j])
+                    maxvec[j] = max(maxvec[j], condVar[j])
+        # Don't take into account data beyond nsigma standard deviations
+        if nsigma > 0:
+            mean = trajectoryTools.calculateMean(trajs, [self.auxIndex,self.auxIndex + 1])
+            stddev = trajectoryTools.calculateStdDev(trajs, [self.auxIndex,self.auxIndex + 1], mean)
+            minvecAlt = mean - nsigma*stddev
+            maxvecAlt = mean + nsigma*stddev
+            for j in range(6):
+                minvec[j] = max(minvec[j], minvecAlt[j])
+                maxvec[j] = min(maxvec[j], maxvecAlt[j])
+        # Adjust boxsize and bins accordingly
+        for m in range(self.numBinnedAuxVars):
+            for k in range(6):
+                boxIndex = self.auxBoxIndex + k + 6 * m
+                self.boxsize[boxIndex] = (maxvec[k] - minvec[k])
+                voxeledge = self.boxsize[boxIndex] / self.numbins[boxIndex]
+                self.bins[boxIndex] = np.arange(minvec[k], maxvec[k], voxeledge)
+
+
+    def loadData(self, trajs, nsigma=-1):
+        '''
+        Loads data into binning class. If nsigma < 0, it creates a box around all data.
+        If it is a numerical value, it includes up to nsigma standard deviations around the mean.
+        '''
+        # Adjust boxes size for binning
+        if self.adjustPosVelBox and self.binPosition:
+            self.adjustBox(trajs, 'position', nsigma)
+        if self.adjustPosVelBox and self.binVelocity:
+            self.adjustBox(trajs, 'velocity', nsigma)
+        if self.adjustPosVelBox and self.binRelDistance:
+            self.adjustBox(trajs, 'relDistance', nsigma)
+        if self.adjustPosVelBox and self.binRelSpeed:
+            self.adjustBox(trajs, 'relSpeed', nsigma)
+        if self.adjustPosVelBox and self.binCMvelocity:
+            self.adjustBox(trajs, 'CMvelocity', nsigma)
+        if self.numBinnedAuxVars > 0:
+            self.adjustBoxAux(trajs, nsigma) # Adjust box limits for r variables
+        # Loop over all data and load into dictionary
+        print('Binning data for ' + self.binningLabel + ' ...')
+        for k, traj in enumerate(trajs):
+            for j in range(int( (len(traj)/2 - (self.numBinnedAuxVars + 1) * self.lagTimesteps) )):
+                i = j + self.numBinnedAuxVars * self.lagTimesteps
+                conditionedVars = []
+                if self.binPosition:
+                    qi1 = traj[2*i][self.posIndex:self.posIndex + 3]
+                    qi2 = traj[2*i+1][self.posIndex:self.posIndex + 3]
+                    conditionedVars.append(qi1)
+                    conditionedVars.append(qi2)
+                if self.binVelocity:
+                    pi1 = traj[2*i][self.velIndex:self.velIndex + 3]
+                    pi2 = traj[2*i+1][self.velIndex:self.velIndex + 3]
+                    conditionedVars.append(pi1)
+                    conditionedVars.append(pi2)
+                if self.binRelDistance:
+                    dqi = traj[2*i][self.relDistIndex:self.relDistIndex + 1]
+                    conditionedVars.append(dqi)
+                if self.binRelSpeed:
+                    dpi = traj[2*i][self.relSpeIndex:self.relSpeIndex + 1]
+                    conditionedVars.append(dpi)
+                if self.binCMvelocity:
+                    si = traj[2*i][self.CMvelocityIndex:self.CMvelocityIndex + 2]
+                    conditionedVars.append(si)
+                for m in range(self.numBinnedAuxVars):
+                    ii = i - m * self.lagTimesteps
+                    ri1 = traj[2*ii][self.auxIndex:self.auxIndex + 3]
+                    ri2 = traj[2*ii+1][self.auxIndex:self.auxIndex + 3]
+                    conditionedVars.append(ri1)
+                    conditionedVars.append(ri2)
+                conditionedVars = np.concatenate(conditionedVars)
+                ii = i + self.lagTimesteps
+                riplus1 = traj[2*ii][self.auxIndex:self.auxIndex + 3]
+                riplus2 = traj[2*ii+1][self.auxIndex:self.auxIndex + 3]
+                riplus = np.concatenate((riplus1, riplus2))
+                ijk = self.getBinIndex(conditionedVars)
+                try:
+                    self.data[ijk].append(riplus)
+                except KeyError:
+                    self.data[ijk] = [riplus]
+            sys.stdout.write("File " + str(k + 1) + " of " + str(len(trajs)) + " done." + "\r")
+        self.updateDataStructures()
+        self.percentageOccupiedBins = 100.0 * len(self.occupiedTuplesArray)/np.product(self.numbins)
+        sys.stdout.write("Loaded trajectories into bins. \r" )
+        sys.stdout.write("\n" + "{:.2f}".format(self.percentageOccupiedBins) + "% of bins occupied. \n" )
+
+
 class binnedDataDimer2(binnedData):
     '''
     Another specialized version of binnedData for dimer example

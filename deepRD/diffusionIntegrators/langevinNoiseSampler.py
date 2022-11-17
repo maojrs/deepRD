@@ -258,11 +258,11 @@ class langevinNoiseSamplerDimer(langevinNoiseSampler):
         elif self.conditionedOn == 'dqiviririm':
             return np.concatenate((np.array([self.relDistance[index]]), self.centerMassVelocity[index], particle.aux1, particle.aux2))
         elif self.conditionedOn == 'dpivi':
-            return np.concatenate((np.array([self.axisRelVelocity[index]]), self.centerMassVelocity[index]))
+            return np.concatenate((np.array([self.axisRelVelocity[index]]), self.centerMassVelocity[index,0]))
         elif self.conditionedOn == 'dpiviri':
-            return np.concatenate((np.array([self.axisRelVelocity[index]]), self.centerMassVelocity[index], particle.aux1))
+            return np.concatenate((np.array([self.axisRelVelocity[index]]), self.centerMassVelocity[index,0], particle.aux1))
         elif self.conditionedOn == 'dpiviririm':
-            return np.concatenate((np.array([self.axisRelVelocity[index]]), self.centerMassVelocity[index], particle.aux1, particle.aux2))
+            return np.concatenate((np.array([self.axisRelVelocity[index]]), self.centerMassVelocity[index,0], particle.aux1, particle.aux2))
         elif self.conditionedOn == 'dqidpivi':
             return ((np.array([self.relDistance[index]]), np.array([self.axisRelVelocity[index]]), self.centerMassVelocity[index]))
         elif self.conditionedOn == 'dqidpiviri':
@@ -544,7 +544,7 @@ class langevinNoiseSamplerDimerConstrained1DGlobal(langevinNoiseSamplerDimer):
         elif self.conditionedOn == 'dpiririm':
             return np.concatenate((np.array([self.axisRelVelocity[index]]), particle1.aux1, particle2.aux1, particle1.aux2, particle2.aux2))
         elif self.conditionedOn == 'dpivi':
-            return np.array([self.axisRelVelocity[index], self.centerMassVelocity[index]])
+            return np.array([self.axisRelVelocity[index], self.centerMassVelocity[index,0]])
         elif self.conditionedOn == 'dpiviri':
             return np.concatenate((np.array([self.axisRelVelocity[index]]), np.array([self.centerMassVelocity[index]]), particle1.aux1, particle2.aux1))
         elif self.conditionedOn == 'dpiviririm':
