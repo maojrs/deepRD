@@ -765,8 +765,8 @@ class binnedDataDimerGlobal(binnedData):
                     maxvec[j] = max(maxvec[j], condVar[j])
         # Don't take into account data beyond nsigma standard deviations
         if nsigma > 0:
-            mean = trajectoryTools.calculateMean(trajs, [self.auxIndex,self.auxIndex + 1])
-            stddev = trajectoryTools.calculateStdDev(trajs, [self.auxIndex,self.auxIndex + 1], mean)
+            mean = trajectoryTools.calculateMean(trajs, [self.auxIndex,self.auxIndex + 6])
+            stddev = trajectoryTools.calculateStdDev(trajs, [self.auxIndex,self.auxIndex + 6], mean)
             minvecAlt = mean - nsigma*stddev
             maxvecAlt = mean + nsigma*stddev
             for j in range(6):
