@@ -690,7 +690,7 @@ class langevinNoiseSamplerDimerGlobal(langevinNoiseSamplerDimer):
         self.integrateBOBGlobal(particleList, self.dt)
         self.integrateA(particleList, self.dt/2.0)
         self.enforceBoundary(particleList)
-        particleList.updatePositionsVelocitiesIndex(0)
+        particleList.updatePositionsVelocities()
 
     def integrateBOBGlobal(self, particleList, dt):
         '''Integrates BOB integrations step at once. This is required to separate the noise Sampler from the
@@ -715,8 +715,8 @@ class langevinNoiseSamplerDimerGlobal(langevinNoiseSamplerDimer):
 
             particleList[2*i].aux2 = 1.0 * particleList[2*i].aux1
             particleList[2*i+1].aux2 = 1.0 * particleList[2*i+1].aux1
-            particleList[2*i].aux1 = interactionNoiseTerm[0]
-            particleList[2*i+1].aux1 = interactionNoiseTerm[1]
+            particleList[2*i].aux1 = interactionNoiseTerm[0:3]
+            particleList[2*i+1].aux1 = interactionNoiseTerm[3:6]
 
-            particleList[2*i].nextVelocity = frictionForceTerm1 + interactionNoiseTerm[0]
-            particleList[2*i+1].nextVelocity = frictionForceTerm2 + interactionNoiseTerm[1]
+            particleList[2*i].nextVelocity = frictionForceTerm1 + interactionNoiseTerm[0:3]
+            particleList[2*i+1].nextVelocity = frictionForceTerm2 + interactionNoiseTerm[3:6]

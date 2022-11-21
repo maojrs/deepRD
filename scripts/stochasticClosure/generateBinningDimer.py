@@ -23,7 +23,7 @@ useAlternativeConditionals = False #True
 parentDirectory = os.environ['DATA'] + 'stochasticClosure/dimer/boxsize' + str(bsize)+ '/benchmark/'
 fnamebase = parentDirectory + 'simMoriZwanzig_'
 foldername = 'binnedData/'
-binningDataDirectory = os.path.join(os.environ['DATA'] + 'stochasticClosure/dimer1DGlobal/boxsize' + str(bsize) + '/', foldername)
+binningDataDirectory = os.path.join(os.environ['DATA'] + 'stochasticClosure/dimerGlobal/boxsize' + str(bsize) + '/', foldername)
 
 
 try:
