@@ -52,7 +52,7 @@ bsize = 8 #5 #8 #10
 # Available conditionings: dqi, dpi, vi,  ri, dqiri, dpiri, dqiririm, dpiririm, etc...
 # dqi:=relative distance between dimer particles, dpi:= relative velocity along dimer axis,
 # vi:=center of mass velocity (first component norm along axis, second one norm of perpendicular part)
-conditionedOn = 'dqi' #'pi'
+conditionedOn = 'pi' #'pi'
 outputAux = True #False
 
 # Output data directory
