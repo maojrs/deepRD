@@ -727,7 +727,16 @@ class langevinNoiseSamplerDimerGlobal(langevinNoiseSamplerDimer):
             frictionForceTerm2 += (1 + expterm2) * self.forceField[2*i+1] * dt/(2*particle2.mass)
             # Calculate interaction and noise term from noise sampler
             conditionedVars = self.getConditionedVars(particle1, particle2, 0)
-            interactionNoiseTerm = self.noiseSampler.sample(conditionedVars)
+
+            # Sample interaction noisterm
+            #interactionNoiseTerm = self.noiseSampler.sample(conditionedVars)
+            rotatedInteractionNoiseTerm = self.noiseSampler.sample(conditionedVars)
+
+            # Rotate back riplus if needed
+            #interactionNoiseTerm1 = interactionNoiseTerm[0:3]
+            #interactionNoiseTerm2 = interactionNoiseTerm[3:6]
+            interactionNoiseTerm1 = trajectoryTools.rotateVecInverse(self.relPosition[i], rotatedInteractionNoiseTerm[0:3])
+            interactionNoiseTerm2 = trajectoryTools.rotateVecInverse(self.relPosition[i], rotatedInteractionNoiseTerm[3:6])
 
             ## For testing and consistency.
             #xi = np.sqrt(self.kBT * particle.mass * (1 - np.exp(-2 * self.Gamma * dt / particle.mass)))
@@ -735,8 +744,8 @@ class langevinNoiseSamplerDimerGlobal(langevinNoiseSamplerDimer):
 
             particleList[2*i].aux2 = 1.0 * particleList[2*i].aux1
             particleList[2*i+1].aux2 = 1.0 * particleList[2*i+1].aux1
-            particleList[2*i].aux1 = interactionNoiseTerm[0:3]
-            particleList[2*i+1].aux1 = interactionNoiseTerm[3:6]
+            particleList[2*i].aux1 = interactionNoiseTerm1
+            particleList[2*i+1].aux1 = interactionNoiseTerm2
 
-            particleList[2*i].nextVelocity = frictionForceTerm1 + interactionNoiseTerm[0:3]
-            particleList[2*i+1].nextVelocity = frictionForceTerm2 + interactionNoiseTerm[3:6]
+            particleList[2*i].nextVelocity = frictionForceTerm1 + interactionNoiseTerm1
+            particleList[2*i+1].nextVelocity = frictionForceTerm2 + interactionNoiseTerm2
