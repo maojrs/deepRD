@@ -18,7 +18,7 @@ Currently implemented on conditioning ri+1 on all the combinations dqi,dpi,vi,ri
 '''
 
 bsize = 8
-useAlternativeConditionals = True
+useAlternativeConditionals = False
 
 parentDirectory = os.environ['DATA'] + 'stochasticClosure/dimer/boxsize' + str(bsize)+ '/benchmark/'
 fnamebase = parentDirectory + 'simMoriZwanzig_'
@@ -167,7 +167,7 @@ print(' ')
 lagTimesteps = 1  # Number of timesteps (from data) to look back in time
 boxsizeBinning = boxsize # Overriden by default when loading trajectory data
 numbins1 = 30 #50
-numbins2 = 10 #50
+numbins2 = 20 #10 #50
 numbins3 = 5 #50
 nsigma1 = 3 # Only include up to nsigma standard deviations around mean of data. If no value given, includes all.
 nsigma2 = 3 #2
@@ -176,13 +176,13 @@ nsigma3 = 2
 # Add elements to parameter dictionary
 parameterDictionary['lagTimesteps'] = lagTimesteps
 
-# # List of possible combinations for binnings
-# binPositionList = [False] #[False, True]
-# binVelocitiesList = [True]
-# binRelativeDistanceList = [False]
-# binRelativeSpeedList = [False]
-# binCMvelocityList = [False]
-# numBinnedAuxVarsList = [0,1,2] #[0,1] #[0,1,2]
+# List of possible combinations for binnings
+binPositionList = [False] #[False, True]
+binVelocitiesList = [True]
+binRelativeDistanceList = [False]
+binRelativeSpeedList = [False]
+binCMvelocityList = [False]
+numBinnedAuxVarsList = [0,1] #[0,1] #[0,1,2]
 
 # # List of alternative possible combinations for binnings
 # #binPositionList = [False] #[False, True]
@@ -195,9 +195,9 @@ parameterDictionary['lagTimesteps'] = lagTimesteps
 # binComponentVelocityList = [True]
 # numBinnedAuxVarsList = [0,1,2] #[0,1] #[0,1,2]
 
-# List of alternative possible combinations for binnings
-binRotatedVelocityList = [True]
-numBinnedAuxVarsList = [0,1,2] #[0,1] #[0,1,2]
+## List of alternative possible combinations for binnings
+#binRotatedVelocityList = [True]
+#numBinnedAuxVarsList = [0,1] #[0,1] #[0,1,2]
 
 def getNumberConditionedVariables(binPosition, binVelocity, binRelDistance,
                                   binRelSpeed, binCMvelocity, numBinnedAuxVars):
