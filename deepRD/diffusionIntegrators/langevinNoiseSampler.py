@@ -643,7 +643,7 @@ class langevinNoiseSamplerDimerGlobal(langevinNoiseSamplerDimer):
             self.relPosition[2*i] = relPos
             self.relPosition[2*i+1] = -1*relPos
             self.rotatedVelocity[2*i] = trajectoryTools.rotateVec(relPosUnit, particleList[2*i].nextVelocity)
-            self.rotatedVelocity[2*i+1] = trajectoryTools.rotateVec(-1*relPosUnit, particleList[2*i+1].nextVelocity)
+            self.rotatedVelocity[2*i+1] = trajectoryTools.rotateVec(relPosUnit, particleList[2*i+1].nextVelocity)
 
     def getConditionedVars(self, particle1, particle2, index = None):
         '''
@@ -735,8 +735,8 @@ class langevinNoiseSamplerDimerGlobal(langevinNoiseSamplerDimer):
             # Rotate back riplus if needed
             #interactionNoiseTerm1 = interactionNoiseTerm[0:3]
             #interactionNoiseTerm2 = interactionNoiseTerm[3:6]
-            interactionNoiseTerm1 = trajectoryTools.rotateVecInverse(self.relPosition[i], rotatedInteractionNoiseTerm[0:3])
-            interactionNoiseTerm2 = trajectoryTools.rotateVecInverse(self.relPosition[i], rotatedInteractionNoiseTerm[3:6])
+            interactionNoiseTerm1 = trajectoryTools.rotateVecInverse(self.relPosition[2*i], rotatedInteractionNoiseTerm[0:3])
+            interactionNoiseTerm2 = trajectoryTools.rotateVecInverse(self.relPosition[2*i], rotatedInteractionNoiseTerm[3:6])
 
             ## For testing and consistency.
             #xi = np.sqrt(self.kBT * particle.mass * (1 - np.exp(-2 * self.Gamma * dt / particle.mass)))
