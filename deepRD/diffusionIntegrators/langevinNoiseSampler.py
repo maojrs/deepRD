@@ -729,14 +729,14 @@ class langevinNoiseSamplerDimerGlobal(langevinNoiseSamplerDimer):
             conditionedVars = self.getConditionedVars(particle1, particle2, 0)
 
             # Sample interaction noisterm
-            #interactionNoiseTerm = self.noiseSampler.sample(conditionedVars)
-            rotatedInteractionNoiseTerm = self.noiseSampler.sample(conditionedVars)
+            interactionNoiseTerm = self.noiseSampler.sample(conditionedVars)
+            #rotatedInteractionNoiseTerm = self.noiseSampler.sample(conditionedVars)
 
             # Rotate back riplus if needed
-            #interactionNoiseTerm1 = interactionNoiseTerm[0:3]
-            #interactionNoiseTerm2 = interactionNoiseTerm[3:6]
-            interactionNoiseTerm1 = trajectoryTools.rotateVecInverse(self.relPosition[2*i], rotatedInteractionNoiseTerm[0:3])
-            interactionNoiseTerm2 = trajectoryTools.rotateVecInverse(self.relPosition[2*i], rotatedInteractionNoiseTerm[3:6])
+            interactionNoiseTerm1 = interactionNoiseTerm[0:3]
+            interactionNoiseTerm2 = interactionNoiseTerm[3:6]
+            #interactionNoiseTerm1 = trajectoryTools.rotateVecInverse(self.relPosition[2*i], rotatedInteractionNoiseTerm[0:3])
+            #interactionNoiseTerm2 = trajectoryTools.rotateVecInverse(self.relPosition[2*i], rotatedInteractionNoiseTerm[3:6])
 
             ## For testing and consistency.
             #xi = np.sqrt(self.kBT * particle.mass * (1 - np.exp(-2 * self.Gamma * dt / particle.mass)))
