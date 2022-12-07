@@ -8,7 +8,7 @@ import deepRD.tools.analysisTools as analysisTools
 #from deepRD.noiseSampler import binnedDataDimer, binnedData
 #from deepRD.noiseSampler import binnedDataDimer2, binnedData
 #from deepRD.noiseSampler import binnedDataDimer3, binnedData
-from deepRD.noiseSampler import binnedDataDimerRotatedVelGlobal #binnedDataDimerGlobal #binnedDataDimerConstrained1DGlobal # binnedDataDimerConstrained1D
+from deepRD.noiseSampler import binnedDataDimerRotatedVelGlobal, binnedDataDimerGlobal #binnedDataDimerConstrained1DGlobal # binnedDataDimerConstrained1D
 
 
 

@@ -270,6 +270,30 @@ class langevinNoiseSamplerDimer(langevinNoiseSampler):
             sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
 
 
+    def propagateFPT(self, particleList, finalSeparation, threshold):
+        '''
+        Same as propagate, but also takes a finalPosition argument. If the final position is reached the propagation
+        is stopped and the time is printed.
+        '''
+        if self.firstRun:
+            self.prepareSimulation(particleList)
+        # Equilbration runs
+        for i in range(self.equilibrationSteps):
+            self.integrateOne(particleList)
+        # Begins integration
+        time = 0.0
+        condition = True
+        while (condition):
+            self.integrateOne(particleList)
+            # Update variables
+            time = time + self.dt
+            if time > self.tfinal:
+                condition = False
+            elif np.linalg.norm(particleList[0].position - particleList[1].position) < threshold:
+                condition = False
+                return 'success', time
+        return 'failed', time
+
 class langevinNoiseSamplerDimer2(langevinNoiseSamplerDimer):
     '''
     Alternative specialized version of the langevinNoiseSampler class to integrate the dynamics of a dimer bonded by
