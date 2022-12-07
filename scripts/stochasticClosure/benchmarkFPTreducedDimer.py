@@ -4,8 +4,6 @@ import os
 import sys
 import pickle
 import deepRD
-#from deepRD.diffusionIntegrators import langevinNoiseSampler, langevinNoiseSamplerDimer, \
-#from deepRD.diffusionIntegrators import langevinNoiseSamplerDimer2, langevinNoiseSamplerDimer3
 from deepRD.diffusionIntegrators import langevinNoiseSamplerDimerGlobal #langevinNoiseSamplerDimerConstrained1DGlobal #, langevinNoiseSamplerDimerConstrained1D
 from deepRD.potentials import pairBistable
 from deepRD.noiseSampler import noiseSampler, defaultSamplingModel
@@ -47,16 +45,12 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 # Simulation parameters
 #localDataDirectory = '../../data/stochasticClosure/'
 localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
-numSimulations = 10 #10 #100
-bsize = 8 #5 #8 #10
-# Available conditionings: dqi, dpi, vi,  ri, dqiri, dpiri, dqiririm, dpiririm, etc...
-# dqi:=relative distance between dimer particles, dpi:= relative velocity along dimer axis,
-# vi:=center of mass velocity (first component norm along axis, second one norm of perpendicular part)
-conditionedOn = 'pi' #'pi'
-outputAux = True #False
+numSimulations = 1000 #100
+bsize= 8
+conditionedOn = 'pi' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
 
 # Output data directory
-foldername = 'dimerGlobal/boxsize' + str(bsize) + '/benchmarkReduced_' + conditionedOn
+foldername = 'dimerGlobal/boxsize' + str(bsize) + '/benchmarkFPTreduced'
 outputDataDirectory = os.path.join(localDataDirectory, foldername)
 # Create folder for data
 try:
@@ -70,6 +64,7 @@ except OSError as error:
 # Load binning sampling models
 print("Loading binned data ...")
 binnedDataFilename = localDataDirectory + 'dimerGlobal/boxsize' + str(bsize) + '/binnedData/' + conditionedOn + 'BinnedData.pickle'
+#binnedDataFilename = localDataDirectory + 'binnedData/riBinnedData.pickle'
 dataOnBins = pickle.load(open(binnedDataFilename, "rb" ))
 parameters = dataOnBins.parameterDictionary
 print('Binned data loaded')
@@ -83,19 +78,16 @@ KbT = parameters['KbT']
 boxsize = parameters['boxsize']
 boundaryType = parameters['boundaryType']
 
-if bsize != boxsize:
-    print('Requested boxsize does not match simulation')
-
 # Extract binning parameters
 numbins = parameters['numbins']
 lagTimesteps = parameters['lagTimesteps']
 nsigma = parameters['nsigma']
 
+if bsize != boxsize:
+    print('Requested boxsize does not match simulation')
+
 # Define noise sampler
 nSampler = noiseSampler(dataOnBins)
-# For testing
-#defaultSampler = defaultSamplingModel(mean=0, covariance=0.005)
-#nSampler = noiseSampler(defaultSampler)
 
 # Parameters for pair potential that will only acts on distinguished particles (type 1)
 particleDiameter = 0.5
@@ -106,74 +98,76 @@ scalefactor = 2
 # Integrator parameters
 integratorStride = 1 #50
 tfinal = 10000
-equilibrationSteps = 10000
-calculateRelPosVel = True
+equilibrationSteps = 0
+
+# Parameters for FPT calculations
+# Parameters for FPT calculations
+transitionType = 'CO' # CO or OC, closed to open or open to closed
+if transitionType == 'CO':
+    initialSeparation = 1*x0 # Either first minima: x0 or second minima: 2*rad
+    finalSeparation = 2*rad # Either first minima: x0 or second minima: 2*rad
+else:
+    initialSeparation = 2*rad # Either first minima: x0 or second minima: 2*rad
+    finalSeparation = 1*x0 # Either first minima: x0 or second minima: 2*rad
+minimaThreshold = 1.9*rad
 
 # Create parameter dictionary to write to parameters reference file
 parameterfilename = os.path.join(outputDataDirectory, "parameters")
 parameterDictionary = {'numFiles' : numSimulations, 'dt' : dt, 'Gamma' : Gamma, 'KbT' : KbT,
                        'mass' : mass, 'tfinal' : tfinal, 'stride' : integratorStride,
                        'boxsize' : boxsize, 'boundaryType' : boundaryType,
-                       'equilibrationSteps' : equilibrationSteps, 'conditionedOn': conditionedOn,
-                       'numbins': numbins, 'lagTimesteps': lagTimesteps, 'nsigma': nsigma}
+                       'conditionedOn': conditionedOn, 'numbins': numbins, 'lagTimesteps': lagTimesteps,
+                       'nsigma': nsigma}
 analysisTools.writeParameters(parameterfilename, parameterDictionary)
 
 # Provides base filename (folder must exist (and preferably empty), otherwise H5 might fail)
 basefilename = os.path.join(outputDataDirectory, "simMoriZwanzigReduced_")
 
+# Create empty files to save the data in parallel algorithm
+filename = outputDataDirectory  + '/simMoriZwanzigFPTs_' + conditionedOn + '_box' + str(boxsize) + '_nsims' + str(numSimulations) + '.xyz'
+
 # Simulation wrapper for parallel runs
 def runParallelSims(simnumber):
-    #if simnumber % 2 == 0:
-    #    sign = 1
-    #else:
-    #    sign= -1
-
     # Define particle list
     seed = int(simnumber)
     random.seed(seed)
-    position1 = [0.0, 0.0, 0.0]
-    position2 = [x0, 0.0, 0.0]
-    velocity = [0.0, 0.0, 0.0]
+    position1 = np.array([0,0,0])
+    position2 = np.array([initialSeparation,0,0])
+    velocity = [0, 0, 0]
     particle1 = deepRD.particle(position1, velocity = velocity, mass=mass)
     particle2 = deepRD.particle(position2, velocity = velocity, mass=mass)
+
     particleList = deepRD.particleList([particle1, particle2])
 
     # Define pair potential
     pairBistablePotential = pairBistable(x0, rad, scalefactor)
 
-    #diffIntegrator = langevinNoiseSampler(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
-    #                                      boundaryType, equilibrationSteps, conditionedOn)
-    #diffIntegrator = langevinNoiseSamplerDimer(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
-    #                                      boundaryType, equilibrationSteps, conditionedOn)
-    #diffIntegrator = langevinNoiseSamplerDimer2(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
-    #                                      boundaryType, equilibrationSteps, conditionedOn)
-    #diffIntegrator = langevinNoiseSamplerDimer3(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
-    #                                            boundaryType, equilibrationSteps, conditionedOn)
     diffIntegrator = langevinNoiseSamplerDimerGlobal(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
-                                          boundaryType, equilibrationSteps, conditionedOn)
-
+                                                     boundaryType, equilibrationSteps, conditionedOn)
     diffIntegrator.setPairPotential(pairBistablePotential)
 
     # Integrate dynamics
-    #t, X, V = diffIntegrator.propagate(particleList, outputAux = outputAux)
-    t, X, V, Raux = diffIntegrator.propagate(particleList, outputAux = outputAux)
+    result, FPT = diffIntegrator.propagateFPT(particleList, finalSeparation, minimaThreshold)
+
+    return result, FPT
 
 
-    # Write dynamics into trjactory
-    traj = trajectoryTools.convert2trajectory(t, [X, V])
-    #traj = trajectoryTools.convert2trajectory(t, [X, V, Raux])
-    trajectoryTools.writeTrajectory(traj,basefilename,simnumber)
+def multiprocessingHandler():
+    '''
+    Handles parallel processing of simulationFPT and writes to same file in parallel
+    '''
+    # Runs several simulations in parallel
+    num_cores = multiprocessing.cpu_count() - 1
+    pool = Pool(processes=num_cores)
+    trajNumList = list(range(numSimulations))
+    with open(filename, 'w') as file:
+        for index, result in enumerate(pool.imap(runParallelSims, trajNumList)):
+            status, time = result
+            if status == 'success':
+                file.write(str(time) + '\n')
+                print("Simulation " + str(index) + ", done. Success!")
+            else:
+                print("Simulation " + str(index) + ", done. Failed :(")
 
-    print("Simulation " + str(simnumber) + ", done.")
-
-
-## Runs several simulations in parallel
-print('Simulation for ri+1|' + conditionedOn + ' begins ...')
-num_cores =  multiprocessing.cpu_count() - 1
-pool = Pool(processes=num_cores)
-iterator = [i for i in range(numSimulations)]
-pool.map(partial(runParallelSims), iterator)
-
-## Serial test
-#for i in range(numSimulations):
-#    runParallelSims(i)
+# Run parallel code
+multiprocessingHandler()
