@@ -270,7 +270,7 @@ class langevinNoiseSamplerDimer(langevinNoiseSampler):
             sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
 
 
-    def propagateFPT(self, particleList, finalSeparation, threshold):
+    def propagateFPT(self, particleList, initialSeparation, finalSeparation, threshold):
         '''
         Same as propagate, but also takes a finalPosition argument. If the final position is reached the propagation
         is stopped and the time is printed.
@@ -287,9 +287,13 @@ class langevinNoiseSamplerDimer(langevinNoiseSampler):
             self.integrateOne(particleList)
             # Update variables
             time = time + self.dt
+            relPos = trajectoryTools.relativePosition(particleList[0].position,
+                                                      particleList[1].position,
+                                                      self.boundary, self.boxsize)
+            relDistance = np.linalg.norm(relPos)
             if time > self.tfinal:
                 condition = False
-            elif np.linalg.norm(particleList[0].position - particleList[1].position) < threshold:
+            elif np.abs(relDistance - initialSeparation) >= threshold:
                 condition = False
                 return 'success', time
         return 'failed', time

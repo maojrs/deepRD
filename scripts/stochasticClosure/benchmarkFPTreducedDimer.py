@@ -124,7 +124,7 @@ analysisTools.writeParameters(parameterfilename, parameterDictionary)
 basefilename = os.path.join(outputDataDirectory, "simMoriZwanzigReduced_")
 
 # Create empty files to save the data in parallel algorithm
-filename = outputDataDirectory  + '/simMoriZwanzigFPTs_' + conditionedOn + '_box' + str(boxsize) + '_nsims' + str(numSimulations) + '.xyz'
+filename = outputDataDirectory  + '/simMoriZwanzigFPTs_' + transitionType + '_' + conditionedOn + '_box' + str(boxsize) + '_nsims' + str(numSimulations) + '.xyz'
 
 # Simulation wrapper for parallel runs
 def runParallelSims(simnumber):
@@ -147,7 +147,7 @@ def runParallelSims(simnumber):
     diffIntegrator.setPairPotential(pairBistablePotential)
 
     # Integrate dynamics
-    result, FPT = diffIntegrator.propagateFPT(particleList, finalSeparation, minimaThreshold)
+    result, FPT = diffIntegrator.propagateFPT(particleList, initialSeparation, finalSeparation, minimaThreshold)
 
     return result, FPT
 
