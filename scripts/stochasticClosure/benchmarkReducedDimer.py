@@ -7,7 +7,8 @@ import deepRD
 #from deepRD.diffusionIntegrators import langevinNoiseSampler, langevinNoiseSamplerDimer, \
 #from deepRD.diffusionIntegrators import langevinNoiseSamplerDimer2, langevinNoiseSamplerDimer3
 from deepRD.diffusionIntegrators import langevinNoiseSamplerDimerGlobal #langevinNoiseSamplerDimerConstrained1DGlobal #, langevinNoiseSamplerDimerConstrained1D
-from deepRD.potentials import pairBistable
+#from deepRD.potentials import pairBistable
+from deepRD.potentials import pairBistableBias
 from deepRD.noiseSampler import noiseSampler, defaultSamplingModel
 import deepRD.tools.trajectoryTools as trajectoryTools
 import deepRD.tools.analysisTools as analysisTools
@@ -97,7 +98,7 @@ nSampler = noiseSampler(dataOnBins)
 #defaultSampler = defaultSamplingModel(mean=0, covariance=0.005)
 #nSampler = noiseSampler(defaultSampler)
 
-# Parameters for pair potential that will only acts on distinguished particles (type 1)
+# Parameters for pair potential that will only actsgit on distinguished particles (type 1)
 particleDiameter = 0.5
 x0 = 1.0*particleDiameter # location of first minima
 rad = 1.0*particleDiameter # half the distance between minimas
@@ -139,7 +140,8 @@ def runParallelSims(simnumber):
     particleList = deepRD.particleList([particle1, particle2])
 
     # Define pair potential
-    pairBistablePotential = pairBistable(x0, rad, scalefactor)
+    #pairBistablePotential = pairBistable(x0, rad, scalefactor)
+    pairBistablePotential = pairBistableBias(x0, rad, scalefactor)
 
     #diffIntegrator = langevinNoiseSampler(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
     #                                      boundaryType, equilibrationSteps, conditionedOn)
