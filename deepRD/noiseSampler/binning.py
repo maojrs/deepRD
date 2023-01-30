@@ -731,13 +731,12 @@ class binnedDataDimerGlobal(binnedData):
                     minvec[j] = max(minvec[j], 0.0)
         # Adjust boxsize and bins accordingly
         if variable == 'position' or variable == 'velocity':
-            for l in range(self.numparticles):
-                for k in range(2*numvars):
-                    kk = k%numvars
-                    currentBoxindex = boxIndex + numvars * l + k
-                    self.boxsize[currentBoxindex] = (maxvec[kk] - minvec[kk])
-                    voxeledge = self.boxsize[currentBoxindex] / self.numbins[currentBoxindex]
-                    self.bins[currentBoxindex] = np.arange(minvec[kk], maxvec[kk], voxeledge)
+            for k in range(self.numparticles * numvars):
+                kk = k%numvars
+                currentBoxindex = boxIndex + k
+                self.boxsize[currentBoxindex] = (maxvec[kk] - minvec[kk])
+                voxeledge = self.boxsize[currentBoxindex] / self.numbins[currentBoxindex]
+                self.bins[currentBoxindex] = np.arange(minvec[kk], maxvec[kk], voxeledge)
         else:
             for k in range(numvars):
                 currentBoxindex = boxIndex + k
