@@ -775,7 +775,7 @@ class binnedDataDimerGlobal(binnedData):
         # Adjust boxsize and bins accordingly
         for m in range(self.numBinnedAuxVars):
             for k in range(6):
-                kk = k % 6
+                kk = k % 3
                 boxIndex = self.auxBoxIndex + k + 6 * m
                 self.boxsize[boxIndex] = (maxvec[kk] - minvec[kk])
                 voxeledge = self.boxsize[boxIndex] / self.numbins[boxIndex]
