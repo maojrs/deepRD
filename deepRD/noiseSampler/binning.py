@@ -688,12 +688,12 @@ class binnedDataDimerGlobal(binnedData):
         if variable == 'position':
             trajIndex = self.posIndex
             boxIndex = self.posBoxIndex
-            numvars = 6
+            numvars = 3
             onlyPositive = [False]*numvars
         elif variable == 'velocity':
             trajIndex = self.velIndex
             boxIndex = self.velBoxIndex
-            numvars = 6
+            numvars = 3
             onlyPositive = [False]*numvars
         elif variable == 'relDistance':
             trajIndex = self.relDistIndex
@@ -732,11 +732,12 @@ class binnedDataDimerGlobal(binnedData):
         # Adjust boxsize and bins accordingly
         if variable == 'position' or variable == 'velocity':
             for l in range(self.numparticles):
-                for k in range(numvars):
+                for k in range(2*numvars):
+                    kk = k%numvars
                     currentBoxindex = boxIndex + numvars * l + k
-                    self.boxsize[currentBoxindex] = (maxvec[k] - minvec[k])
+                    self.boxsize[currentBoxindex] = (maxvec[kk] - minvec[kk])
                     voxeledge = self.boxsize[currentBoxindex] / self.numbins[currentBoxindex]
-                    self.bins[currentBoxindex] = np.arange(minvec[k], maxvec[k], voxeledge)
+                    self.bins[currentBoxindex] = np.arange(minvec[kk], maxvec[kk], voxeledge)
         else:
             for k in range(numvars):
                 currentBoxindex = boxIndex + k
@@ -755,30 +756,31 @@ class binnedDataDimerGlobal(binnedData):
         variables, e.g. in ri+1|ri,ri-1, it would be two.
         '''
         # Adjust min and max of box
-        minvec = np.array(trajs[0][0][self.auxIndex: self.auxIndex + 6])
-        maxvec = np.array(trajs[0][0][self.auxIndex: self.auxIndex + 6])
+        minvec = np.array(trajs[0][0][self.auxIndex: self.auxIndex + 3])
+        maxvec = np.array(trajs[0][0][self.auxIndex: self.auxIndex + 3])
         for traj in trajs:
             for i in range(len(traj)):
-                condVar = traj[i][self.auxIndex: self.auxIndex + 6]
-                for j in range(6):
+                condVar = traj[i][self.auxIndex: self.auxIndex + 3]
+                for j in range(3):
                     minvec[j] = min(minvec[j], condVar[j])
                     maxvec[j] = max(maxvec[j], condVar[j])
         # Don't take into account data beyond nsigma standard deviations
         if nsigma > 0:
-            mean = trajectoryTools.calculateMean(trajs, [self.auxIndex,self.auxIndex + 6])
-            stddev = trajectoryTools.calculateStdDev(trajs, [self.auxIndex,self.auxIndex + 6], mean)
+            mean = trajectoryTools.calculateMean(trajs, [self.auxIndex,self.auxIndex + 3])
+            stddev = trajectoryTools.calculateStdDev(trajs, [self.auxIndex,self.auxIndex + 3], mean)
             minvecAlt = mean - nsigma*stddev
             maxvecAlt = mean + nsigma*stddev
-            for j in range(6):
+            for j in range(3):
                 minvec[j] = max(minvec[j], minvecAlt[j])
                 maxvec[j] = min(maxvec[j], maxvecAlt[j])
         # Adjust boxsize and bins accordingly
         for m in range(self.numBinnedAuxVars):
             for k in range(6):
+                kk = k % 6
                 boxIndex = self.auxBoxIndex + k + 6 * m
-                self.boxsize[boxIndex] = (maxvec[k] - minvec[k])
+                self.boxsize[boxIndex] = (maxvec[kk] - minvec[kk])
                 voxeledge = self.boxsize[boxIndex] / self.numbins[boxIndex]
-                self.bins[boxIndex] = np.arange(minvec[k], maxvec[k], voxeledge)
+                self.bins[boxIndex] = np.arange(minvec[kk], maxvec[kk], voxeledge)
 
 
     def loadData(self, trajs, nsigma=-1):
