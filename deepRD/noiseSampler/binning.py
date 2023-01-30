@@ -688,12 +688,12 @@ class binnedDataDimerGlobal(binnedData):
         if variable == 'position':
             trajIndex = self.posIndex
             boxIndex = self.posBoxIndex
-            numvars = 3
+            numvars = 6
             onlyPositive = [False]*numvars
         elif variable == 'velocity':
             trajIndex = self.velIndex
             boxIndex = self.velBoxIndex
-            numvars = 3
+            numvars = 6
             onlyPositive = [False]*numvars
         elif variable == 'relDistance':
             trajIndex = self.relDistIndex
