@@ -131,12 +131,11 @@ def runParallelSims(simnumber):
     # Define particle list
     seed = int(simnumber)
     random.seed(seed)
-    position1 = np.array([0,0,0])
-    position2 = np.array([initialSeparation,0,0])
+    position1 = [0,0,0]
+    position2 = [initialSeparation,0,0]
     velocity = [0, 0, 0]
     particle1 = deepRD.particle(position1, velocity = velocity, mass=mass)
     particle2 = deepRD.particle(position2, velocity = velocity, mass=mass)
-
     particleList = deepRD.particleList([particle1, particle2])
 
     # Define pair potential
