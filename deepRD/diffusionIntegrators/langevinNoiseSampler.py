@@ -293,7 +293,7 @@ class langevinNoiseSamplerDimer(langevinNoiseSampler):
             relDistance = np.linalg.norm(relPos)
             if time > self.tfinal:
                 condition = False
-            elif np.abs(relDistance - initialSeparation) >= threshold:
+            elif np.abs(relDistance - finalSeparation) <= threshold:
                 condition = False
                 return 'success', time
         return 'failed', time

@@ -109,7 +109,7 @@ if transitionType == 'CO':
 else:
     initialSeparation = 2*rad # Either first minima: x0 or second minima: 2*rad
     finalSeparation = 1*x0 # Either first minima: x0 or second minima: 2*rad
-minimaThreshold = 1.9*rad
+minimaThreshold = 0.05 #1.9*rad
 
 # Create parameter dictionary to write to parameters reference file
 parameterfilename = os.path.join(outputDataDirectory, "parameters")
