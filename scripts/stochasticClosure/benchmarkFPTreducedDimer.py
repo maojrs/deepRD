@@ -5,7 +5,7 @@ import sys
 import pickle
 import deepRD
 from deepRD.diffusionIntegrators import langevinNoiseSamplerDimerGlobal #langevinNoiseSamplerDimerConstrained1DGlobal #, langevinNoiseSamplerDimerConstrained1D
-from deepRD.potentials import pairBistable
+from deepRD.potentials import pairBistableBias
 from deepRD.noiseSampler import noiseSampler, defaultSamplingModel
 import deepRD.tools.trajectoryTools as trajectoryTools
 import deepRD.tools.analysisTools as analysisTools
@@ -140,7 +140,7 @@ def runParallelSims(simnumber):
     particleList = deepRD.particleList([particle1, particle2])
 
     # Define pair potential
-    pairBistablePotential = pairBistable(x0, rad, scalefactor)
+    pairBistablePotential = pairBistableBias(x0, rad, scalefactor)
 
     diffIntegrator = langevinNoiseSamplerDimerGlobal(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
                                                      boundaryType, equilibrationSteps, conditionedOn)
