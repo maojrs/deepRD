@@ -65,13 +65,13 @@ class particleList:
 
     @property
     def aux2List(self):
-        aux1 = [particle.aux1 for particle in self.particleList]
-        return np.array(aux1)
+        aux2 = [particle.aux2 for particle in self.particleList]
+        return np.array(aux2)
 
     @property
     def aux3List(self):
-        aux1 = [particle.aux1 for particle in self.particleList]
-        return np.array(aux1)
+        aux3 = [particle.aux3 for particle in self.particleList]
+        return np.array(aux3)
 
     def updatePositions(self):
         for particle in self.particleList:
