@@ -551,11 +551,13 @@ class binnedDataDimerGlobal(binnedData):
     '''
 
     def __init__(self, boxsize, numbins = 100, lagTimesteps = 1, binPosition = False,
-                 binVelocity = False, binRelDistance = False, binRelSpeed = False, binCMvelocity = False,
-                 numBinnedAuxVars = 1, numBinnedVelVars = 1, adjustPosVelBox = True):
-        super().__init__(boxsize, numbins, lagTimesteps, binPosition, binVelocity, numBinnedAuxVars,
+                 numBinnedVelVars = 1, binRelDistance = False, binRelSpeed = False, binCMvelocity = False,
+                 numBinnedAuxVars = 1, adjustPosVelBox = True):
+        super().__init__(boxsize, numbins, lagTimesteps, binPosition, False, numBinnedAuxVars,
                          adjustPosVelBox)
         self.numBinnedVelVars = numBinnedVelVars
+        if self.numBinnedVelVars > 0:
+            self.binVelocity = True
 
         self.binRelDistance = binRelDistance
         self.binRelSpeed = binRelSpeed
@@ -607,16 +609,15 @@ class binnedDataDimerGlobal(binnedData):
             self.binningLabel2 += 'qi'
             self.dimension +=6
             self.numConditionedVariables += 1
-        if self.binVelocity:
-            for i in range(self.numBinnedVelVars):
-                if i == 0:
-                    self.binningLabel += 'pi,'
-                    self.binningLabel2 += 'pi'
-                else:
-                    self.binningLabel += 'pi-' + str(i) + ','
-                    self.binningLabel2 += 'pi' + 'm' * i
-                self.dimension +=6
-                self.numConditionedVariables += 1
+        for i in range(self.numBinnedVelVars):
+            if i == 0:
+                self.binningLabel += 'pi,'
+                self.binningLabel2 += 'pi'
+            else:
+                self.binningLabel += 'pi-' + str(i) + ','
+                self.binningLabel2 += 'pi' + 'm' * i
+            self.dimension +=6
+            self.numConditionedVariables += 1
         if self.binRelDistance:
             self.binningLabel += 'dqi,'
             self.binningLabel2 += 'dqi'
