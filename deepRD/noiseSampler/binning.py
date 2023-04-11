@@ -552,9 +552,10 @@ class binnedDataDimerGlobal(binnedData):
 
     def __init__(self, boxsize, numbins = 100, lagTimesteps = 1, binPosition = False,
                  binVelocity = False, binRelDistance = False, binRelSpeed = False, binCMvelocity = False,
-                 numBinnedAuxVars = 1, adjustPosVelBox = True):
+                 numBinnedAuxVars = 1, numBinnedVelVars = 1, adjustPosVelBox = True):
         super().__init__(boxsize, numbins, lagTimesteps, binPosition, binVelocity, numBinnedAuxVars,
                          adjustPosVelBox)
+        self.numBinnedVelVars = numBinnedVelVars
 
         self.binRelDistance = binRelDistance
         self.binRelSpeed = binRelSpeed
@@ -607,10 +608,15 @@ class binnedDataDimerGlobal(binnedData):
             self.dimension +=6
             self.numConditionedVariables += 1
         if self.binVelocity:
-            self.binningLabel += 'pi,'
-            self.binningLabel2 += 'pi'
-            self.dimension +=6
-            self.numConditionedVariables += 1
+            for i in range(self.numBinnedVelVars):
+                if i == 0:
+                    self.binningLabel += 'pi,'
+                    self.binningLabel2 += 'pi'
+                else:
+                    self.binningLabel += 'pi-' + str(i) + ','
+                    self.binningLabel2 += 'pi' + 'm' * i
+                self.dimension +=6
+                self.numConditionedVariables += 1
         if self.binRelDistance:
             self.binningLabel += 'dqi,'
             self.binningLabel2 += 'dqi'
@@ -654,8 +660,10 @@ class binnedDataDimerGlobal(binnedData):
         indexes = list(filter(lambda ele: ele is not None, indexes)) # remove Nones
         if not indexes: #empty list
             maxIndexSoFar = 0
-        else:
+        elif not self.binVelocity:
             maxIndexSoFar = max(indexes) + 6
+        else:
+            maxIndexSoFar = max(indexes) + 6 * self.numBinnedVelVars
 
         # Index for relDistance and relSpeed
         if self.binRelDistance and self.binRelSpeed:
@@ -730,9 +738,16 @@ class binnedDataDimerGlobal(binnedData):
                 if onlyPositive[j]:
                     minvec[j] = max(minvec[j], 0.0)
         # Adjust boxsize and bins accordingly
-        if variable == 'position' or variable == 'velocity':
+        if variable == 'position':
             for k in range(self.numparticles * numvars):
                 kk = k%numvars
+                currentBoxindex = boxIndex + k
+                self.boxsize[currentBoxindex] = (maxvec[kk] - minvec[kk])
+                voxeledge = self.boxsize[currentBoxindex] / self.numbins[currentBoxindex]
+                self.bins[currentBoxindex] = np.arange(minvec[kk], maxvec[kk], voxeledge)
+        elif variable == 'velocity':
+            for k in range(self.numparticles * numvars * self.numBinnedVelVars):
+                kk = k%(numvars)
                 currentBoxindex = boxIndex + k
                 self.boxsize[currentBoxindex] = (maxvec[kk] - minvec[kk])
                 voxeledge = self.boxsize[currentBoxindex] / self.numbins[currentBoxindex]
@@ -812,10 +827,12 @@ class binnedDataDimerGlobal(binnedData):
                     conditionedVars.append(qi1)
                     conditionedVars.append(qi2)
                 if self.binVelocity:
-                    pi1 = traj[2*i][self.velIndex:self.velIndex + 3]
-                    pi2 = traj[2*i+1][self.velIndex:self.velIndex + 3]
-                    conditionedVars.append(pi1)
-                    conditionedVars.append(pi2)
+                    for m in range(self.numBinnedVelVars):
+                        ii = i - m * self.lagTimesteps
+                        pi1 = traj[2 * ii][self.velIndex:self.velIndex + 3]
+                        pi2 = traj[2 * ii + 1][self.velIndex:self.velIndex + 3]
+                        conditionedVars.append(pi1)
+                        conditionedVars.append(pi2)
                 if self.binRelDistance:
                     dqi = traj[2*i][self.relDistIndex:self.relDistIndex + 1]
                     conditionedVars.append(dqi)
