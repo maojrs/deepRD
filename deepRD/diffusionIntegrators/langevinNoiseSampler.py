@@ -712,7 +712,7 @@ class langevinNoiseSamplerDimerGlobal(langevinNoiseSamplerDimer):
             return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux1, particle2.aux1))
         elif self.conditionedOn == 'piririm':
             return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux1, particle2.aux1, particle1.aux2, particle2.aux2))
-        elif self.conditionedOn == 'piripim':
+        elif self.conditionedOn == 'pipimri':
             return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, particle1.aux1, particle2.aux1))
         elif self.conditionedOn == 'qipi':
             return np.concatenate((particle1.nextPosition, particle2.nextPosition, particle1.nextVelocity, particle2.nextVelocity))
