@@ -58,7 +58,7 @@ outputAux = True #False
 nbins = 5
 
 # Output data directory
-foldername = 'dimerGlobal/boxsize' + str(bsize) + '/benchmarkReduced_' + conditionedOn + '_' str(nbins) + 'bins'
+foldername = 'dimerGlobal/boxsize' + str(bsize) + '/benchmarkReduced_' + conditionedOn + '_' + str(nbins) + 'bins'
 outputDataDirectory = os.path.join(localDataDirectory, foldername)
 # Create folder for data
 try:
