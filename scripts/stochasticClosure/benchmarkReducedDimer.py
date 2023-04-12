@@ -55,9 +55,10 @@ bsize = 8 #5 #8 #10
 # vi:=center of mass velocity (first component norm along axis, second one norm of perpendicular part)
 conditionedOn = 'pi' #'pi'
 outputAux = True #False
+nbins = 5
 
 # Output data directory
-foldername = 'dimerGlobal/boxsize' + str(bsize) + '/benchmarkReduced_' + conditionedOn
+foldername = 'dimerGlobal/boxsize' + str(bsize) + '/benchmarkReduced_' + conditionedOn + '_' str(nbins) + 'bins'
 outputDataDirectory = os.path.join(localDataDirectory, foldername)
 # Create folder for data
 try:
@@ -70,7 +71,7 @@ except OSError as error:
 
 # Load binning sampling models
 print("Loading binned data ...")
-binnedDataFilename = localDataDirectory + 'dimerGlobal/boxsize' + str(bsize) + '/binnedData/' + conditionedOn + 'BinnedData.pickle'
+binnedDataFilename = localDataDirectory + 'dimerGlobal/boxsize' + str(bsize) + '/binnedData/' + conditionedOn + 'BinnedData_' + str(nbins) + 'bins.pickle'
 dataOnBins = pickle.load(open(binnedDataFilename, "rb" ))
 parameters = dataOnBins.parameterDictionary
 print('Binned data loaded')
