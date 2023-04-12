@@ -33,6 +33,7 @@ class langevinNoiseSampler(langevin):
         for part in particleList:
             part.aux1 = np.zeros(particleList.dimension)
             part.aux2 = np.zeros(particleList.dimension)
+            part.aux3 = np.zeros(particleList.dimension)
         self.currentOrNext = 'next'
         self.calculateForceField(particleList)
         self.firstRun = False
