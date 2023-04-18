@@ -98,6 +98,14 @@ class particleList:
             particle.nextPosition = 1.0 * particle.position
             particle.nextVelocity = 1.0 * particle.velocity
 
+    def addParticle(self, particle):
+        self.particleList.append(particle)
+        self.numParticles += 1
+
+    def deleteParticle(self, index):
+        self.particleList.pop(index)
+        self.numParticles -= 1
+
     def deactivateParticle(self,indexlist):
         if type(indexlist) is list:
             self.inactiveIndexList = self.inactiveIndexList + indexlist
@@ -113,9 +121,9 @@ class particleList:
             self.particleList.pop(index)
         self.numParticles = len(particleList)
 
-    def countParticles(selfself):
+    def countParticles(self):
         numParticles = 0
-        for particle in particleList:
+        for particle in self.particleList:
             if particle.active:
                 numParticles += 1
         self.numParticles = numParticles
