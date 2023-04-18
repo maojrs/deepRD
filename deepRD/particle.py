@@ -11,6 +11,7 @@ class particle:
         self.velocity = np.array(velocity)
         self.mass = mass
         self.state = state
+        self.active = True
         self.dimension = len(self.position)
         self.nextPosition = np.array(position)
         self.nextVelocity = np.array(velocity)
@@ -28,6 +29,7 @@ class particleList:
         self.particleList = particleList
         self.numParticles = len(particleList)
         self.dimension = particleList[0].dimension
+        self.inactiveIndexList = []
 
     def __getitem__(self, i):
         return self.particleList[i]
@@ -95,3 +97,26 @@ class particleList:
         for particle in self.particleList:
             particle.nextPosition = 1.0 * particle.position
             particle.nextVelocity = 1.0 * particle.velocity
+
+    def deactivateParticle(self,indexlist):
+        if type(indexlist) is list:
+            self.inactiveIndexList = self.inactiveIndexList + indexlist
+            for i in indexlist:
+                self.particleList[i].active = False
+        else:
+            self.inactiveIndexList = self.inactiveIndexList + [indexlist]
+            self.particleList[indexlist].active = False
+
+    def removeInactiveParticles(self):
+        self.inactiveIndexList = sorted(set(self.inactiveIndexList))
+        for index in sorted(self.inactiveIndexList, reverse=True):
+            self.particleList.pop(index)
+        self.numParticles = len(particleList)
+
+    def countParticles(selfself):
+        numParticles = 0
+        for particle in particleList:
+            if particle.active:
+                numParticles += 1
+        self.numParticles = numParticles
+        return numParticles
