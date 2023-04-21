@@ -175,7 +175,7 @@ for parameterCombination in product(*[binPositionList, numBinnedVelVarsList, bin
             #if numConditionedVariables == 1:
             #dataOnBins = binnedData(boxsizeBinning, numbins1, lagTimesteps, binPosition, binVelocity,
             #                        numBinnedAuxVars)
-            dataOnBins = binnedDataDimerGlobal(boxsizeBinning, numbins1, lagTimesteps, binPosition, numBinnedVelVars,
+            dataOnBins = binnedDataDimerConstrained1DGlobal(boxsizeBinning, numbins1, lagTimesteps, binPosition, numBinnedVelVars,
                                     binRelDistance, binRelSpeed, binCMvelocity, numBinnedAuxVars)
             dataOnBins.loadData(trajs, nsigma1)
             parameterDictionary['numbins'] = numbins1
@@ -184,7 +184,7 @@ for parameterCombination in product(*[binPositionList, numBinnedVelVarsList, bin
             #elif numConditionedVariables == 2:
             #dataOnBins = binnedData(boxsizeBinning, numbins2, lagTimesteps, binPosition, binVelocity,
             #                        numBinnedAuxVars)
-            dataOnBins = binnedDataDimerGlobal(boxsizeBinning, numbins2, lagTimesteps, binPosition,
+            dataOnBins = binnedDataDimerConstrained1DGlobal(boxsizeBinning, numbins2, lagTimesteps, binPosition,
                                                             numBinnedVelVars, binRelDistance,
                                                             binRelSpeed, binCMvelocity, numBinnedAuxVars)
             dataOnBins.loadData(trajs, nsigma2)
@@ -193,7 +193,7 @@ for parameterCombination in product(*[binPositionList, numBinnedVelVarsList, bin
         else:
             #dataOnBins = binnedData(boxsizeBinning, numbins3, lagTimesteps, binPosition, binVelocity,
             #                        numBinnedAuxVars)
-            dataOnBins = binnedDataDimerGlobal(boxsizeBinning, numbins3, lagTimesteps, binPosition,
+            dataOnBins = binnedDataDimerConstrained1DGlobal(boxsizeBinning, numbins3, lagTimesteps, binPosition,
                                                             numBinnedVelVars, binRelDistance,
                                                             binRelSpeed, binCMvelocity, numBinnedAuxVars)
             dataOnBins.loadData(trajs, nsigma3)
