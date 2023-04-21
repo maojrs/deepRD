@@ -1587,7 +1587,7 @@ class binnedDataDimerConstrained1DGlobal(binnedData):
     '''
 
     def __init__(self, boxsize, numbins = 100, lagTimesteps = 1, binPosition = False,
-                 numBinnedVelVars = 1,, binRelDistance = False, binRelSpeed = False, binCMvelocity = False,
+                 numBinnedVelVars = 1, binRelDistance = False, binRelSpeed = False, binCMvelocity = False,
                  numBinnedAuxVars = 1, adjustPosVelBox = True):
         super().__init__(boxsize, numbins, lagTimesteps, binPosition, False, numBinnedAuxVars,
                          adjustPosVelBox)
