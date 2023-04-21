@@ -15,12 +15,11 @@ Currently implemented on conditioning ri+1 on all the combinations dqi,dpi,vi,ri
 '''
 
 bsize = 8
-useAlternativeConditionals = False
 
-parentDirectory = os.environ['DATA'] + 'stochasticClosure/dimer/boxsize' + str(bsize)+ '/benchmark/'
+parentDirectory = os.environ['DATA'] + 'stochasticClosure/dimer1D/boxsize' + str(bsize)+ '/benchmark/'
 fnamebase = parentDirectory + 'simMoriZwanzig_'
 foldername = 'binnedData/'
-binningDataDirectory = os.path.join(os.environ['DATA'] + 'stochasticClosure/dimerGlobal/boxsize' + str(bsize) + '/', foldername)
+binningDataDirectory = os.path.join(os.environ['DATA'] + 'stochasticClosure/dimer1DGlobal/boxsize' + str(bsize) + '/', foldername)
 
 
 try:
