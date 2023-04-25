@@ -641,6 +641,8 @@ class langevinNoiseSamplerDimerConstrained1DGlobal(langevinNoiseSamplerDimer):
             #xi = np.sqrt(self.kBT * particle.mass * (1 - np.exp(-2 * self.Gamma * dt / particle.mass)))
             #interactionNoiseTerm = xi / particle.mass * np.random.normal(0., 1, particle.dimension)
 
+            particleList[2 * i].aux3 = 1.0 * particleList[2 * i].nextVelocity
+            particleList[2 * i + 1].aux3 = 1.0 * particleList[2 * i + 1].nextVelocity
             particleList[2*i].aux2 = 1.0 * particleList[2*i].aux1
             particleList[2*i+1].aux2 = 1.0 * particleList[2*i+1].aux1
             particleList[2*i].aux1 = np.array([1.0 * interactionNoiseTerm[0]])
