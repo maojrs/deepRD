@@ -594,11 +594,11 @@ class langevinNoiseSamplerDimerConstrained1DGlobal(langevinNoiseSamplerDimer):
         elif self.conditionedOn == 'piririm':
             return np.array([particle1.nextVelocity[j], particle2.nextVelocity[j], particle1.aux1[j], particle2.aux1[j], particle1.aux2[j], particle2.aux2[j]])
         elif self.conditionedOn == 'pipim':
-            return np.concatenate((particle1.nextVelocity[j], particle2.nextVelocity[j], particle1.aux3[j], particle2.aux3[j]))
+            return np.array([particle1.nextVelocity[j], particle2.nextVelocity[j], particle1.aux3[j], particle2.aux3[j]])
         elif self.conditionedOn == 'pipimri':
-            return np.concatenate((particle1.nextVelocity[j], particle2.nextVelocity[j], particle1.aux3[j], particle2.aux3[j], particle1.aux1[j], particle2.aux1[j]))
+            return np.array([particle1.nextVelocity[j], particle2.nextVelocity[j], particle1.aux3[j], particle2.aux3[j], particle1.aux1[j], particle2.aux1[j]])
         elif self.conditionedOn == 'pipimririm':
-            return np.concatenate((particle1.nextVelocity[j], particle2.nextVelocity[j], particle1.aux3[j], particle2.aux3[j],particle1.aux1[j], particle2.aux1[j], particle1.aux2[j], particle2.aux2[j]))
+            return np.array([particle1.nextVelocity[j], particle2.nextVelocity[j], particle1.aux3[j], particle2.aux3[j],particle1.aux1[j], particle2.aux1[j], particle1.aux2[j], particle2.aux2[j]])
         elif self.conditionedOn == 'qipi':
             return np.array([particle1.nextPosition[j], particle2.nextPosition[j], particle1.nextVelocity[j], particle2.nextVelocity[j]])
         elif self.conditionedOn == 'qipiri':
