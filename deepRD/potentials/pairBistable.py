@@ -71,7 +71,7 @@ class pairBistableBias(pairPotential):
         '''
         force = np.zeros(3)
         if currentOrNext == 'current':
-            relPos = self.relativePosition(particle2.position, particle1.position)
+            relPos = self.relativePosition(particle2.position, particle1.position) #CHECK ORDER OF ARGUMENTS
         elif currentOrNext == 'next':
             relPos = self.relativePosition(particle2.nextPosition, particle1.nextPosition)
         else:
