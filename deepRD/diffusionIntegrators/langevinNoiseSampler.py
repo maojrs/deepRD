@@ -605,6 +605,12 @@ class langevinNoiseSamplerDimerConstrained1DGlobal(langevinNoiseSamplerDimer):
             return np.array([particle1.nextVelocity[j], particle2.nextVelocity[j], particle1.aux3[j], particle2.aux3[j], particle1.aux1[j], particle2.aux1[j]])
         elif self.conditionedOn == 'pipimririm':
             return np.array([particle1.nextVelocity[j], particle2.nextVelocity[j], particle1.aux3[j], particle2.aux3[j],particle1.aux1[j], particle2.aux1[j], particle1.aux2[j], particle2.aux2[j]])
+        elif self.conditionedOn == 'pipimdqi':
+            return np.array([particle1.nextVelocity[j], particle2.nextVelocity[j], particle1.aux3[j], particle2.aux3[j]], self.relDistance[index])
+        elif self.conditionedOn == 'pipimdqiri':
+            return np.array([particle1.nextVelocity[j], particle2.nextVelocity[j], particle1.aux3[j], particle2.aux3[j], self.relDistance[index], particle1.aux1[j], particle2.aux1[j]])
+        elif self.conditionedOn == 'pipimdqiririm':
+            return np.array([particle1.nextVelocity[j], particle2.nextVelocity[j], particle1.aux3[j], particle2.aux3[j], self.relDistance[index], particle1.aux1[j], particle2.aux1[j], particle1.aux2[j], particle2.aux2[j]])
         elif self.conditionedOn == 'qipi':
             return np.array([particle1.nextPosition[j], particle2.nextPosition[j], particle1.nextVelocity[j], particle2.nextVelocity[j]])
         elif self.conditionedOn == 'qipiri':
@@ -739,6 +745,12 @@ class langevinNoiseSamplerDimerGlobal(langevinNoiseSamplerDimer):
             return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, particle1.aux1, particle2.aux1))
         elif self.conditionedOn == 'pipimririm':
             return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, particle1.aux1, particle2.aux1,particle1.aux2, particle2.aux2))
+        elif self.conditionedOn == 'pipimdqi':
+            return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, np.array([self.axisRelVelocity[index]])))
+        elif self.conditionedOn == 'pipimdqiri':
+            return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, np.array([self.axisRelVelocity[index]]), particle1.aux1, particle2.aux1))
+        elif self.conditionedOn == 'pipimdqiririm':
+            return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, np.array([self.axisRelVelocity[index]]), particle1.aux1, particle2.aux1, particle1.aux2, particle2.aux2))
         elif self.conditionedOn == 'qipi':
             return np.concatenate((particle1.nextPosition, particle2.nextPosition, particle1.nextVelocity, particle2.nextVelocity))
         elif self.conditionedOn == 'qipiri':
