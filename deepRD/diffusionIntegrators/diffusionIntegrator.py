@@ -99,19 +99,19 @@ class diffusionIntegrator:
             currentOrNext = currentOrNextOverride
         else:
             currentOrNext = self.currentOrNext
-        dim = len(particleList[0].velocity)
-        fField = [np.zeros(dim)]*len(particleList)
-        if self.externalPotential != None:
-            for i, particle in enumerate(particleList):
-                fField[i] = fField[i] + self.externalPotential.calculateForce(particle, currentOrNext)
-        if self.pairPotential != None:
-            for ij in list(itertools.combinations(range(len(particleList)), 2)):
-                i = ij[0]
-                j = ij[1]
-                force = self.pairPotential.calculateForce(particleList[i], particleList[j], currentOrNext)
-                fField[i] = fField[i] + 1.0 * force
-                fField[j] = fField[j] - 1.0 * force
-        self.forceField = fField
+        if particleList.dimension != None:
+            fField = [np.zeros(particleList.dimension)]*len(particleList)
+            if self.externalPotential != None:
+                for i, particle in enumerate(particleList):
+                    fField[i] = fField[i] + self.externalPotential.calculateForce(particle, currentOrNext)
+            if self.pairPotential != None:
+                for ij in list(itertools.combinations(range(len(particleList)), 2)):
+                    i = ij[0]
+                    j = ij[1]
+                    force = self.pairPotential.calculateForce(particleList[i], particleList[j], currentOrNext)
+                    fField[i] = fField[i] + 1.0 * force
+                    fField[j] = fField[j] - 1.0 * force
+            self.forceField = fField
 
     def setExternalPotential(self, externalPot):
         self.externalPotential = externalPot
