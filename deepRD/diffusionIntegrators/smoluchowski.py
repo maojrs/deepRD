@@ -9,35 +9,35 @@ class smoluchowski(diffusionIntegrator):
     Integrator class to integrate the diffusive dynamics of a standard Brownian particle (overdamped Lanegvin regime)
     '''
 
-    def __init__(self, dt, stride, tfinal, boxsize = None, boundary = 'reflective', equilibrationSteps = 0,
-                 sigma = 0.0, R = 1.0, kappa = 1.0, deltar = 0.1, cR = 1.0):
+    def __init__(self, dt, stride, tfinal, D = 1.0, kappa = 1.0, sigma = 0.0, R = 1.0, deltar = 0.1, cR = 1.0,
+                 equilibrationSteps = 0):
         '''
         inherit all methods from parent class
         Boundary delimited by [sigma,R], reactive boundary at sigma, boundary in contact with reservoir at R,
         deltax is the width of boundary layer to interact with reservoir and cR the concentration of the reservoir.
         '''
         kBT = 1
-        super().__init__(dt, stride, tfinal, kBT, boxsize, boundary, equilibrationSteps)
+        super().__init__(dt, stride, tfinal, kBT, None, None, equilibrationSteps)
+        self.D = D
+        self.kappa = kappa
         self.sigma = sigma
         self.R = R
-        self.kappa = kappa
         self.deltar = deltar
         self.cR = cR
         self.injectionRate = 0.0
-        self.D = 0.0
 
     def setIntrinsicReactionRate(self, kappa):
         self.kappa = kappa
 
     def setInjectionRate(self, reservoirConcentation):
         perParticleJumpRate = (self.D / (self.deltar ** 2)) * (1 - self.deltar / self.R)
-        self.inectionRate = reservoirConcentation * perParticleJumpRate
+        self.injectionRate = reservoirConcentation * perParticleJumpRate
 
     def injectParticles(self, particleList, deltat):
         # Count number of reactions with several Poisson rate with the corresponding propensity
-        numInjectedParticles = np.random.poisson(self.inectionRate * deltat)
+        numInjectedParticles = np.random.poisson(self.injectionRate * deltat)
         for i in range(numInjectedParticles):
-            position = particleTools.uniformShell(R-self.deltar, R)
+            position = particleTools.uniformShell(self.R - self.deltar, self.R)
             particle = deepRD.particle(position, D = self.D)
             particleList.addParticle(particle)
 
@@ -52,21 +52,22 @@ class smoluchowski(diffusionIntegrator):
 
     def enforceBoundary(self, particleList, currentOrNextOverride = None):
         for i, particle in enumerate(particleList):
-            rr = np.linalg.norm(particle.nextPosition)
-            # If particle reached reactive boundary, either react or reflect
-            if rr <= self.sigma:
-                # Gillespie time of reaction check
-                r1 = np.random.rand()
-                lagtime = np.log(1.0 / r1) / self.kappa
-                if lagtime <= self.deltat:
+            if particle.active:
+                rr = np.linalg.norm(particle.nextPosition)
+                # If particle reached reactive boundary, either react or reflect
+                if rr <= self.sigma:
+                    # Gillespie time of reaction check
+                    r1 = np.random.rand()
+                    lagtime = np.log(1.0 / r1) / self.kappa
+                    if lagtime <= self.dt:
+                        particleList.deactivateParticle(i)
+                    else:
+                        # Reflection BC
+                        dr = self.sigma - rr
+                        particle.nextPosition = particleTools.uniformShell(self.sigma, self.sigma + dr)
+                # Deactivate particles leaving into Reservoir (r>R)
+                elif rr > self.R:
                     particleList.deactivateParticle(i)
-                else:
-                    # Reflection BC
-                    dr = self.sigma - rr
-                    particle.nextPosition = particleTools.uniformShell(self.sigma, self.sigma + dr)
-            # Deactivate particles leaving into Reservoir (r>R)
-            elif rr > self.R:
-                particleList.deactivateParticle(i)
 
     def integrateOne(self, particleList):
 
@@ -82,13 +83,14 @@ class smoluchowski(diffusionIntegrator):
 
         particleList.updatePositions()
 
-        # Could be run every several timesteps
+        # Could be run every several timesteps to improve efficiency
         particleList.removeInactiveParticles()
 
     def propagate(self, particleList, showProgress = False):
         if self.firstRun:
-            # Set injectionRate, assuming all particles have sam diffusion coefficient
-            self.D = particleList[0].D
+            # Set injectionRate, assumes all particles have same diffusion coefficient
+            if len(particleList) > 1 and self.D != particleList[0].D:
+                raise NotImplementedError("Please check diffusion coefficient of integrator matches particles")
             self.setInjectionRate(self.cR)
             self.prepareSimulation(particleList)
         # Equilbration runs
