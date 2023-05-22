@@ -15,6 +15,7 @@ class smoluchowski(diffusionIntegrator):
         inherit all methods from parent class
         Boundary delimited by [sigma,R], reactive boundary at sigma, boundary in contact with reservoir at R,
         deltax is the width of boundary layer to interact with reservoir and cR the concentration of the reservoir.
+        refreshTimeStep is the number of timesteps that the particleList is refreshed (due to deactivated particles).
         '''
         kBT = 1
         super().__init__(dt, stride, tfinal, kBT, None, None, equilibrationSteps)
@@ -25,6 +26,7 @@ class smoluchowski(diffusionIntegrator):
         self.deltar = deltar
         self.cR = cR
         self.injectionRate = 0.0
+        self.refreshTimeSteps = 50
 
     def setIntrinsicReactionRate(self, kappa):
         self.kappa = kappa
@@ -83,9 +85,6 @@ class smoluchowski(diffusionIntegrator):
 
         particleList.updatePositions()
 
-        # Could be run every several timesteps to improve efficiency
-        particleList.removeInactiveParticles()
-
     def propagate(self, particleList, showProgress = False):
         if self.firstRun:
             # Set injectionRate, assumes all particles have same diffusion coefficient
@@ -96,20 +95,24 @@ class smoluchowski(diffusionIntegrator):
         # Equilbration runs
         for i in range(self.equilibrationSteps):
             self.integrateOne(particleList)
-        # Begins integration
+            if i%self.refreshTimeSteps == 0:
+                particleList.removeInactiveParticles()
         time = 0.0
         xTraj = [particleList.positions]
         tTraj = [time]
         for i in range(self.timesteps):
             self.integrateOne(particleList)
+            if i%self.refreshTimeSteps == 0 or i == self.timesteps - 1:
+                particleList.removeInactiveParticles()
+                #sys.stdout.write(str(int(100*(i+1)/self.timesteps)) + '% Number of particles: ' + str(particleList.countParticles()) + "\r")
             # Update variables
             time = time + self.dt
             if i % self.stride == 0 and i > 0:
-                xTraj.append(particleList.positions)
+                xTraj.append(particleList.activePositions)
                 tTraj.append(time)
             if showProgress and (i % 50 == 0):
                 # Print integration percentage
                 sys.stdout.write("Percentage complete " + str(round(100 * time/ self.tfinal, 1)) + "% " + "\r")
         if showProgress:
             sys.stdout.write("Percentage complete 100% \r")
-        return np.array(tTraj), np.array(xTraj)
+        return np.array(tTraj), xTraj
