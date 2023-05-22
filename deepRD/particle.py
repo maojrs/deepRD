@@ -28,7 +28,11 @@ class particleList:
     def __init__(self, particleList):
         self.particleList = particleList
         self.numParticles = len(particleList)
-        self.dimension = particleList[0].dimension
+        if len(particleList) > 0:
+            self.dimension = particleList[0].dimension
+        else:
+            self.dimension = None
+        self.neighbor_list = [[] for i in range(self.numParticles)]
         self.inactiveIndexList = []
 
     def __getitem__(self, i):
@@ -99,6 +103,8 @@ class particleList:
             particle.nextVelocity = 1.0 * particle.velocity
 
     def addParticle(self, particle):
+        if self.dimension == None:
+            self.dimension = particle.dimension
         self.particleList.append(particle)
         self.numParticles += 1
 
@@ -119,7 +125,8 @@ class particleList:
         self.inactiveIndexList = sorted(set(self.inactiveIndexList))
         for index in sorted(self.inactiveIndexList, reverse=True):
             self.particleList.pop(index)
-        self.numParticles = len(particleList)
+        self.numParticles = len(self.particleList)
+        self.inactiveIndexList = []
 
     def countParticles(self):
         numParticles = 0
