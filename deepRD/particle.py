@@ -49,6 +49,12 @@ class particleList:
         positions = [particle.position for particle in self.particleList]
         return np.array(positions)
 
+    @property
+    def activePositions(self):
+        activeParticleList = filter(lambda particle: particle.active, self.particleList)
+        positions = [particle.position for particle in activeParticleList]
+        return np.array(positions)
+
     @positions.setter
     def positions(self, newPositions):
         for i, particle in enumerate(self.particleList):
