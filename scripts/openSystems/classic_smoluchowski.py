@@ -13,7 +13,7 @@ localDataDirectory = os.environ['DATA'] + 'openSystems/'
 numSimulations = 10
 
 # Define parameters
-simID = 0
+simID = '0000'
 D = 0.1 #diffusion coefficient
 stride = 1 # timesteps stride for output
 tfinal = 10
@@ -26,7 +26,7 @@ dt = deltar*deltar/(2.0*D) # Largest possible timestep
 equilibrationSteps = 0
 
 # Output data directory
-foldername = 'classic_smoluchowski_' + str(simID)
+foldername = 'classicSmoluchowski_' + simID
 outputDataDirectory = os.path.join(localDataDirectory, foldername)
 # Create folder for data
 try:
@@ -38,7 +38,7 @@ except OSError as error:
         sys.exit()
 
 # Create parameter dictionary to write to parameters reference file
-parameterfilename = os.path.join(outputDataDirectory, "parameters_" + str(simID))
+parameterfilename = os.path.join(outputDataDirectory, "parameters_" + simID)
 parameterDictionary = {'numSimulations' : numSimulations, 'D' : D, 'dt' : dt, 'stride' : stride, 'tfinal' : tfinal,
                        'kappa' : kappa, 'sigma' : sigma, 'R' : R, 'deltar' : deltar,
                        'cR' : cR, 'equilibrationSteps' : equilibrationSteps}
@@ -46,7 +46,7 @@ analysisTools.writeParameters(parameterfilename, parameterDictionary)
 
 
 # Create empty files to save the data in parallel algorithm
-filename = outputDataDirectory  + '/classic_smol_nsims' + str(numSimulations) + '.xyz'
+filename = outputDataDirectory  + '/classicSmol_nsims' + str(numSimulations) + '.xyz'
 
 # Simulation wrapper for parallel runs
 def runParallelSims(simnumber):
