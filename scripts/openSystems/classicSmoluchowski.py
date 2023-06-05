@@ -10,18 +10,18 @@ import multiprocessing
 from multiprocessing import Pool
 
 localDataDirectory = os.environ['DATA'] + 'openSystems/'
-numSimulations = 10
+numSimulations = 10000
 
 # Define parameters
 simID = '0000'
-D = 0.1 #diffusion coefficient
+D = 0.2 #diffusion coefficient
 stride = 1 # timesteps stride for output
 tfinal = 10
 kappa = 10.0 # intrinsic Reaction rate (ala Colins and Kimball)
-sigma = 0.0 # Reaction radius
-R = 1.0 # Far-field boundary
+sigma = 1.0 # Reaction radius
+R = 10.0 # Far-field boundary
 deltar = 0.05 # Width of boundary layer next to reservoir
-cR = 10.0 # Concentration of reservoir
+cR = 1.0 # Concentration of reservoir
 dt = deltar*deltar/(2.0*D) # Largest possible timestep
 equilibrationSteps = 0
 
