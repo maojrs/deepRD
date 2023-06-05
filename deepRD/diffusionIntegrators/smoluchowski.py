@@ -98,7 +98,7 @@ class smoluchowski(diffusionIntegrator):
             if i%self.refreshTimeSteps == 0:
                 particleList.removeInactiveParticles()
         time = 0.0
-        xTraj = [particleList.positions]
+        xTraj = [particleList.activePositions]
         tTraj = [time]
         for i in range(self.timesteps):
             self.integrateOne(particleList)
