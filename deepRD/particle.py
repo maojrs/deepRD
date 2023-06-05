@@ -128,7 +128,6 @@ class particleList:
             self.particleList[indexlist].active = False
 
     def removeInactiveParticles(self):
-        self.inactiveIndexList = sorted(set(self.inactiveIndexList))
         for index in sorted(self.inactiveIndexList, reverse=True):
             self.particleList.pop(index)
         self.numParticles = len(self.particleList)
