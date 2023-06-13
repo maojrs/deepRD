@@ -95,9 +95,7 @@ minimaThreshold = 0.05 #1.9*rad
 parameterfilename = os.path.join(outputDataDirectory, "parameters")
 parameterDictionary = {'numFiles' : numSimulations, 'dt' : dt, 'Gamma' : Gamma, 'KbT' : KbT,
                        'mass' : mass, 'tfinal' : tfinal, 'stride' : integratorStride,
-                       'boxsize' : boxsize, 'boundaryType' : boundaryType,
-                       'conditionedOn': conditionedOn, 'numbins': numbins, 'lagTimesteps': lagTimesteps,
-                       'nsigma': nsigma}
+                       'boxsize' : boxsize, 'boundaryType' : boundaryType}
 analysisTools.writeParameters(parameterfilename, parameterDictionary)
 
 # Provides base filename (folder must exist (and preferably empty), otherwise H5 might fail)
