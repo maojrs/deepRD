@@ -4,7 +4,7 @@ import os
 import sys
 import pickle
 import deepRD
-from deepRD.diffusionIntegrators import langevinABOBAConstrained1D
+from deepRD.diffusionIntegrators import langevinReferenceSamplerDimerConstrained1D
 from deepRD.potentials import pairBistable
 import deepRD.tools.analysisTools as analysisTools
 
@@ -115,7 +115,7 @@ def runParallelSims(simnumber):
     # Define pair potential
     pairBistablePotential = pairBistable(x0, rad, scalefactor)
 
-    diffIntegrator = langevinABOBAConstrained1D(dt, integratorStride, tfinal, Gamma, KbT, boxsize,
+    diffIntegrator = langevinReferenceSamplerDimerConstrained1D(dt, integratorStride, tfinal, Gamma, KbT, boxsize,
                                                      boundaryType, equilibrationSteps)
     diffIntegrator.setPairPotential(pairBistablePotential)
 
