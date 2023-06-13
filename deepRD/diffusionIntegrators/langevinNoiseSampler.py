@@ -299,6 +299,7 @@ class langevinNoiseSamplerDimer(langevinNoiseSampler):
                 return 'success', time
         return 'failed', time
 
+
 class langevinNoiseSamplerDimer2(langevinNoiseSamplerDimer):
     '''
     Alternative specialized version of the langevinNoiseSampler class to integrate the dynamics of a dimer bonded by
@@ -818,3 +819,31 @@ class langevinNoiseSamplerDimerGlobal(langevinNoiseSamplerDimer):
 
             particleList[2*i].nextVelocity = frictionForceTerm1 + interactionNoiseTerm1
             particleList[2*i+1].nextVelocity = frictionForceTerm2 + interactionNoiseTerm2
+
+
+class langevinReferenceSamplerDimerConstrained1D(langevinNoiseSamplerDimerConstrained1DGlobal):
+
+    def __init__(self, dt, stride, tfinal, Gamma, kBT=1, boxsize = None,
+                 boundary = 'periodic', equilibrationSteps = 0):
+        # inherit methods from parent class
+        super().__init__(dt, stride, tfinal, Gamma, None, kBT, boxsize,
+                 boundary, equilibrationSteps, None)
+
+    def integrateBOB1D(self, particleList, dt):
+        '''Integrates BOB integrations step at using the normal Langevin ABOBA for reference. '''
+        '''Integrates velocity half a time step given potential or force term. Note this does
+                nothing in its current implementation.  '''
+        nextVelocity = [None] * len(particleList)
+        for i, particle in enumerate(particleList):
+            force = self.forceField[i]
+            nextVelocity[i] = particle.nextVelocity + dt * (force / particle.mass) / 2.0
+        '''Integrates velocity full time step given friction and noise term'''
+        for i, particle in enumerate(particleList):
+            xi = np.sqrt(self.kBT * particle.mass * (1 - np.exp(-2 * self.Gamma * dt / particle.mass)))
+            frictionTerm = np.exp(-dt * self.Gamma / particle.mass) * nextVelocity[i]
+            nextVelocity[i] = frictionTerm + xi / particle.mass * np.random.normal(0., 1, particle.dimension)
+        for i, particle in enumerate(particleList):
+            force = self.forceField[i]
+            nextVelocity[i] = nextVelocity[i] + dt * (force / particle.mass) / 2.0
+        for i, particle in enumerate(particleList):
+            particle.nextVelocity = np.array([nextVelocity[i][0], 0.0, 0.0])
