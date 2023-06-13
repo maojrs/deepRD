@@ -45,8 +45,6 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
 numSimulations = 1000 #100
 bsize= 8
-conditionedOn = 'pi' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
-nbins=20
 
 # Output data directory
 foldername = 'dimer1DGlobal/boxsize' + str(bsize) + '/benchmarkFPTreference'
@@ -60,18 +58,13 @@ except OSError as error:
     if proceed != 'y':
         sys.exit()
 
-# Extract basic parameters
-dt = parameters['dt']
-Gamma = parameters['Gamma']
-mass =  parameters['mass']
-KbT = parameters['KbT']
-boxsize = parameters['boxsize']
-boundaryType = parameters['boundaryType']
-
-# Extract binning parameters
-numbins = parameters['numbins']
-lagTimesteps = parameters['lagTimesteps']
-nsigma = parameters['nsigma']
+# Basic parameters should match reduced simulations for appropriate comparison
+dt = 0.05
+Gamma = 0.3
+mass =  3.0 * 18
+KbT = 1
+boxsize = 5
+boundaryType = 'periodic'
 
 if bsize != boxsize:
     print('Requested boxsize does not match simulation')
