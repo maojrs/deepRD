@@ -109,3 +109,39 @@ class langevinSemiImplicitEuler(langevin):
         particleList.updatePositionsVelocities()
 
 
+class langevinABOBAConstrained1D(langevin):
+    '''
+    Same as langevin class, but method stated explicitly. Uses ABOBA method for integration.
+    '''
+    def integrateOne(self, particleList):
+        ''' Integrates one time step using the ABOBA algorithm '''
+        self.integrateA(particleList, self.dt/2.0)
+        self.enforceBoundary(particleList)
+        self.calculateForceField(particleList)
+        self.integrateBOB1D(particleList, self.dt)
+        self.integrateA(particleList, self.dt/2.0)
+        self.enforceBoundary(particleList)
+        particleList.updatePositionsVelocities()
+
+    def integrateBOB1D(self, particleList, dt):
+        '''Integrates velocity half a time step given potential or force term. Note this does
+        nothing in its current implementation.  '''
+        nextVelocity = [None]*len(particleList)
+        for i, particle in enumerate(particleList):
+            force = self.forceField[i]
+            nextVelocity[i] = particle.nextVelocity + dt * (force / particle.mass)/2.0
+        '''Integrates velocity full time step given friction and noise term'''
+        for i, particle in enumerate(particleList):
+            xi = np.sqrt(self.kBT * particle.mass * (1 - np.exp(-2 * self.Gamma * dt / particle.mass)))
+            frictionTerm = np.exp(-dt * self.Gamma / particle.mass) * nextVelocity[i]
+            nextVelocity[i] = frictionTerm + xi / particle.mass * np.random.normal(0., 1, particle.dimension)
+        for i, particle in enumerate(particleList):
+            force = self.forceField[i]
+            nextVelocity[i] = nextVelocity[i] + dt * (force / particle.mass)/2.0
+        for i, particle in enumerate(particleList):
+            particle.nextVelocity = np.array([nextVelocity[i][0], 0, 0])
+
+
+
+
+
