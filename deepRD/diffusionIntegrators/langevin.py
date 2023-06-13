@@ -139,7 +139,7 @@ class langevinABOBAConstrained1D(langevin):
             force = self.forceField[i]
             nextVelocity[i] = nextVelocity[i] + dt * (force / particle.mass)/2.0
         for i, particle in enumerate(particleList):
-            particle.nextVelocity = np.array([nextVelocity[i][0], 0, 0])
+            particle.nextVelocity = np.array([nextVelocity[i][0], 0.0, 0.0])
 
 
 

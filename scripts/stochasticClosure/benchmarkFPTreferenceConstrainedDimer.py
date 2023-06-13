@@ -66,9 +66,6 @@ KbT = 1
 boxsize = 5
 boundaryType = 'periodic'
 
-if bsize != boxsize:
-    print('Requested boxsize does not match simulation')
-
 # Parameters for pair potential that will only acts on distinguished particles (type 1)
 particleDiameter = 0.5
 x0 = 1.0*particleDiameter # location of first minima
