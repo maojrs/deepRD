@@ -33,7 +33,7 @@ class smoluchowski(diffusionIntegrator):
 
     def setInjectionRate(self, reservoirConcentation):
         perParticleJumpRate = (self.D / (self.deltar ** 2)) * (1 - self.deltar / self.R)
-        volume = 4 * np.pi * ((R + self.deltar)**3 - R**3)/3.0
+        volume = 4 * np.pi * ((self.R + self.deltar)**3 - self.R**3)/3.0
         self.injectionRate = volume* reservoirConcentation * perParticleJumpRate
 
     def injectParticles(self, particleList, deltat):
