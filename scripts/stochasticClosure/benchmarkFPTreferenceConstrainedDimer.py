@@ -44,10 +44,10 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 #localDataDirectory = '../../data/stochasticClosure/'
 localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
 numSimulations = 1000 #100
-bsize= 8
+boxsize= 5
 
 # Output data directory
-foldername = 'dimer1DGlobal/boxsize' + str(bsize) + '/benchmarkFPTreference'
+foldername = 'dimer1DGlobal/boxsize' + str(boxsize) + '/benchmarkFPTreference'
 outputDataDirectory = os.path.join(localDataDirectory, foldername)
 # Create folder for data
 try:
@@ -63,7 +63,6 @@ dt = 0.05
 Gamma = 0.3
 mass =  3.0 * 18
 KbT = 1
-boxsize = 5
 boundaryType = 'periodic'
 
 # Parameters for pair potential that will only acts on distinguished particles (type 1)
