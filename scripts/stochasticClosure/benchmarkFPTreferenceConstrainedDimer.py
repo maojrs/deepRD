@@ -144,3 +144,7 @@ def multiprocessingHandler():
 
 # Run parallel code
 multiprocessingHandler()
+
+## Serial test
+#for i in range(numSimulations):
+#    runParallelSims(i)
