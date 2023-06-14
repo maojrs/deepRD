@@ -5,6 +5,7 @@ import time
 import deepRD
 from deepRD.diffusionIntegrators import smoluchowski
 from deepRD.tools import analysisTools
+np.set_printoptions(threshold=np.nan) # To print np arrays into file
 
 import multiprocessing
 from multiprocessing import Pool
