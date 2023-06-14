@@ -1,11 +1,12 @@
 import os
+import sys
 import numpy as np
 import random
 import time
 import deepRD
 from deepRD.diffusionIntegrators import smoluchowski
 from deepRD.tools import analysisTools
-np.set_printoptions(threshold=np.nan) # To print np arrays into file
+np.set_printoptions(threshold=sys.maxsize) # To print np arrays into file
 
 import multiprocessing
 from multiprocessing import Pool
