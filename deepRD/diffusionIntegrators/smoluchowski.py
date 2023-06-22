@@ -32,9 +32,10 @@ class smoluchowski(diffusionIntegrator):
         self.kappa = kappa
 
     def setInjectionRate(self, reservoirConcentation):
-        perParticleJumpRate = (self.D / (self.deltar ** 2)) * (1 - self.deltar / self.R)
+        Rn = self.R - self.deltar/2.0
+        perParticleJumpRate = (self.D / (self.deltar ** 2)) * (1 - self.deltar / Rn)
         volume = 4 * np.pi * ((self.R + self.deltar)**3 - self.R**3)/3.0
-        self.injectionRate = volume* reservoirConcentation * perParticleJumpRate
+        self.injectionRate = volume * reservoirConcentation * perParticleJumpRate
 
     def injectParticles(self, particleList, deltat):
         # Count number of reactions with several Poisson rate with the corresponding propensity
