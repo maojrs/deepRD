@@ -14,7 +14,7 @@ class smoluchowski(diffusionIntegrator):
         '''
         inherit all methods from parent class
         Boundary delimited by [sigma,R], reactive boundary at sigma, boundary in contact with reservoir at R,
-        deltax is the width of boundary layer to interact with reservoir and cR the concentration of the reservoir.
+        deltar is the width of boundary layer to interact with reservoir and cR the concentration of the reservoir.
         refreshTimeStep is the number of timesteps that the particleList is refreshed (due to deactivated particles).
         '''
         kBT = 1
@@ -25,6 +25,7 @@ class smoluchowski(diffusionIntegrator):
         self.R = R
         self.deltar = deltar
         self.cR = cR
+        self.nR = None
         self.injectionRate = 0.0
         self.refreshTimeSteps = 50
 
@@ -35,11 +36,15 @@ class smoluchowski(diffusionIntegrator):
         Rn = self.R - self.deltar/2.0
         perParticleJumpRate = (self.D / (self.deltar ** 2)) * (1 - self.deltar / Rn)
         volume = 4 * np.pi * ((self.R + self.deltar)**3 - self.R**3)/3.0
-        self.injectionRate = volume * reservoirConcentation * perParticleJumpRate
+        self.nR = volume * reservoirConcentation
+        self.injectionRate = self.nR * perParticleJumpRate
 
     def injectParticles(self, particleList, deltat):
         # Count number of reactions with several Poisson rate with the corresponding propensity
-        numInjectedParticles = np.random.poisson(self.injectionRate * deltat)
+        P0 = 1 - np.exp(self.injectionRate * deltat)
+        approxiInRate = self.injectionRate * deltat - self.n0 *deltat*P0
+        #numInjectedParticles = np.random.poisson(self.injectionRate * deltat)
+        numInjectedParticles = np.random.poisson(approxiInRate)
         for i in range(numInjectedParticles):
             position = particleTools.uniformShell(self.R - self.deltar, self.R)
             particle = deepRD.particle(position, D = self.D)
@@ -51,7 +56,7 @@ class smoluchowski(diffusionIntegrator):
             if particle.active:
                 sigma = np.sqrt(2 * deltat * particle.D)
                 force = self.forceField[i]
-                particle.nextPosition = particle.nextPosition + force * deltat * particle.D / self.kBT + \
+                particle.nextPosition = particle.position + force * deltat * particle.D / self.kBT + \
                                    sigma * np.random.normal(0., 1, particle.dimension)
 
     def enforceBoundary(self, particleList, currentOrNextOverride = None):
