@@ -42,7 +42,7 @@ class smoluchowski(diffusionIntegrator):
     def injectParticles(self, particleList, deltat):
         # Count number of reactions with several Poisson rate with the corresponding propensity
         P0 = 1 - np.exp(self.injectionRate * deltat)
-        approxiInRate = self.injectionRate * deltat - self.n0 *deltat*P0
+        approxiInRate = self.injectionRate * deltat - self.nR *deltat*P0
         #numInjectedParticles = np.random.poisson(self.injectionRate * deltat)
         numInjectedParticles = np.random.poisson(approxiInRate)
         for i in range(numInjectedParticles):
