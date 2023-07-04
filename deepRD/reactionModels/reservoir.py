@@ -34,4 +34,8 @@ class reservoir(reactionModel):
 
     def updatePropensities(self):
         x = self.X[0]
-        self.propensities[0] = self.perParticleJumpRate * (self.reservoirNumParticles - x)
+        remainingParticles = self.reservoirNumParticles - x
+        if remainingParticles > 0:
+            self.propensities[0] = self.perParticleJumpRate * remainingParticles
+        else:
+            self.propensities[0] = 0

@@ -16,7 +16,7 @@ class tauleap(reactionIntegrator):
         numReactions = np.random.poisson(reactionModel.propensities * self.dt,
                                          reactionModel.nreactions)
         for j in range(reactionModel.nreactions):
-            nextX += numReactions[j] * reactionModel.reactionVectors[j]
+            nextX = nextX + numReactions[j] * reactionModel.reactionVectors[j]
         ## Avoid negative copy numbers
         # for k in range(len(reactionModel.X)):
         #   if nextX[k] < 0:
@@ -30,7 +30,7 @@ class tauleap(reactionIntegrator):
             numReactions = np.random.poisson(reactionModel.propensities * subdt,
                                              reactionModel.nreactions)
             for j in range(reactionModel.nreactions):
-                nextX += numReactions[j] * reactionModel.reactionVectors[j]
+                nextX = nextX + numReactions[j] * reactionModel.reactionVectors[j]
             reactionModel.updatePropensities()
         return nextX
 
