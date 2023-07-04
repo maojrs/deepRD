@@ -3,6 +3,8 @@ import sys
 import deepRD
 import deepRD.tools.particleTools as particleTools
 from .diffusionIntegrator import diffusionIntegrator
+from ..reactionModels import reservoir
+from ..reactionIntegrators import tauleap
 
 class smoluchowski(diffusionIntegrator):
     '''
@@ -27,24 +29,32 @@ class smoluchowski(diffusionIntegrator):
         self.cR = cR
         self.nR = None
         self.injectionRate = 0.0
+        self.reservoirModel = None
+
+        self.tauleapSubsteps = 10
         self.refreshTimeSteps = 50
+        self.tauleapIntegrator = tauleap(self.dt)
 
     def setIntrinsicReactionRate(self, kappa):
         self.kappa = kappa
 
-    def setInjectionRate(self, reservoirConcentation):
+    def setReservoirModel(self, reservoirConcentation):
         Rn = self.R - self.deltar/2.0
         perParticleJumpRate = (self.D / (self.deltar ** 2)) * (1 - self.deltar / Rn)
-        volume = 4 * np.pi * ((self.R + self.deltar)**3 - self.R**3)/3.0
-        self.nR = volume * reservoirConcentation
-        self.injectionRate = self.nR * perParticleJumpRate
+        reservoirVolume = 4 * np.pi * ((self.R + self.deltar)**3 - self.R**3)/3.0
+        self.reservoirModel =  reservoir(perParticleJumpRate, reservoirVolume, reservoirConcentation)
+
+    # def setInjectionRate(self, reservoirConcentation):
+    #     Rn = self.R - self.deltar/2.0
+    #     perParticleJumpRate = (self.D / (self.deltar ** 2)) * (1 - self.deltar / Rn)
+    #     reservoirVolume = 4 * np.pi * ((self.R + self.deltar)**3 - self.R**3)/3.0
+    #     self.nR = reservoirVolume * reservoirConcentation
+    #     self.injectionRate = self.nR * perParticleJumpRate
 
     def injectParticles(self, particleList, deltat):
-        # Count number of reactions with several Poisson rate with the corresponding propensity
-        P0 = 1 - np.exp(self.injectionRate * deltat)
-        approxiInRate = self.injectionRate * deltat - self.nR *deltat*P0
+        # Count number of reactions by running a tau-leap approximation
         #numInjectedParticles = np.random.poisson(self.injectionRate * deltat)
-        numInjectedParticles = np.random.poisson(approxiInRate)
+        numInjectedParticles =  self.tauleapIntegrator.integrateMany(self.reservoirModel, self.tauleapSubsteps)
         for i in range(numInjectedParticles):
             position = particleTools.uniformShell(self.R - self.deltar, self.R)
             particle = deepRD.particle(position, D = self.D)
@@ -97,7 +107,7 @@ class smoluchowski(diffusionIntegrator):
             # Set injectionRate, assumes all particles have same diffusion coefficient
             if len(particleList) > 1 and self.D != particleList[0].D:
                 raise NotImplementedError("Please check diffusion coefficient of integrator matches particles")
-            self.setInjectionRate(self.cR)
+            self.setReservoirModel(self.cR)
             self.prepareSimulation(particleList)
         # Equilbration runs
         for i in range(self.equilibrationSteps):

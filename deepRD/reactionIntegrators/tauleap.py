@@ -6,7 +6,7 @@ class tauleap(reactionIntegrator):
     Integrator class to integrate a well-mixed reaction model using the tau-leap algorithm
     '''
 
-    def __init__(self, dt, stride, tfinal):
+    def __init__(self, dt, stride=1, tfinal=1000):
         # inherit all methods from parent class
         super().__init__(dt, stride, tfinal)
 
@@ -22,6 +22,18 @@ class tauleap(reactionIntegrator):
         #   if nextX[k] < 0:
         #       nextX[k] = 0
         return nextX
+
+    def integrateMany(self, reactionModel, tsteps):
+        subdt = self.dt/tsteps
+        for i in range(tsteps):
+            nextX = reactionModel.X
+            numReactions = np.random.poisson(reactionModel.propensities * subdt,
+                                             reactionModel.nreactions)
+            for j in range(reactionModel.nreactions):
+                nextX += numReactions[j] * reactionModel.reactionVectors[j]
+            reactionModel.updatePropensities()
+        return nextX
+
 
     def propagate(self, reactionModel):
         '''

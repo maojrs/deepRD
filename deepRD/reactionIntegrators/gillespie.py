@@ -6,7 +6,7 @@ class gillespie(reactionIntegrator):
     Integrator class to integrate a well-mixed reaction model using the gillespie or SSA algorithm
     '''
 
-    def __init__(self, stride, tfinal):
+    def __init__(self, stride=1, tfinal=1000):
         # inherit all methods from parent class
         super().__init__(0, stride, tfinal)
 
