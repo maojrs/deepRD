@@ -5,6 +5,7 @@ import random
 import time
 import deepRD
 from deepRD.diffusionIntegrators import smoluchowski
+from deepRD.reactionModels import reservoir
 from deepRD.tools import analysisTools
 np.set_printoptions(threshold=sys.maxsize) # To print np arrays into file
 
