@@ -54,7 +54,8 @@ class smoluchowski(diffusionIntegrator):
     def injectParticles(self, particleList, deltat):
         # Count number of reactions by running a tau-leap approximation
         #numInjectedParticles = np.random.poisson(self.injectionRate * deltat)
-        numInjectedParticles =  self.tauleapIntegrator.integrateMany(self.reservoirModel, self.tauleapSubsteps)
+        X = self.tauleapIntegrator.integrateMany(self.reservoirModel, self.tauleapSubsteps)
+        numInjectedParticles = np.int(X[0])
         for i in range(numInjectedParticles):
             position = particleTools.uniformShell(self.R - self.deltar, self.R)
             particle = deepRD.particle(position, D = self.D)
