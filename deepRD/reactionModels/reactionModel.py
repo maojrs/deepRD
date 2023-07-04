@@ -1,8 +1,8 @@
-try:
-    from joblib import Parallel, delayed
-    import multiprocessing
-except:
-    print("Multiprocessing libraries not found, parallel data generation will not work.")
+# try:
+#     from joblib import Parallel, delayed
+#     import multiprocessing
+# except:
+#     print("Multiprocessing libraries not found, parallel data generation will not work.")
 
 class reactionModel:
     '''
