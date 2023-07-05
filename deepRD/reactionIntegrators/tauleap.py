@@ -31,6 +31,7 @@ class tauleap(reactionIntegrator):
                                              reactionModel.nreactions)
             for j in range(reactionModel.nreactions):
                 nextX = nextX + numReactions[j] * reactionModel.reactionVectors[j]
+            reactionModel.X = nextX
             reactionModel.updatePropensities()
         return nextX
 
