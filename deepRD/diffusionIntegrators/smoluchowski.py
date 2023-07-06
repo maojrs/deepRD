@@ -55,6 +55,7 @@ class smoluchowski(diffusionIntegrator):
         # Count number of reactions by running a tau-leap approximation
         #numInjectedParticles = np.random.poisson(self.injectionRate * deltat)
         self.reservoirModel.X = np.array([0])
+        self.reservoirModel.updatePropensities()
         X = self.tauleapIntegrator.integrateMany(self.reservoirModel, self.tauleapSubsteps)
         numInjectedParticles = np.int(X[0])
         for i in range(numInjectedParticles):
