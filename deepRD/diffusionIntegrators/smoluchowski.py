@@ -33,7 +33,7 @@ class smoluchowski(diffusionIntegrator):
 
         self.tauleapSubsteps = tauleapSubsteps
         self.refreshTimeSteps = 50
-        self.tauleapIntegrator = tauleap(self.dt)
+        self.tauleapIntegrator = tauleap(self.dt/2.0)
 
     def setTauleapSubsteps(self, substeps):
         self.tauleapSubsteps = substeps
@@ -115,6 +115,7 @@ class smoluchowski(diffusionIntegrator):
                 raise NotImplementedError("Please check diffusion coefficient of integrator matches particles")
             self.setReservoirModel(self.cR)
             self.prepareSimulation(particleList)
+            self.tauleapIntegrator.setSimulationParameters(self.dt/2.0)
         # Equilbration runs
         for i in range(self.equilibrationSteps):
             self.integrateOne(particleList)
