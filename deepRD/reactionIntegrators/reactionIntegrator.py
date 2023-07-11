@@ -14,7 +14,7 @@ class reactionIntegrator:
         # Define default simulation parameters
         self.setSimulationParameters(dt, stride, tfinal)
 
-    def setSimulationParameters(self, dt, stride, tfinal):
+    def setSimulationParameters(self, dt, stride=1, tfinal=1000):
         '''
         Function to set simulation parameters. This will be inherited
         and used by child classes
