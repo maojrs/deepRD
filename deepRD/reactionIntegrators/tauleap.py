@@ -26,12 +26,12 @@ class tauleap(reactionIntegrator):
     def integrateMany(self, reactionModel, tsteps):
         subdt = self.dt/tsteps
         for i in range(tsteps):
-            nextX = reactionModel.X
+            nextX = 1.0 * reactionModel.X
             numReactions = np.random.poisson(reactionModel.propensities * subdt,
                                              reactionModel.nreactions)
             for j in range(reactionModel.nreactions):
                 nextX = nextX + numReactions[j] * np.array(reactionModel.reactionVectors[j])
-            reactionModel.X = nextX
+            reactionModel.X = 1.0 * nextX
             reactionModel.updatePropensities()
         return nextX
 

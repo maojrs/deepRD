@@ -12,7 +12,7 @@ class smoluchowski(diffusionIntegrator):
     '''
 
     def __init__(self, dt, stride, tfinal, D = 1.0, kappa = 1.0, sigma = 0.0, R = 1.0, deltar = 0.1, cR = 1.0,
-                 equilibrationSteps = 0):
+                 equilibrationSteps = 0, tauleapSubsteps = 10):
         '''
         inherit all methods from parent class
         Boundary delimited by [sigma,R], reactive boundary at sigma, boundary in contact with reservoir at R,
@@ -31,9 +31,12 @@ class smoluchowski(diffusionIntegrator):
         self.injectionRate = 0.0
         self.reservoirModel = None
 
-        self.tauleapSubsteps = 10
+        self.tauleapSubsteps = tauleapSubsteps
         self.refreshTimeSteps = 50
         self.tauleapIntegrator = tauleap(self.dt)
+
+    def setTauleapSubsteps(self, substeps):
+        self.tauleapSubsteps = substeps
 
     def setIntrinsicReactionRate(self, kappa):
         self.kappa = kappa
