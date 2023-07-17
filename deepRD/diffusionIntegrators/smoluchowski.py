@@ -87,9 +87,11 @@ class smoluchowski(diffusionIntegrator):
                     if lagtime <= self.dt:
                         particleList.deactivateParticle(i)
                     else:
-                        # Reflection BC
-                        dr = self.sigma - rr
-                        particle.nextPosition = particleTools.uniformShell(self.sigma, self.sigma + dr)
+                        ## Reflection BC
+                        #dr = self.sigma - rr
+                        #particle.nextPosition = particleTools.uniformShell(self.sigma, self.sigma + dr)
+                        # Uniform on sphere
+                        particle.nextPosition = particleTools.uniformSphere(self.sigma)
                 # Deactivate particles leaving into Reservoir (r>R)
                 elif rr > self.R:
                     particleList.deactivateParticle(i)
