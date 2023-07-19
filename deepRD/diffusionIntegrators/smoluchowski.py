@@ -29,6 +29,7 @@ class smoluchowski(diffusionIntegrator):
         self.cR = cR
         self.nR = None
         self.injectionRate = 0.0
+        self.kappaDiscrete = self.kappa/(4 * np.pi * self.sigma**2 * self.deltar)
         self.reservoirModel = None
 
         self.tauleapSubsteps = tauleapSubsteps
@@ -40,6 +41,7 @@ class smoluchowski(diffusionIntegrator):
 
     def setIntrinsicReactionRate(self, kappa):
         self.kappa = kappa
+        self.kappaDiscrete = self.kappa/(4*np.pi*self.sigma**2*self.deltar)
 
     def setReservoirModel(self, reservoirConcentation):
         Rn = self.R - self.deltar/2.0
@@ -75,24 +77,39 @@ class smoluchowski(diffusionIntegrator):
                 particle.nextPosition = particle.position + force * deltat * particle.D / self.kBT + \
                                    sigma * np.random.normal(0., 1, particle.dimension)
 
+    def reactionParticles(self, particleList, deltat):
+        for i, particle in enumerate(particleList):
+            if particle.active:
+                rr = np.linalg.norm(particle.nextPosition)
+                if rr <= self.sigma + self.deltar:
+                    # Gillespie time of reaction check
+                    r1 = np.random.rand()
+                    lagtime = np.log(1.0 / r1) / self.kappaDiscrete
+                    if lagtime <= deltat:
+                        particleList.deactivateParticle(i)
+
+
     def enforceBoundary(self, particleList, currentOrNextOverride = None):
         for i, particle in enumerate(particleList):
             if particle.active:
                 rr = np.linalg.norm(particle.nextPosition)
                 # If particle reached reactive boundary, either react or reflect
                 if rr <= self.sigma:
-                    # Gillespie time of reaction check
-                    r1 = np.random.rand()
-                    lagtime = np.log(1.0 / r1) / self.kappa
-                    if lagtime <= self.dt:
-                        particleList.deactivateParticle(i)
-                    else:
+                    # Reflective BC
+                    dr = self.sigma - rr
+                    particle.nextPosition = particleTools.uniformSphere(self.sigma + dr)
+                    ## Gillespie time of reaction check
+                    #r1 = np.random.rand()
+                    #lagtime = np.log(1.0 / r1) / self.kappa
+                    #if lagtime <= self.dt:
+                    #    particleList.deactivateParticle(i)
+                    #else:
                         ## Reflection BC
                         #dr = self.sigma - rr
                         #particle.nextPosition = particleTools.uniformShell(self.sigma, self.sigma + dr)
                         ## Reflection BC 2
-                        dr = self.sigma - rr
-                        particle.nextPosition = particleTools.uniformSphere(self.sigma + dr)
+                        #dr = self.sigma - rr
+                        #particle.nextPosition = particleTools.uniformSphere(self.sigma + dr)
                         ## Reflection BC 3
                         #particle.nextPosition = particleTools.uniformShell(self.sigma, self.sigma + self.deltar)
                         # Uniform on sphere
@@ -103,15 +120,19 @@ class smoluchowski(diffusionIntegrator):
 
     def integrateOne(self, particleList):
 
-        # Begin splitting algorithm
+        # Injection/reaction/diffusion splitting algorithm
         self.injectParticles(particleList, self.dt/2.0)
+
+        self.reactionParticles(particleList, self.dt/2.0)
 
         self.diffuseParticles(particleList, self.dt)
 
-        # Enforce reactive boundaries and reservoir boundary
-        self.enforceBoundary(particleList)
+        self.reactionParticles(particleList, self.dt/2.0)
 
         self.injectParticles(particleList, self.dt/2.0)
+
+        # Enforce reflective and reservoir boundary
+        self.enforceBoundary(particleList)
 
         particleList.updatePositions()
 
