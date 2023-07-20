@@ -77,7 +77,7 @@ class smoluchowski(diffusionIntegrator):
                 particle.nextPosition = particle.position + force * deltat * particle.D / self.kBT + \
                                    sigma * np.random.normal(0., 1, particle.dimension)
 
-    def reactionParticles(self, particleList, deltat):
+    def partiallyAbsorbingReactionBoundary(self, particleList, deltat):
         for i, particle in enumerate(particleList):
             if particle.active:
                 rr = np.linalg.norm(particle.nextPosition)
@@ -123,16 +123,16 @@ class smoluchowski(diffusionIntegrator):
         # Injection/reaction/diffusion splitting algorithm
         self.injectParticles(particleList, self.dt/2.0)
 
-        self.reactionParticles(particleList, self.dt/2.0)
+        self.partiallyAbsorbingReactionBoundary(particleList, self.dt/2.0)
 
         self.diffuseParticles(particleList, self.dt)
 
-        self.reactionParticles(particleList, self.dt/2.0)
-
-        self.injectParticles(particleList, self.dt/2.0)
-
         # Enforce reflective and reservoir boundary
         self.enforceBoundary(particleList)
+
+        self.partiallyAbsorbingReactionBoundary(particleList, self.dt/2.0)
+
+        self.injectParticles(particleList, self.dt/2.0)
 
         particleList.updatePositions()
 
