@@ -74,8 +74,17 @@ class smoluchowski(diffusionIntegrator):
             if particle.active:
                 sigma = np.sqrt(2 * deltat * particle.D)
                 force = self.forceField[i]
-                particle.nextPosition = particle.position + force * deltat * particle.D / self.kBT + \
+                # Enforce reflective boundary by rejection sampling on the diffusion step
+                rr = 0.0
+                while (rr <= self.sigma):
+                    nextPosition = particle.position + force * deltat * particle.D / self.kBT + \
                                    sigma * np.random.normal(0., 1, particle.dimension)
+                    rr = np.linalg.norm(nextPosition)
+                particle.nextPosition = nextPosition
+                # Enforce absorbing boundary at reservoir interface
+                if rr > self.R:
+                    particleList.deactivateParticle(i)
+
 
     def partiallyAbsorbingReactionBoundary(self, particleList, deltat):
         for i, particle in enumerate(particleList):
@@ -89,34 +98,34 @@ class smoluchowski(diffusionIntegrator):
                         particleList.deactivateParticle(i)
 
 
-    def enforceBoundary(self, particleList, currentOrNextOverride = None):
-        for i, particle in enumerate(particleList):
-            if particle.active:
-                rr = np.linalg.norm(particle.nextPosition)
-                # If particle reached reactive boundary, either react or reflect
-                if rr <= self.sigma:
-                    # Reflective BC
-                    dr = self.sigma - rr
-                    particle.nextPosition = particleTools.uniformSphere(self.sigma + dr)
-                    ## Gillespie time of reaction check
-                    #r1 = np.random.rand()
-                    #lagtime = np.log(1.0 / r1) / self.kappa
-                    #if lagtime <= self.dt:
-                    #    particleList.deactivateParticle(i)
-                    #else:
-                        ## Reflection BC
-                        #dr = self.sigma - rr
-                        #particle.nextPosition = particleTools.uniformShell(self.sigma, self.sigma + dr)
-                        ## Reflection BC 2
-                        #dr = self.sigma - rr
-                        #particle.nextPosition = particleTools.uniformSphere(self.sigma + dr)
-                        ## Reflection BC 3
-                        #particle.nextPosition = particleTools.uniformShell(self.sigma, self.sigma + self.deltar)
-                        # Uniform on sphere
-                        #particle.nextPosition = particleTools.uniformSphere(self.sigma)
-                # Deactivate particles leaving into Reservoir (r>R)
-                elif rr > self.R:
-                    particleList.deactivateParticle(i)
+    # def enforceBoundary(self, particleList, currentOrNextOverride = None):
+    #     for i, particle in enumerate(particleList):
+    #         if particle.active:
+    #             rr = np.linalg.norm(particle.nextPosition)
+    #             # If particle reached reactive boundary, either react or reflect
+    #             if rr <= self.sigma:
+    #                 # Reflective BC
+    #                 dr = self.sigma - rr
+    #                 particle.nextPosition = particleTools.uniformSphere(self.sigma + dr)
+    #                 ## Gillespie time of reaction check
+    #                 #r1 = np.random.rand()
+    #                 #lagtime = np.log(1.0 / r1) / self.kappa
+    #                 #if lagtime <= self.dt:
+    #                 #    particleList.deactivateParticle(i)
+    #                 #else:
+    #                     ## Reflection BC
+    #                     #dr = self.sigma - rr
+    #                     #particle.nextPosition = particleTools.uniformShell(self.sigma, self.sigma + dr)
+    #                     ## Reflection BC 2
+    #                     #dr = self.sigma - rr
+    #                     #particle.nextPosition = particleTools.uniformSphere(self.sigma + dr)
+    #                     ## Reflection BC 3
+    #                     #particle.nextPosition = particleTools.uniformShell(self.sigma, self.sigma + self.deltar)
+    #                     # Uniform on sphere
+    #                     #particle.nextPosition = particleTools.uniformSphere(self.sigma)
+    #             # Deactivate particles leaving into Reservoir (r>R)
+    #             elif rr > self.R:
+    #                 particleList.deactivateParticle(i)
 
     def integrateOne(self, particleList):
 
@@ -126,9 +135,6 @@ class smoluchowski(diffusionIntegrator):
         self.partiallyAbsorbingReactionBoundary(particleList, self.dt/2.0)
 
         self.diffuseParticles(particleList, self.dt)
-
-        # Enforce reflective and reservoir boundary
-        self.enforceBoundary(particleList)
 
         self.partiallyAbsorbingReactionBoundary(particleList, self.dt/2.0)
 
