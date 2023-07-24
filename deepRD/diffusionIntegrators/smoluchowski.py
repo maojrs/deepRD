@@ -8,7 +8,8 @@ from ..reactionIntegrators import tauleap
 
 class smoluchowski(diffusionIntegrator):
     '''
-    Integrator class to integrate the diffusive dynamics of a standard Brownian particle (overdamped Lanegvin regime)
+    Integrator class to integrate the diffusive dynamics of a standard Brownian particle with a reservoir at r=R and
+    a partially absorbing boundary at r=sigma with sigma <R
     '''
 
     def __init__(self, dt, stride, tfinal, D = 1.0, kappa = 1.0, sigma = 0.0, R = 1.0, deltar = 0.1, cR = 1.0,
@@ -185,3 +186,94 @@ class smoluchowski(diffusionIntegrator):
         if showProgress:
             sys.stdout.write("Percentage complete 100% \r")
         return np.array(tTraj), xTraj
+
+    class smoluchowskiAndBimolecularReactions(smoluchowski):
+        '''
+            Integrator class analogous to Smoluchowski for B particles but with additional A particle sin the domain
+            that can undergo reactions like A+B->0.
+            '''
+
+        def __init__(self, dt, stride, tfinal, D = 1.0, kappa = 1.0, sigma = 0.0, R = 1.0, deltar = 0.1, cR = 1.0,
+                 reactionDistance = None, reactionRate = 0.0, equilibrationSteps = 0, tauleapSubsteps = 10):
+
+            super().__init__(dt, stride, tfinal, D, kappa, sigma, R, deltar, cR, equilibrationSteps, tauleapSubsteps)
+            self.reactionDistance = reactionDistance
+            self.reactionRate = reactionRate
+
+        def propagate(self, particleListA, particleListB, showProgress=False):
+            if self.firstRun:
+                # Set injectionRate, assumes all particles of same type have same diffusion coefficient
+                if len(particleListA) > 1 and self.D != particleListA[0].D:
+                    raise NotImplementedError("Please check diffusion coefficient of integrator matches particles")
+                if len(particleListB) > 1 and self.D != particleListB[0].D:
+                    raise NotImplementedError("Please check diffusion coefficient of integrator matches particles")
+                self.setReservoirModel(self.cR)
+                self.prepareSimulation(particleListB)
+                self.tauleapIntegrator.setSimulationParameters(self.dt / 2.0)
+            # Equilbration runs
+            for i in range(self.equilibrationSteps):
+                self.integrateOne(particleListA, particleListB)
+                if i % self.refreshTimeSteps == 0:
+                    particleListA.removeInactiveParticles()
+                    particleListB.removeInactiveParticles()
+            time = 0.0
+            xTrajA = [particleListA.activePositions]
+            xTrajB = [particleListB.activePositions]
+            tTraj = [time]
+            for i in range(self.timesteps):
+                self.integrateOne(particleListA, particleListB)
+                if i % self.refreshTimeSteps == 0 or i == self.timesteps - 1:
+                    particleListA.removeInactiveParticles()
+                    particleListB.removeInactiveParticles()
+                    # sys.stdout.write(str(int(100*(i+1)/self.timesteps)) + '% Number of particles: ' + str(particleList.countParticles()) + "\r")
+                # Update variables
+                time = time + self.dt
+                if i % self.stride == 0 and i > 0:
+                    xTrajA.append(particleListA.activePositions)
+                    xTrajB.append(particleListB.activePositions)
+                    tTraj.append(time)
+                if showProgress and (i % 50 == 0):
+                    # Print integration percentage
+                    sys.stdout.write("Percentage complete " + str(round(100 * time / self.tfinal, 1)) + "% " + "\r")
+            if showProgress:
+                sys.stdout.write("Percentage complete 100% \r")
+            return np.array(tTraj), xTrajA, xTrajB
+
+
+        def bimolecularReactions(self, particleListA, particleListB, deltat):
+            reactionProbability = 1 - np.exp(self.reactionRate * deltat)
+            for i, particleA in enumerate(particleListA):
+                if particleA.active:
+                    for j, particleB in enumerate(particleListB):
+                        if particleB.active:
+                            distance = np.linal.norm(particleA.position - particleB.position)
+                            if distance <= self.reactionDistance:
+                                r1 = np.random.rand()
+                                if r1 <= reactionProbability:
+                                    particleListB.deactivateParticle(j)
+                                    break
+                    # NEED to add reactions at boundary with reservoir here
+
+
+        def integrateOne(self, particleListA, particleListB):
+
+            # Injection/reaction/diffusion splitting algorithm
+            self.injectParticles(particleListB, self.dt / 2.0)
+
+            self.partiallyAbsorbingReactionBoundary(particleListB, self.dt / 2.0)
+
+            self.bimolecularReactions(particleListA,particleListB, self.dt/2)
+
+            self.diffuseParticles(particleListA, self.dt)
+
+            self.diffuseParticles(particleListB, self.dt)
+
+            self.bimolecularReactions(particleListA, particleListB, self.dt / 2)
+
+            self.partiallyAbsorbingReactionBoundary(particleListB, self.dt / 2.0)
+
+            self.injectParticles(particleListB, self.dt / 2.0)
+
+            particleListA.updatePositions()
+
+            particleListB.updatePositions()

@@ -25,8 +25,9 @@ class particleList:
     Class to store a particle list along some useful routines to operate on particle lists. The input
     is a list of particles given by the particle class.
     '''
-    def __init__(self, particleList):
+    def __init__(self, particleList, type = 'A'):
         self.particleList = particleList
+        self.type = type
         self.numParticles = len(particleList)
         if len(particleList) > 0:
             self.dimension = particleList[0].dimension
