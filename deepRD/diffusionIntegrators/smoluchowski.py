@@ -85,8 +85,8 @@ class smoluchowski(diffusionIntegrator):
                 if rr > self.R:
                     particleList.deactivateParticle(i)
 
-
-    def partiallyAbsorbingReactionBoundary(self, particleList, deltat):
+    # Perhaps this routine is not exact because then the particle should react in the expected lagtime if t remains
+    def partiallyAbsorbingReactionBoundaryOld(self, particleList, deltat):
         for i, particle in enumerate(particleList):
             if particle.active:
                 rr = np.linalg.norm(particle.nextPosition)
@@ -95,6 +95,17 @@ class smoluchowski(diffusionIntegrator):
                     r1 = np.random.rand()
                     lagtime = np.log(1.0 / r1) / self.kappaDiscrete
                     if lagtime <= deltat:
+                        particleList.deactivateParticle(i)
+
+    def partiallyAbsorbingReactionBoundary(self, particleList, deltat):
+        reactProb = 1.0 - np.exp(self.kappaDiscrete * deltat)
+        for i, particle in enumerate(particleList):
+            if particle.active:
+                rr = np.linalg.norm(particle.nextPosition)
+                if rr <= self.sigma + self.deltar:
+                    # Exponential reaction event sampling
+                    r1 = np.random.rand()
+                    if r1 <= reactProb:
                         particleList.deactivateParticle(i)
 
 
