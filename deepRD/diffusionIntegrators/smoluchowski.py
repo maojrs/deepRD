@@ -99,7 +99,7 @@ class smoluchowski(diffusionIntegrator):
                         particleList.deactivateParticle(i)
 
     def partiallyAbsorbingReactionBoundary(self, particleList, deltat):
-        reactProb = 1.0 - np.exp(self.kappaDiscrete * deltat)
+        reactProb = 1.0 - np.exp(-1.0 * self.kappaDiscrete * deltat)
         for i, particle in enumerate(particleList):
             if particle.active:
                 rr = np.linalg.norm(particle.nextPosition)
@@ -190,7 +190,7 @@ class smoluchowski(diffusionIntegrator):
     class smoluchowskiAndBimolecularReactions(smoluchowski):
         '''
             Integrator class analogous to Smoluchowski for B particles but with additional A particle sin the domain
-            that can undergo reactions like A+B->0.
+            that can undergo reactions like A+B->0 (WE WANT THIS REACTION OR A+B-> 2A and A->0).
             '''
 
         def __init__(self, dt, stride, tfinal, D = 1.0, kappa = 1.0, sigma = 0.0, R = 1.0, deltar = 0.1, cR = 1.0,
