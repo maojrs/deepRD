@@ -42,7 +42,9 @@ class smoluchowski(diffusionIntegrator):
 
     def setIntrinsicReactionRate(self, kappa):
         self.kappa = kappa
-        self.kappaDiscrete = self.kappa/(4*np.pi*self.sigma**2*self.deltar)
+        #self.kappaDiscrete = self.kappa/(4*np.pi*self.sigma**2*self.deltar) # Just first order
+        denom = (4 * np.pi * self.deltar)*(3*self.sigma**2 + 3*self.deltar*self.sigma + self.deltar**2)
+        self.kappaDiscrete = 3 * self.kappa/denom
 
     def setReservoirModel(self, reservoirConcentation):
         Rn = self.R - self.deltar/2.0
@@ -60,6 +62,7 @@ class smoluchowski(diffusionIntegrator):
     def injectParticles(self, particleList, deltat):
         # Count number of reactions by running a tau-leap approximation
         #numInjectedParticles = np.random.poisson(self.injectionRate * deltat)
+        self.tauleapIntegrator.dt = deltat
         self.reservoirModel.X = np.array([0])
         self.reservoirModel.updatePropensities()
         X = self.tauleapIntegrator.integrateMany(self.reservoirModel, self.tauleapSubsteps)
@@ -86,17 +89,17 @@ class smoluchowski(diffusionIntegrator):
                 if rr > self.R:
                     particleList.deactivateParticle(i)
 
-    # Perhaps this routine is not exact because then the particle should react in the expected lagtime if t remains
-    def partiallyAbsorbingReactionBoundaryOld(self, particleList, deltat):
-        for i, particle in enumerate(particleList):
-            if particle.active:
-                rr = np.linalg.norm(particle.nextPosition)
-                if rr <= self.sigma + self.deltar:
-                    # Gillespie time of reaction check
-                    r1 = np.random.rand()
-                    lagtime = np.log(1.0 / r1) / self.kappaDiscrete
-                    if lagtime <= deltat:
-                        particleList.deactivateParticle(i)
+    # # Perhaps this routine is not exact because then the particle should react in the expected lagtime if t remains
+    # def partiallyAbsorbingReactionBoundaryOld(self, particleList, deltat):
+    #     for i, particle in enumerate(particleList):
+    #         if particle.active:
+    #             rr = np.linalg.norm(particle.nextPosition)
+    #             if rr <= self.sigma + self.deltar:
+    #                 # Gillespie time of reaction check
+    #                 r1 = np.random.rand()
+    #                 lagtime = np.log(1.0 / r1) / self.kappaDiscrete
+    #                 if lagtime <= deltat:
+    #                     particleList.deactivateParticle(i)
 
     def partiallyAbsorbingReactionBoundary(self, particleList, deltat):
         reactProb = 1.0 - np.exp(-1.0 * self.kappaDiscrete * deltat)
