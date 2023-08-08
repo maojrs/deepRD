@@ -30,7 +30,9 @@ class smoluchowski(diffusionIntegrator):
         self.cR = cR
         self.nR = None
         self.injectionRate = 0.0
-        self.kappaDiscrete = self.kappa/(4 * np.pi * self.sigma**2 * self.deltar)
+        #self.kappaDiscrete = self.kappa/(4 * np.pi * self.sigma**2 * self.deltar)
+        denom = (4 * np.pi * self.deltar) * (3 * self.sigma ** 2 + 3 * self.deltar * self.sigma + self.deltar ** 2)
+        self.kappaDiscrete = 3 * self.kappa / denom
         self.reservoirModel = None
 
         self.tauleapSubsteps = tauleapSubsteps
