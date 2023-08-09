@@ -12,20 +12,20 @@ import multiprocessing
 from multiprocessing import Pool
 
 localDataDirectory = os.environ['DATA'] + 'openSystems/'
-numSimulations = 10000 #1000
+numSimulations = 1000 #10000
 
 # Define parameters
 simID = '0000'
 D = 0.5 #diffusion coefficient
+dt = 0.001 # timestep
 stride = 1 # timesteps stride for output
 tfinal = 100
-kappa = 100000 #10.0 # intrinsic Reaction rate (ala Colins and Kimball)
+kappa = 10.0 #100000 #10.0 # intrinsic Reaction rate (ala Colins and Kimball)
 sigma = 1.0 # Reaction radius
 R = 5.0 #10.0 # Far-field boundary
-deltar = 0.05 # Width of boundary layer next to reservoir
 cR = 1.0 # Concentration of reservoir
-dt = deltar*deltar/(2.0*D) # Largest possible timestep
 equilibrationSteps = 0
+tauleapSubsteps = 10
 
 # Output data directory
 foldername = 'classicSmoluchowski_' + simID
@@ -42,8 +42,7 @@ except OSError as error:
 # Create parameter dictionary to write to parameters reference file
 parameterfilename = os.path.join(outputDataDirectory, "parameters_" + simID)
 parameterDictionary = {'numSimulations' : numSimulations, 'D' : D, 'dt' : dt, 'stride' : stride, 'tfinal' : tfinal,
-                       'kappa' : kappa, 'sigma' : sigma, 'R' : R, 'deltar' : deltar,
-                       'cR' : cR, 'equilibrationSteps' : equilibrationSteps}
+                       'kappa' : kappa, 'sigma' : sigma, 'R' : R, 'cR' : cR, 'equilibrationSteps' : equilibrationSteps}
 analysisTools.writeParameters(parameterfilename, parameterDictionary)
 
 
@@ -60,7 +59,7 @@ def runParallelSims(simnumber):
     particleList = deepRD.particleList([])
 
     # Define integrator
-    diffIntegrator = smoluchowski(dt, stride, tfinal, D, kappa, sigma, R, deltar, cR, equilibrationSteps)
+    diffIntegrator = smoluchowski(dt, stride, tfinal, D, kappa, sigma, R, cR, equilibrationSteps, tauleapSubsteps)
 
     # Propagate simulation
     t, positionsArrays = diffIntegrator.propagate(particleList)

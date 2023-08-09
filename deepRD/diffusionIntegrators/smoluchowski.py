@@ -12,13 +12,15 @@ class smoluchowski(diffusionIntegrator):
     a partially absorbing boundary at r=sigma with sigma <R
     '''
 
-    def __init__(self, dt, stride, tfinal, D = 1.0, kappa = 1.0, sigma = 0.0, R = 1.0, deltar = 0.1, cR = 1.0,
+    def __init__(self, dt, stride, tfinal, D = 1.0, kappa = 1.0, sigma = 0.0, R = 1.0, cR = 1.0,
                  equilibrationSteps = 0, tauleapSubsteps = 10):
         '''
         inherit all methods from parent class
         Boundary delimited by [sigma,R], reactive boundary at sigma, boundary in contact with reservoir at R,
-        deltar is the width of boundary layer to interact with reservoir and cR the concentration of the reservoir.
-        refreshTimeStep is the number of timesteps that the particleList is refreshed (due to deactivated particles).
+        cR is the concentration of the reservoir.
+        deltar is the width of boundary layer to interact with reservoir (choose minimum value possible as default)
+        deltar2 is the width of boundary layer to of the partially absorbing boundary. As for this case
+        it is better to have a slightly larger deltar, we use twice the value of the minimum possible.
         '''
         kBT = 1
         super().__init__(dt, stride, tfinal, kBT, None, None, equilibrationSteps)
@@ -26,13 +28,14 @@ class smoluchowski(diffusionIntegrator):
         self.kappa = kappa
         self.sigma = sigma
         self.R = R
-        self.deltar = deltar
         self.cR = cR
         self.nR = None
         self.injectionRate = 0.0
-        #self.kappaDiscrete = self.kappa/(4 * np.pi * self.sigma**2 * self.deltar)
-        denom = (4 * np.pi * self.deltar) * (3 * self.sigma ** 2 + 3 * self.deltar * self.sigma + self.deltar ** 2)
-        self.kappaDiscrete = 3 * self.kappa / denom
+        self.deltar = np.sqrt(2. * self.D * self.dt) # Minimum possible deltar for reservoir
+        self.deltar2 = 2.0 * self.deltar
+        #self.kappaDiscrete = self.kappa/(4 * np.pi * self.sigma**2 * self.deltar2)
+        volume = (4. * np.pi * self.deltar2 / 3.) * (3*self.sigma**2 + 3*self.deltar2*self.sigma + self.deltar2**2)
+        self.kappaDiscrete = self.kappa / volume
         self.reservoirModel = None
 
         self.tauleapSubsteps = tauleapSubsteps
@@ -45,8 +48,8 @@ class smoluchowski(diffusionIntegrator):
     def setIntrinsicReactionRate(self, kappa):
         self.kappa = kappa
         #self.kappaDiscrete = self.kappa/(4*np.pi*self.sigma**2*self.deltar) # Just first order
-        denom = (4 * np.pi * self.deltar)*(3*self.sigma**2 + 3*self.deltar*self.sigma + self.deltar**2)
-        self.kappaDiscrete = 3 * self.kappa/denom
+        volume = (4. * np.pi * self.deltar2 / 3.) * (3*self.sigma**2 + 3*self.deltar2*self.sigma + self.deltar2**2)
+        self.kappaDiscrete = self.kappa/volume
 
     def setReservoirModel(self, reservoirConcentation):
         Rn = self.R - self.deltar/2.0
@@ -108,7 +111,7 @@ class smoluchowski(diffusionIntegrator):
         for i, particle in enumerate(particleList):
             if particle.active:
                 rr = np.linalg.norm(particle.nextPosition)
-                if rr <= self.sigma + self.deltar:
+                if rr <= self.sigma + self.deltar2:
                     # Exponential reaction event sampling
                     r1 = np.random.rand()
                     if r1 <= reactProb:
@@ -198,10 +201,10 @@ class smoluchowskiAndBimolecularReactions(smoluchowski):
         that can undergo reactions like A+B->0 (WE WANT THIS REACTION OR A+B-> 2A and A->0).
         '''
 
-    def __init__(self, dt, stride, tfinal, D = 1.0, kappa = 1.0, sigma = 0.0, R = 1.0, deltar = 0.1, cR = 1.0,
+    def __init__(self, dt, stride, tfinal, D = 1.0, kappa = 1.0, sigma = 0.0, R = 1.0, cR = 1.0,
              reactionDistance = None, reactionRate = 0.0, equilibrationSteps = 0, tauleapSubsteps = 10):
 
-        super().__init__(dt, stride, tfinal, D, kappa, sigma, R, deltar, cR, equilibrationSteps, tauleapSubsteps)
+        super().__init__(dt, stride, tfinal, D, kappa, sigma, R, cR, equilibrationSteps, tauleapSubsteps)
         self.reactionDistance = reactionDistance
         self.reactionRate = reactionRate
 
