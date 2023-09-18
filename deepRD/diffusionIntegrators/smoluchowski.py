@@ -42,7 +42,7 @@ class smoluchowski(diffusionIntegrator):
         volume = (4. * np.pi * self.deltar2 / 3.) * (3*self.sigma**2 + 3*self.deltar2*self.sigma + self.deltar2**2)
         self.kappaDiscrete = self.kappa / volume
         self.secondOrderPARB = secondOrderPARB
-        self.alpha = self.dt * self.D * (1./self.deltar2**2 + 1./(self.deltar2 * (self.sigma + self.deltar)))
+        self.alpha = self.dt * self.D * (1./self.deltar2**2 + 1./(self.deltar2 * (self.sigma + self.deltar2)))
         self.beta = self.dt * self.D * (1./self.deltar2**2 - 1./(self.deltar2 * self.sigma))
         self.reservoirModel = None
 
