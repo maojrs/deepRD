@@ -26,6 +26,7 @@ R = 5.0 #10.0 # Far-field boundary
 cR = 1.0 # Concentration of reservoir
 equilibrationSteps = 0
 tauleapSubsteps = 10
+secondOrderPARB = True
 
 # Output data directory
 foldername = 'classicSmoluchowski_' + simID
@@ -59,7 +60,7 @@ def runParallelSims(simnumber):
     particleList = deepRD.particleList([])
 
     # Define integrator
-    diffIntegrator = smoluchowski(dt, stride, tfinal, D, kappa, sigma, R, cR, equilibrationSteps, tauleapSubsteps)
+    diffIntegrator = smoluchowski(dt, stride, tfinal, D, kappa, sigma, R, cR, equilibrationSteps, tauleapSubsteps, secondOrderPARB)
 
     # Propagate simulation
     t, positionsArrays = diffIntegrator.propagate(particleList)
