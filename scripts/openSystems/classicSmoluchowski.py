@@ -25,8 +25,7 @@ sigma = 1.0 # Reaction radius
 R = 5.0 #10.0 # Far-field boundary
 cR = 1.0 # Concentration of reservoir
 equilibrationSteps = 0
-tauleapSubsteps = 10
-secondOrderPARB = False
+tauleapSubsteps = 10 # None, uses Gillespie exact algorithm
 
 # Output data directory
 foldername = 'classicSmoluchowski_' + simID
@@ -44,7 +43,7 @@ except OSError as error:
 parameterfilename = os.path.join(outputDataDirectory, "parameters_" + simID)
 parameterDictionary = {'numSimulations' : numSimulations, 'D' : D, 'dt' : dt, 'stride' : stride, 'tfinal' : tfinal,
                        'kappa' : kappa, 'sigma' : sigma, 'R' : R, 'cR' : cR, 'equilibrationSteps' : equilibrationSteps,
-                       'tauleapSubsteps' : tauleapSubsteps, 'secondOrderPARB' : secondOrderPARB}
+                       'tauleapSubsteps' : tauleapSubsteps}
 analysisTools.writeParameters(parameterfilename, parameterDictionary)
 
 
@@ -61,7 +60,7 @@ def runParallelSims(simnumber):
     particleList = deepRD.particleList([])
 
     # Define integrator
-    diffIntegrator = smoluchowski(dt, stride, tfinal, D, kappa, sigma, R, cR, equilibrationSteps, tauleapSubsteps, secondOrderPARB)
+    diffIntegrator = smoluchowski(dt, stride, tfinal, D, kappa, sigma, R, cR, equilibrationSteps, tauleapSubsteps)
 
     # Propagate simulation
     t, positionsArrays = diffIntegrator.propagate(particleList)
