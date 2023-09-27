@@ -5,6 +5,7 @@ import deepRD.tools.particleTools as particleTools
 from .diffusionIntegrator import diffusionIntegrator
 from ..reactionModels import reservoir
 from ..reactionIntegrators import tauleap
+from ..reactionIntegrators import gillespie
 
 class smoluchowski(diffusionIntegrator):
     '''
@@ -13,7 +14,7 @@ class smoluchowski(diffusionIntegrator):
     '''
 
     def __init__(self, dt, stride, tfinal, D = 1.0, kappa = 1.0, sigma = 0.0, R = 1.0, cR = 1.0,
-                 equilibrationSteps = 0, tauleapSubsteps = 10, secondOrderPARB = False):
+                 equilibrationSteps = 0, tauleapSubsteps = None):
         '''
         inherit all methods from parent class
         Boundary delimited by [sigma,R], reactive boundary at sigma, boundary in contact with reservoir at R,
@@ -21,11 +22,8 @@ class smoluchowski(diffusionIntegrator):
         deltar is the width of boundary layer to interact with reservoir (choose minimum value possible as default)
         deltar2 is the width of boundary layer to of the partially absorbing boundary. As for this case
         it is better to have a slightly larger deltar, we use twice the value of the minimum possible.
-        secondOrderPARB activates second order partially reflective absorbing boundary
-        alpha is the probability of diffusing from [sigma,sigma+deltar2] to [sigma+deltar2,sigma+2deltar2], used for
-        second order partially absorbing boundary simulation
-        beta is the probability of diffusing from [sigma+deltar2,sigma+2deltar2] to [sigma,sigma+deltar2], used for
-        second order partially absorbing boundary simulation
+        tauleapSubsteps:= number of tau-leap substeps to use for reservoir interaction, if None, then
+        it will use exact Gillespie type intergation
         '''
         kBT = 1
         super().__init__(dt, stride, tfinal, kBT, None, None, equilibrationSteps)
@@ -41,16 +39,19 @@ class smoluchowski(diffusionIntegrator):
         #self.kappaDiscrete = self.kappa/(4 * np.pi * self.sigma**2 * self.deltar2)
         volume = (4. * np.pi * self.deltar2 / 3.) * (3*self.sigma**2 + 3*self.deltar2*self.sigma + self.deltar2**2)
         self.kappaDiscrete = self.kappa / volume
-        self.secondOrderPARB = secondOrderPARB
-        self.alpha = self.dt * self.D * (1./self.deltar2**2 + 1./(self.deltar2 * (self.sigma + self.deltar2)))
-        self.beta = self.dt * self.D * (1./self.deltar2**2 - 1./(self.deltar2 * self.sigma))
         self.reservoirModel = None
 
         self.tauleapSubsteps = tauleapSubsteps
         self.refreshTimeSteps = 50
-        self.tauleapIntegrator = tauleap(self.dt/2.0)
+        self.reservoirIntegrator = gillespie()
+        if self.tauleapSubsteps != None:
+            self.reservoirIntegrator = tauleap(self.dt/2.0)
+        else:
+
 
     def setTauleapSubsteps(self, substeps):
+        if self.tauleapSubsteps == None:
+            self.reservoirIntegrator = tauleap(self.dt / 2.0)
         self.tauleapSubsteps = substeps
 
     def setIntrinsicReactionRate(self, kappa):
@@ -73,12 +74,37 @@ class smoluchowski(diffusionIntegrator):
     #     self.injectionRate = self.nR * perParticleJumpRate
 
     def injectParticles(self, particleList, deltat):
-        # Count number of reactions by running a tau-leap approximation
+        # Count number of reactions by running a tau-leap approximation or Gillespie
         #numInjectedParticles = np.random.poisson(self.injectionRate * deltat)
-        self.tauleapIntegrator.dt = deltat
         self.reservoirModel.X = np.array([0])
         self.reservoirModel.updatePropensities()
-        X = self.tauleapIntegrator.integrateMany(self.reservoirModel, self.tauleapSubsteps)
+        X = self.reservoirIntegrator.integrateMany(self.reservoirModel, deltat, self.tauleapSubsteps)
+        numInjectedParticles = np.int(X[0])
+        for i in range(numInjectedParticles):
+            position = particleTools.uniformShell(self.R - self.deltar, self.R)
+            particle = deepRD.particle(position, D = self.D)
+            particleList.addParticle(particle)
+
+    def injectParticlesAlternative(self, particleList, deltat):
+        # Count number of reactions by explicitly checking if particles transition or not
+        numInjectedParticles = 0
+        numParticlesInt = np.int(self.reservoirNumParticles)
+        epsilon = self.reservoirNumParticles - numParticlesInt
+        p1 = 1.0 - np.exp(-self.reservoirModel.perParticleJumpRate * deltat)
+        p2 = 1.0 - np.exp(-epsilon * self.reservoirModel.perParticleJumpRate * deltat)
+        for i in range(numParticlesInt):
+            if np.random.rand() <= p1:
+                numInjectedParticles += 1
+        if np.random.rand() <= p2:
+            numInjectedParticles += 1
+        for i in range(numInjectedParticles):
+            position = particleTools.uniformShell(self.R - self.deltar, self.R)
+            particle = deepRD.particle(position, D = self.D)
+            particleList.addParticle(particle)
+
+
+        self.reservoirModel.updatePropensities()
+        X = self.reservoirIntegrator.integrateMany(self.reservoirModel, deltat, self.tauleapSubsteps)
         numInjectedParticles = np.int(X[0])
         for i in range(numInjectedParticles):
             position = particleTools.uniformShell(self.R - self.deltar, self.R)
@@ -102,43 +128,16 @@ class smoluchowski(diffusionIntegrator):
                 if rr > self.R:
                     particleList.deactivateParticle(i)
 
-    # # Perhaps this routine is not exact because then the particle should react in the expected lagtime if t remains
-    # def partiallyAbsorbingReactionBoundaryOld(self, particleList, deltat):
-    #     for i, particle in enumerate(particleList):
-    #         if particle.active:
-    #             rr = np.linalg.norm(particle.nextPosition)
-    #             if rr <= self.sigma + self.deltar:
-    #                 # Gillespie time of reaction check
-    #                 r1 = np.random.rand()
-    #                 lagtime = np.log(1.0 / r1) / self.kappaDiscrete
-    #                 if lagtime <= deltat:
-    #                     particleList.deactivateParticle(i)
-
-    def partiallyAbsorbingReactionBoundary(self, particleList, deltat, secondOrder = False):
+    def partiallyAbsorbingReactionBoundary(self, particleList, deltat):
         reactProb = 1.0 - np.exp(-1.0 * self.kappaDiscrete * deltat)
-        if not secondOrder:
-            for i, particle in enumerate(particleList):
-                if particle.active:
-                    rr = np.linalg.norm(particle.nextPosition)
-                    if rr <= self.sigma + self.deltar2:
-                        # Exponential reaction event sampling
-                        r1 = np.random.rand()
-                        if r1 <= reactProb:
-                            particleList.deactivateParticle(i)
-        else:
-            for i, particle in enumerate(particleList):
-                if particle.active:
-                    rr = np.linalg.norm(particle.nextPosition)
-                    if rr <= self.sigma + self.deltar2:
-                        # Exponential reaction event sampling
-                        r1 = np.random.rand()
-                        if r1 <= reactProb * (1.0 - self.alpha):
-                            particleList.deactivateParticle(i)
-                    elif rr <= self.sigma + 2 * self.deltar2:
-                        # Exponential reaction event sampling
-                        r1 = np.random.rand()
-                        if r1 <= reactProb * self.beta:
-                            particleList.deactivateParticle(i)
+        for i, particle in enumerate(particleList):
+            if particle.active:
+                rr = np.linalg.norm(particle.nextPosition)
+                if rr <= self.sigma + self.deltar2:
+                    # Exponential reaction event sampling
+                    r1 = np.random.rand()
+                    if r1 <= reactProb:
+                        particleList.deactivateParticle(i)
 
 
     # def enforceBoundary(self, particleList, currentOrNextOverride = None):
@@ -179,7 +178,7 @@ class smoluchowski(diffusionIntegrator):
 
         self.diffuseParticles(particleList, self.dt)
 
-        self.partiallyAbsorbingReactionBoundary(particleList, self.dt/2.0, self.secondOrderPARB)
+        self.partiallyAbsorbingReactionBoundary(particleList, self.dt/2.0)
 
         self.injectParticles(particleList, self.dt/2.0)
 
@@ -192,7 +191,6 @@ class smoluchowski(diffusionIntegrator):
                 raise NotImplementedError("Please check diffusion coefficient of integrator matches particles")
             self.setReservoirModel(self.cR)
             self.prepareSimulation(particleList)
-            self.tauleapIntegrator.setSimulationParameters(self.dt/2.0)
         # Equilbration runs
         for i in range(self.equilibrationSteps):
             self.integrateOne(particleList)

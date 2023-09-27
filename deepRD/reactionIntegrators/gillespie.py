@@ -15,19 +15,38 @@ class gillespie(reactionIntegrator):
         One iteration of the Gillespie algorithm. Outputs lagtime and
         final value of copy numbers after iteration
         '''
-        r1 = np.random.rand()
-        r2 = np.random.rand()
         lambda0 = np.sum(reactionModel.propensities)
         ratescumsum = np.cumsum(reactionModel.propensities)
         # Gillespie, time and transition (reaction index)
+        r1 = np.random.rand()
         lagtime = np.log(1.0 / r1) / lambda0
-        reactionIndex = int(sum(r2 * lambda0 > ratescumsum))
+        if reactionModel.nreactions > 1:
+            r2 = np.random.rand()
+            reactionIndex = int(sum(r2 * lambda0 > ratescumsum))
+        else:
+            reactionIndex = 0
         deltaX = reactionModel.reactionVectors[reactionIndex]
         nextX = reactionModel.X + deltaX
         if returnReactionIndex:
             return lagtime, nextX, reactionIndex
         else:
             return lagtime, nextX
+
+
+    def integrateMany(self, reactionModel, tau, substeps=None):
+        '''
+        Integrates Gillespies up to a time interval tau, substeps is unused in this
+        routine, but is left for similarity with tau-leap implementation
+        '''
+        time = 0.0
+        while (time <= tau):
+            lagtime, nextX = self.integrateOne(reactionModel)
+            time += lagtime
+            if (time <= tau):
+                reactionModel.X = nextX
+                reactionModel.updatePropensities()
+        return nextX
+
 
     def propagate(self, reactionModel):
         '''
