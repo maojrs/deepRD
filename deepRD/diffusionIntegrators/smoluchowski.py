@@ -46,8 +46,6 @@ class smoluchowski(diffusionIntegrator):
         self.reservoirIntegrator = gillespie()
         if self.tauleapSubsteps != None:
             self.reservoirIntegrator = tauleap(self.dt/2.0)
-        else:
-
 
     def setTauleapSubsteps(self, substeps):
         if self.tauleapSubsteps == None:
@@ -86,7 +84,8 @@ class smoluchowski(diffusionIntegrator):
             particleList.addParticle(particle)
 
     def injectParticlesAlternative(self, particleList, deltat):
-        # Count number of reactions by explicitly checking if particles transition or not
+        # Count number of reactions by explicitly checking if particles transition or not.
+        # Not used, but can be called by harcoding into integratorOne.
         numInjectedParticles = 0
         numParticlesInt = np.int(self.reservoirNumParticles)
         epsilon = self.reservoirNumParticles - numParticlesInt
