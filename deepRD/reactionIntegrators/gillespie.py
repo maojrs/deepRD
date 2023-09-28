@@ -18,7 +18,7 @@ class gillespie(reactionIntegrator):
         lambda0 = np.sum(reactionModel.propensities)
         ratescumsum = np.cumsum(reactionModel.propensities)
         # Gillespie, time and transition (reaction index)
-        r1 = np.random.rand()
+        r1 = 1.0 - np.random.rand() # So it cannot be zero
         lagtime = np.log(1.0 / r1) / lambda0
         if reactionModel.nreactions > 1:
             r2 = np.random.rand()
