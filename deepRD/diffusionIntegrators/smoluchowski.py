@@ -87,8 +87,10 @@ class smoluchowski(diffusionIntegrator):
         # Count number of reactions by explicitly checking if particles transition or not.
         # Not used, but can be called by harcoding into integratorOne.
         numInjectedParticles = 0
-        numParticlesInt = np.int(self.reservoirNumParticles)
-        epsilon = self.reservoirNumParticles - numParticlesInt
+        self.reservoirModel.X = np.array([0])
+        self.reservoirModel.updatePropensities()
+        numParticlesInt = np.int(self.reservoirModel.reservoirNumParticles)
+        epsilon = self.reservoirModel.reservoirNumParticles - numParticlesInt
         p1 = 1.0 - np.exp(-self.reservoirModel.perParticleJumpRate * deltat)
         p2 = 1.0 - np.exp(-epsilon * self.reservoirModel.perParticleJumpRate * deltat)
         for i in range(numParticlesInt):
