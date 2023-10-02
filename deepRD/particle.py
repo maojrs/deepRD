@@ -94,10 +94,26 @@ class particleList:
         for particle in self.particleList:
             particle.velocity = 1.0 * particle.nextVelocity
 
+    def updatePositionsActive(self):
+        for particle in self.particleList:
+            if particle.active:
+                particle.position = 1.0 * particle.nextPosition
+
+    def updateVelocitiesActive(self):
+        for particle in self.particleList:
+            if particle.active:
+                particle.velocity = 1.0 * particle.nextVelocity
+
     def updatePositionsVelocities(self):
         for particle in self.particleList:
             particle.position = 1.0 * particle.nextPosition
             particle.velocity = 1.0 * particle.nextVelocity
+
+    def updatePositionsVelocitiesActive(self):
+        for particle in self.particleList:
+            if particle.active:
+                particle.position = 1.0 * particle.nextPosition
+                particle.velocity = 1.0 * particle.nextVelocity
 
     def updatePositionsVelocitiesIndex(self,index):
         for particle in self.particleList:

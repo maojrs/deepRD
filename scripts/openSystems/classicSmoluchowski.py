@@ -15,9 +15,9 @@ localDataDirectory = os.environ['DATA'] + 'openSystems/'
 numSimulations = 1000 #10000
 
 # Define parameters
-simID = '0036'
+simID = '0050'
 D = 0.5 #diffusion coefficient
-dt = 0.001 #0.001 # timestep
+dt = 0.01 #0.001 # timestep
 stride = 1 # timesteps stride for output
 tfinal = 100
 kappa = 10.0 #100000 #10.0 # intrinsic Reaction rate (ala Colins and Kimball)
@@ -25,7 +25,7 @@ sigma = 1.0 # Reaction radius
 R = 5.0 #10.0 # Far-field boundary
 cR = 1.0 # Concentration of reservoir
 equilibrationSteps = 0
-tauleapSubsteps = 10 # None, uses Gillespie exact algorithm
+tauleapSubsteps = None #10 # None, uses Gillespie exact algorithm
 
 # Output data directory
 foldername = 'classicSmoluchowski_' + simID
@@ -77,7 +77,7 @@ def multiprocessingHandler():
     Handles parallel processing of classic_Smoluchowski and writes to same file in parallel
     '''
     # Runs several simulations in parallel
-    num_cores = 1 #multiprocessing.cpu_count() - 1
+    num_cores = multiprocessing.cpu_count() - 1
     pool = Pool(processes=num_cores)
     trajNumList = list(range(numSimulations))
     with open(filename, 'w') as file:

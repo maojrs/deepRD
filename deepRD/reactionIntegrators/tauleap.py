@@ -36,7 +36,7 @@ class tauleap(reactionIntegrator):
                 nextX = nextX + numReactions[j] * np.array(reactionModel.reactionVectors[j])
             reactionModel.X = 1.0 * nextX
             reactionModel.updatePropensities()
-        return nextX
+        return reactionModel.X
 
 
     def propagate(self, reactionModel):

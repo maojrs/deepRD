@@ -43,9 +43,9 @@ class gillespie(reactionIntegrator):
             lagtime, nextX = self.integrateOne(reactionModel)
             time += lagtime
             if (time <= tau):
-                reactionModel.X = nextX
+                reactionModel.X = 1.0 * nextX
                 reactionModel.updatePropensities()
-        return nextX
+        return reactionModel.X
 
 
     def propagate(self, reactionModel):
