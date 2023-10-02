@@ -64,13 +64,6 @@ class smoluchowski(diffusionIntegrator):
         reservoirVolume = 4 * np.pi * ((self.R + self.deltar)**3 - self.R**3)/3.0
         self.reservoirModel =  reservoir(perParticleJumpRate, reservoirVolume, reservoirConcentation)
 
-    # def setInjectionRate(self, reservoirConcentation):
-    #     Rn = self.R - self.deltar/2.0
-    #     perParticleJumpRate = (self.D / (self.deltar ** 2)) * (1 - self.deltar / Rn)
-    #     reservoirVolume = 4 * np.pi * ((self.R + self.deltar)**3 - self.R**3)/3.0
-    #     self.nR = reservoirVolume * reservoirConcentation
-    #     self.injectionRate = self.nR * perParticleJumpRate
-
     def injectParticles(self, particleList, deltat):
         # Count number of reactions by running a tau-leap approximation or Gillespie
         #numInjectedParticles = np.random.poisson(self.injectionRate * deltat)
@@ -87,17 +80,17 @@ class smoluchowski(diffusionIntegrator):
         # Count number of reactions by explicitly checking if particles transition or not.
         # Not used, but can be called by harcoding into integratorOne.
         numInjectedParticles = 0
-        self.reservoirModel.X = np.array([0])
-        self.reservoirModel.updatePropensities()
         numParticlesInt = np.int(self.reservoirModel.reservoirNumParticles)
         epsilon = self.reservoirModel.reservoirNumParticles - numParticlesInt
         p1 = 1.0 - np.exp(-self.reservoirModel.perParticleJumpRate * deltat)
         p2 = 1.0 - np.exp(-epsilon * self.reservoirModel.perParticleJumpRate * deltat)
         for i in range(numParticlesInt):
-            if np.random.rand() <= p1:
-                numInjectedParticles += 1
-        if np.random.rand() <= p2:
-            numInjectedParticles += 1
+            r1 = np.random.rand()
+            if r1 <= p1:
+                numInjectedParticles = numInjectedParticles + 1
+        r2 = np.random.rand()
+        if r2 <= p2:
+            numInjectedParticles = numInjectedParticles + 1
         for i in range(numInjectedParticles):
             position = particleTools.uniformShell(self.R - self.deltar, self.R)
             particle = deepRD.particle(position, D = self.D)
@@ -183,7 +176,7 @@ class smoluchowski(diffusionIntegrator):
 
         self.injectParticles(particleList, self.dt/2.0)
 
-        particleList.updatePositions()
+        particleList.updatePositionsActive()
 
     def propagate(self, particleList, showProgress = False):
         if self.firstRun:
