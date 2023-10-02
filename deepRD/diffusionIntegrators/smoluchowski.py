@@ -96,15 +96,6 @@ class smoluchowski(diffusionIntegrator):
             particle = deepRD.particle(position, D = self.D)
             particleList.addParticle(particle)
 
-
-        self.reservoirModel.updatePropensities()
-        X = self.reservoirIntegrator.integrateMany(self.reservoirModel, deltat, self.tauleapSubsteps)
-        numInjectedParticles = np.int(X[0])
-        for i in range(numInjectedParticles):
-            position = particleTools.uniformShell(self.R - self.deltar, self.R)
-            particle = deepRD.particle(position, D = self.D)
-            particleList.addParticle(particle)
-
     def diffuseParticles(self, particleList, deltat):
         self.calculateForceField(particleList)
         for i, particle in enumerate(particleList):
