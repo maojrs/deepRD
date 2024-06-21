@@ -46,7 +46,7 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 
 # Simulation parameters
 #localDataDirectory = '../../data/stochasticClosure/'
-localDataDirectory = os.environ['DATA'] + 'stochasticClosureGen/'
+localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
 numSimulations = 100
 bsize = 8 #5 #8 #10
 conditionedOn = 'piri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
