@@ -10,8 +10,9 @@ from torch.utils.data import DataLoader
 
 class cvaeSampler(nn.Module):
 
-    def __init__(self, latent_dims):
+    def __init__(self, latent_dims, load_model=True):
         super().__init__()
+        self.latent_dims = latent_dims
         self.encoder = nn.Sequential(
             nn.Linear(3+6, 128),
             nn.ReLU(),
@@ -37,19 +38,32 @@ class cvaeSampler(nn.Module):
         self.linear1 = nn.Linear(20, latent_dims)
         self.linear2 = nn.Linear(20, latent_dims)
         self.G = torch.distributions.Normal(0, 1)
+        if load_model==True:
+            self.load_state_dict(torch.load('models/model_state.pt'))
+            print('Model parameters loaded.')
 
     def reparametrize(self, mu, logvar):
         std = torch.exp(0.5*logvar)
         return mu + std*self.G.sample(mu.shape)
 
-    def sample(self, label, mean, std, num_samples=1):
-        #mean = [0.9080, 0.3038]
-        #std = [0.4723, 0.6708]
-        x_g = torch.normal(mean[0], std[0], (num_samples,1))
-        y_g = torch.normal(mean[1], std[1], (num_samples,1))
-        z = torch.cat( (x_g, y_g), dim=1 )
-        z_cond = torch.cat((z, label), dim=1)
-        return self.decoder(z_cond)
+    def sample(self, label, num_samples=1):
+        '''
+         Here a slight workaround to get compatibility between model and integrator.
+         Model is designed to work on tensors of size (n_samples, *), meanwhile 
+         integrator works on 1-D arrays 
+        '''
+
+        r = label[3:]
+        v = label[:3]
+        label = torch.cat((r,v)).unsqueeze(0)
+        
+        mean = 0
+        std = 1
+
+        samples = torch.normal(mean, std, (num_samples,self.latent_dims))
+        z_cond = torch.cat((samples, label), dim=1)
+        
+        return self.decoder(z_cond).squeeze(0)
 
     def forward(self, x, y, return_latent=False):
         x_cond = torch.cat((x,y), dim=1)

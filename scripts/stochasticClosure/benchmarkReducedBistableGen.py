@@ -7,7 +7,7 @@ import deepRD
 from deepRD.diffusionIntegrators import langevinNoiseSampler
 #from deepRD.diffusionIntegrators import langevinInteractionSampler
 from deepRD.potentials import bistable
-from deepRD.noiseSampler import noiseSampler
+from deepRD.noiseSampler import cvaeSampler
 #from deepRD.noiseSampler import binnedData
 import deepRD.tools.trajectoryTools as trajectoryTools
 import deepRD.tools.analysisTools as analysisTools
@@ -90,8 +90,8 @@ numbins = parameters['numbins']
 lagTimesteps = parameters['lagTimesteps']
 nsigma = parameters['nsigma']
 
-# Define noise sampler
-nSampler = noiseSampler(dataOnBins)
+# Define noise sampler, n latent dims
+nSampler = cvaeSampler(2, load_model=True)
 
 # Parameters for external potential (will only acts on distinguished particles (type 1))
 minimaDist = 1.5
