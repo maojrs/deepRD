@@ -1,11 +1,12 @@
-import numpy
+import numpy as np
 import matplotlib.pyplot as plt
 import torch
 import torchvision
 import deepRD.tools.trajectoryTools as trajectoryTools
-from torchvision.transforms import ToTensor
+import os
+#from torchvision.transforms import ToTensor
 from torch import nn
-from torch.utils.data import DataLoader
+#from torch.utils.data import DataLoader
 
 
 class cvaeSampler(nn.Module):
@@ -39,7 +40,7 @@ class cvaeSampler(nn.Module):
         self.linear2 = nn.Linear(20, latent_dims)
         self.G = torch.distributions.Normal(0, 1)
         if load_model==True:
-            self.load_state_dict(torch.load('models/model_state.pt'))
+            self.load_state_dict(torch.load('deepRD/noiseSampler/models/model_state.pt'))
             print('Model parameters loaded.')
 
     def reparametrize(self, mu, logvar):
@@ -50,20 +51,25 @@ class cvaeSampler(nn.Module):
         '''
          Here a slight workaround to get compatibility between model and integrator.
          Model is designed to work on tensors of size (n_samples, *), meanwhile 
-         integrator works on 1-D arrays 
+         integrator works on 1-D arrays. This function assumes input of 1-D array of 'piri'
+         (later will be extended to more general functionality)
+
+         Returns: 1-D Torch Tensor of size (3)
         '''
-
-        r = label[3:]
-        v = label[:3]
-        label = torch.cat((r,v)).unsqueeze(0)
+        with torch.no_grad():
+            label = torch.from_numpy(label).float()
+            r = label[3:]
+            v = label[:3]
+            label = torch.cat((r,v)).unsqueeze(0)
         
-        mean = 0
-        std = 1
+            mean = 0
+            std = 1
 
-        samples = torch.normal(mean, std, (num_samples,self.latent_dims))
-        z_cond = torch.cat((samples, label), dim=1)
-        
-        return self.decoder(z_cond).squeeze(0)
+            samples = torch.normal(mean, std, (num_samples,self.latent_dims))
+            z_cond = torch.cat((samples, label), dim=1)
+            out = np.array(self.decoder(z_cond).squeeze(0))
+
+        return out
 
     def forward(self, x, y, return_latent=False):
         x_cond = torch.cat((x,y), dim=1)

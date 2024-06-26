@@ -46,15 +46,15 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 
 # Simulation parameters
 #localDataDirectory = '../../data/stochasticClosure/'
-localDataDirectory = os.environ['DATA'] + 'stochasticClosureVAE/'
+localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
 numSimulations = 100
-bsize = 8 #5 #8 #10
+bsize = 5 #5 #8 #10
 conditionedOn = 'piri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
 outputAux = True #False
 
 # Output data directory
 #foldername = 'bistable/boxsize' + str(bsize) + '/benchmarkReduced_' + conditionedOn
-foldername = 'bistable/boxsize' + str(bsize) + '/benchmarkReduced_' + conditionedOn
+foldername = 'bistable/boxsize' + str(bsize) + '/benchmarkReducedGen_' + conditionedOn
 outputDataDirectory = os.path.join(localDataDirectory, foldername)
 # Create folder for data
 try:
@@ -91,7 +91,7 @@ lagTimesteps = parameters['lagTimesteps']
 nsigma = parameters['nsigma']
 
 # Define noise sampler, n latent dims
-nSampler = cvaeSampler(2, load_model=True)
+nSampler = cvaeSampler.cvaeSampler(2, load_model=True)
 
 # Parameters for external potential (will only acts on distinguished particles (type 1))
 minimaDist = 1.5
