@@ -5,15 +5,15 @@ import sys
 import pickle
 import deepRD
 from deepRD.diffusionIntegrators import langevinNoiseSampler
-#from deepRD.diffusionIntegrators import langevinInteractionSampler
 from deepRD.potentials import bistable
 from deepRD.noiseSampler import cvaeSampler
-#from deepRD.noiseSampler import binnedData
+from deepRD.noiseSampler import binnedData
 import deepRD.tools.trajectoryTools as trajectoryTools
 import deepRD.tools.analysisTools as analysisTools
 
 import multiprocessing
-from multiprocessing import Pool
+from multiprocessing import Pool, Process, Manager
+from multiprocessing.managers import BaseManager
 from functools import partial
 
 '''
@@ -47,14 +47,12 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 # Simulation parameters
 #localDataDirectory = '../../data/stochasticClosure/'
 localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
-numSimulations = 100
-bsize = 5 #5 #8 #10
+numSimulations = 10000 #100
+bsize= 5
 conditionedOn = 'piri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
-outputAux = True #False
 
 # Output data directory
-#foldername = 'bistable/boxsize' + str(bsize) + '/benchmarkReduced_' + conditionedOn
-foldername = 'bistable/boxsize' + str(bsize) + '/benchmarkReducedGen_' + conditionedOn
+foldername = 'bistable/boxsize' + str(bsize) + '/benchmarkFPTreducedGen'
 outputDataDirectory = os.path.join(localDataDirectory, foldername)
 # Create folder for data
 try:
@@ -67,8 +65,8 @@ except OSError as error:
 
 # Load binning sampling models
 print("Loading binned data ...")
-#binnedDataFilename = localDataDirectory + 'bistable/boxsize' + str(bsize) + '/binnedData/' + conditionedOn + 'BinnedData.pickle'
 binnedDataFilename = localDataDirectory + 'bistable/boxsize' + str(bsize) + '/binnedData/' + conditionedOn + 'BinnedData.pickle'
+#binnedDataFilename = localDataDirectory + 'binnedData/riBinnedData.pickle'
 dataOnBins = pickle.load(open(binnedDataFilename, "rb" ))
 parameters = dataOnBins.parameterDictionary
 print('Binned data loaded')
@@ -82,20 +80,19 @@ KbT = parameters['KbT']
 boxsize = parameters['boxsize']
 boundaryType = parameters['boundaryType']
 
-if bsize != boxsize:
-    print('Requested boxsize does not match simulation')
-
 # Extract binning parameters
 numbins = parameters['numbins']
 lagTimesteps = parameters['lagTimesteps']
 nsigma = parameters['nsigma']
+
+if bsize != boxsize:
+    print('Requested boxsize does not match simulation')
 
 # Define noise sampler, n latent dims
 localModelDirectory = 'deepRD/noiseSampler/models/modelWeights/model_state_'
 loadPretrained = localModelDirectory + conditionedOn + '_new.pt'
 
 nSampler = cvaeSampler.cvaeSampler(2, loadPretrained, conditionedOn)
-
 
 # Parameters for external potential (will only acts on distinguished particles (type 1))
 minimaDist = 1.5
@@ -105,31 +102,34 @@ scalefactor = 1
 # Integrator parameters
 integratorStride = 1 #50
 tfinal = 10000
-equilibrationSteps = 10000
+equilibrationSteps = 0
+
+# Parameters for FPT calculations
+initialPosition = np.array([-1.0*minimaDist, 0., 0.])
+finalPosition = np.array([1.0*minimaDist, 0., 0.])
+minimaThreshold = 0.3
 
 # Create parameter dictionary to write to parameters reference file
 parameterfilename = os.path.join(outputDataDirectory, "parameters")
 parameterDictionary = {'numFiles' : numSimulations, 'dt' : dt, 'Gamma' : Gamma, 'KbT' : KbT,
                        'mass' : mass, 'tfinal' : tfinal, 'stride' : integratorStride,
                        'boxsize' : boxsize, 'boundaryType' : boundaryType,
-                       'equilibrationSteps' : equilibrationSteps, 'conditionedOn': conditionedOn,
-                       'numbins': numbins, 'lagTimesteps': lagTimesteps, 'nsigma': nsigma}
+                       'conditionedOn': conditionedOn, 'numbins': numbins, 'lagTimesteps': lagTimesteps,
+                       'nsigma': nsigma}
 analysisTools.writeParameters(parameterfilename, parameterDictionary)
 
 # Provides base filename (folder must exist (and preferably empty), otherwise H5 might fail)
 basefilename = os.path.join(outputDataDirectory, "simMoriZwanzigReduced_")
 
+# Create empty files to save the data in parallel algorithm
+filename = outputDataDirectory  + '/simMoriZwanzigFPTs_' + conditionedOn + '_box' + str(boxsize) + '_nsims' + str(numSimulations) + '.xyz'
+
 # Simulation wrapper for parallel runs
 def runParallelSims(simnumber):
-    #if simnumber % 2 == 0:
-    #    sign = 1
-    #else:
-    #    sign= -1
-
     # Define particle list
     seed = int(simnumber)
     random.seed(seed)
-    position = [0, 0, 0]
+    position = initialPosition
     velocity = [0, 0, 0]
     particle = deepRD.particle(position, velocity = velocity, mass=mass)
     particleList = deepRD.particleList([particle])
@@ -139,31 +139,33 @@ def runParallelSims(simnumber):
 
     diffIntegrator = langevinNoiseSampler(dt, integratorStride, tfinal, Gamma, nSampler, KbT,
                                           boxsize, boundaryType, equilibrationSteps, conditionedOn)
-
-    #diffIntegrator = langevinInteractionSampler(dt, integratorStride, tfinal, Gamma, nSampler, KbT,
-    #                                            boxsize, boundaryType, equilibrationSteps, conditionedOn)
-
     diffIntegrator.setExternalPotential(bistablePotential)
 
     # Integrate dynamics
-    #t, X, V = diffIntegrator.propagate(particleList, outputAux = outputAux)
-    t, X, V, Raux = diffIntegrator.propagate(particleList, outputAux = outputAux)
+    result, FPT = diffIntegrator.propagateFPT(particleList, finalPosition, minimaThreshold)
+
+    return result, FPT
 
 
-    # Write dynamics into trjactory
-    #traj = trajectoryTools.convert2trajectory(t, [X, V])
-    traj = trajectoryTools.convert2trajectory(t, [X, V, Raux])
-    trajectoryTools.writeTrajectory(traj,basefilename,simnumber)
+def multiprocessingHandler():
+    '''
+    Handles parallel processing of simulationFPT and writes to same file in parallel
+    '''
+    # Runs several simulations in parallel
+    num_cores = multiprocessing.cpu_count() - 1
+    pool = Pool(processes=num_cores)
+    trajNumList = list(range(numSimulations))
+    with open(filename, 'w') as file:
+        for index, result in enumerate(pool.imap(runParallelSims, trajNumList)):
+            status, time = result
+            if status == 'success':
+                file.write(str(time) + '\n')
+                print("Simulation " + str(index) + ", done. Success!")
+            else:
+                print("Simulation " + str(index) + ", done. Failed :(")
 
-    print("Simulation " + str(simnumber) + ", done.")
-
-
-# Runs several simulations in parallel
-print('Simulation for ri+1|' + conditionedOn + ' begins ...')
-num_cores =  multiprocessing.cpu_count() - 1
-pool = Pool(processes=num_cores)
-iterator = [i for i in range(numSimulations)]
-pool.map(partial(runParallelSims), iterator)
+# Run parallel code
+multiprocessingHandler()
 
 ## Serial test
 #for i in range(numSimulations):
