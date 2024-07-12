@@ -17,8 +17,8 @@ matplotlib.rcParams['axes.prop_cycle'] = matplotlib.cycler(color=colorList3alt2)
 bsize = 5
 plotDistributions = True
 plotACFs = True
-plotFPTs = True
-
+plotFPTs = False
+print('Starting plotting')
 # Benchmark data folder
 #parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/bistable/benchmarkComparison/'
 parentDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(bsize) + '/benchmarkComparison/'
@@ -269,7 +269,7 @@ if (plotFPTs):
     fname2 = [None]*len(conditionedList)
     fname1 = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(boxsize) + '/benchmarkFPTcomparison/simMoriZwanzigFPTs_box' + str(boxsize) + '_nsims' + str(numruns) + '.xyz'
     for i in range(len(conditionedList)):
-        fname2[i] = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(boxsize) + '/benchmarkFPTreduced/simMoriZwanzigFPTs_' + conditionedList[i] + '_box' + str(boxsize) + '_nsims' + str(numruns) + '.xyz'
+        fname2[i] = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(boxsize) + '/benchmarkFPTreducedGen/simMoriZwanzigFPTs_' + conditionedList[i] + '_box' + str(boxsize) + '_nsims' + str(numruns) + '.xyz'
     file2 = [None]*len(conditionedList)
     file1 = open(fname1, "r")
     for i in range(len(conditionedList)):
