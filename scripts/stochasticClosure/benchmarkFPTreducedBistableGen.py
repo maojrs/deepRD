@@ -63,13 +63,9 @@ except OSError as error:
     if proceed != 'y':
         sys.exit()
 
-# Load binning sampling models
-print("Loading binned data ...")
-binnedDataFilename = localDataDirectory + 'bistable/boxsize' + str(bsize) + '/binnedData/' + conditionedOn + 'BinnedData.pickle'
-#binnedDataFilename = localDataDirectory + 'binnedData/riBinnedData.pickle'
-dataOnBins = pickle.load(open(binnedDataFilename, "rb" ))
-parameters = dataOnBins.parameterDictionary
-print('Binned data loaded')
+# Loading parameters
+parentDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(bsize)+ '/benchmark/'
+parameters = analysisTools.readParameters(parentDirectory + "parameters")
 #print(parameters)
 
 # Extract basic parameters
@@ -81,18 +77,20 @@ boxsize = parameters['boxsize']
 boundaryType = parameters['boundaryType']
 
 # Extract binning parameters
-numbins = parameters['numbins']
-lagTimesteps = parameters['lagTimesteps']
-nsigma = parameters['nsigma']
+#numbins = parameters['numbins']
+#lagTimesteps = parameters['lagTimesteps']
+#nsigma = parameters['nsigma']
 
 if bsize != boxsize:
     print('Requested boxsize does not match simulation')
 
 # Define noise sampler, n latent dims
 localModelDirectory = 'deepRD/noiseSampler/models/modelWeights/model_state_'
-loadPretrained = localModelDirectory + conditionedOn + '_new.pt'
+loadPretrained = localModelDirectory + conditionedOn + '_256_2.pt'
 
-nSampler = cvaeSampler.cvaeSampler(2, loadPretrained, conditionedOn)
+#nSampler = cvaeSampler.cvaeSampler(2, loadPretrained, conditionedOn)
+nSampler = cvaeSampler.cvaeSampler_256(2, loadPretrained, conditionedOn)
+#nSampler = cvaeSampler.defaultSamplingModel()
 
 # Parameters for external potential (will only acts on distinguished particles (type 1))
 minimaDist = 1.5
@@ -114,8 +112,7 @@ parameterfilename = os.path.join(outputDataDirectory, "parameters")
 parameterDictionary = {'numFiles' : numSimulations, 'dt' : dt, 'Gamma' : Gamma, 'KbT' : KbT,
                        'mass' : mass, 'tfinal' : tfinal, 'stride' : integratorStride,
                        'boxsize' : boxsize, 'boundaryType' : boundaryType,
-                       'conditionedOn': conditionedOn, 'numbins': numbins, 'lagTimesteps': lagTimesteps,
-                       'nsigma': nsigma}
+                       'conditionedOn': conditionedOn}
 analysisTools.writeParameters(parameterfilename, parameterDictionary)
 
 # Provides base filename (folder must exist (and preferably empty), otherwise H5 might fail)
