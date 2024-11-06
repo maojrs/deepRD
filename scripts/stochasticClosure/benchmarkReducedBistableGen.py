@@ -49,7 +49,7 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
 numSimulations = 100
 bsize = 5 #5 #8 #10
-conditionedOn = 'piri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
+conditionedOn = 'piririm' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
 outputAux = True #False
 
 # Output data directory
@@ -65,13 +65,9 @@ except OSError as error:
     if proceed != 'y':
         sys.exit()
 
-# Load binning sampling models
-print("Loading binned data ...")
-#binnedDataFilename = localDataDirectory + 'bistable/boxsize' + str(bsize) + '/binnedData/' + conditionedOn + 'BinnedData.pickle'
-binnedDataFilename = localDataDirectory + 'bistable/boxsize' + str(bsize) + '/binnedData/' + conditionedOn + 'BinnedData.pickle'
-dataOnBins = pickle.load(open(binnedDataFilename, "rb" ))
-parameters = dataOnBins.parameterDictionary
-print('Binned data loaded')
+# Loading parameter dictionary
+parentDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(bsize)+ '/benchmark/'
+parameters = analysisTools.readParameters(parentDirectory + "parameters")
 #print(parameters)
 
 # Extract basic parameters
@@ -85,16 +81,13 @@ boundaryType = parameters['boundaryType']
 if bsize != boxsize:
     print('Requested boxsize does not match simulation')
 
-# Extract binning parameters
-numbins = parameters['numbins']
-lagTimesteps = parameters['lagTimesteps']
-nsigma = parameters['nsigma']
-
 # Define noise sampler, n latent dims
 localModelDirectory = 'deepRD/noiseSampler/models/modelWeights/model_state_'
-loadPretrained = localModelDirectory + conditionedOn + '_new.pt'
+loadPretrained = localModelDirectory + conditionedOn + '_T2.pt'
 
+#nSampler = cvaeSampler.cvaeSampler(2, loadPretrained, conditionedOn)
 nSampler = cvaeSampler.cvaeSampler(2, loadPretrained, conditionedOn)
+#nSampler = cvaeSampler.defaultSamplingModel()
 
 
 # Parameters for external potential (will only acts on distinguished particles (type 1))
@@ -112,8 +105,7 @@ parameterfilename = os.path.join(outputDataDirectory, "parameters")
 parameterDictionary = {'numFiles' : numSimulations, 'dt' : dt, 'Gamma' : Gamma, 'KbT' : KbT,
                        'mass' : mass, 'tfinal' : tfinal, 'stride' : integratorStride,
                        'boxsize' : boxsize, 'boundaryType' : boundaryType,
-                       'equilibrationSteps' : equilibrationSteps, 'conditionedOn': conditionedOn,
-                       'numbins': numbins, 'lagTimesteps': lagTimesteps, 'nsigma': nsigma}
+                       'equilibrationSteps' : equilibrationSteps, 'conditionedOn': conditionedOn}
 analysisTools.writeParameters(parameterfilename, parameterDictionary)
 
 # Provides base filename (folder must exist (and preferably empty), otherwise H5 might fail)

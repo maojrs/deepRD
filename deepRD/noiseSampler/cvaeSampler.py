@@ -43,9 +43,9 @@ class cvaeSampler(nn.Module):
         self.G = torch.distributions.Normal(0, 1)
 
         if loadPretrained==None:
-            print('Untrained model initialized.')
+            print('Untrained model initialized. Conditioned on:', conditionedOn)
         else:
-            print('Loading pretrained model: ' + self.conditionedOn)
+            print('Loading pretrained model: ' + loadPretrained)
             self.load_state_dict(torch.load(loadPretrained))
             print('Model parameters loaded.')
             
@@ -71,11 +71,16 @@ class cvaeSampler(nn.Module):
             with torch.no_grad():
                 label = torch.from_numpy(label).float()
 
+                # Extracting labels
                 if self.conditionedOn=="piri":
                     r = label[3:]
                     v = label[:3]
-
-                label = torch.cat((r,v)).unsqueeze(0)
+                    label = torch.cat((r,v)).unsqueeze(0)
+                elif self.conditionedOn=="piririm":
+                    v = label[:3]
+                    r = label[3:6]
+                    r_prev = label[6:9]
+                    label = torch.cat((v, r, r_prev)).unsqueeze(0)
 
                 samples = torch.normal(mean, std, (num_samples, self.latentDims))
                 z_cond = torch.cat((samples, label), dim=1)
@@ -110,3 +115,126 @@ class cvaeSampler(nn.Module):
         
         if self.conditionedOn=="piri":
             return 6
+        elif self.conditionedOn=="piririm":
+            return 9
+
+
+class cvaeSampler_64(nn.Module):
+
+    def __init__(self, latentDims, loadPretrained, conditionedOn):
+        super().__init__()
+        self.conditionedOn = conditionedOn
+        self.latentDims = latentDims
+        self.conditionDims = self.getConditionDims()
+        self.encoder = nn.Sequential(
+            nn.Linear(3+self.conditionDims, 64),
+            nn.ReLU(),
+            nn.Linear(64, 40),
+            nn.ReLU(),
+            nn.Linear(40, 20),
+            nn.ReLU()
+        )
+        
+        self.decoder = nn.Sequential(
+            nn.Linear(self.latentDims+self.conditionDims, 20),
+            nn.ReLU(),
+            nn.Linear(20, 40),
+            nn.ReLU(),
+            nn.Linear(40, 64),
+            nn.ReLU(),
+            nn.Linear(64, 3)
+        )
+        self.linear1 = nn.Linear(20, self.latentDims)
+        self.linear2 = nn.Linear(20, self.latentDims)
+        self.G = torch.distributions.Normal(0, 1)
+
+        if loadPretrained==None:
+            print('Untrained model initialized. Conditioned on:', conditionedOn)
+        else:
+            print('Loading pretrained model: ' + loadPretrained)
+            self.load_state_dict(torch.load(loadPretrained))
+            print('Model parameters loaded.')
+            
+
+    def reparametrize(self, mu, logvar):
+        std = torch.exp(0.5*logvar)
+        return mu + std*self.G.sample(mu.shape)
+
+    def sample(self, label, num_samples=1):
+        '''
+         Here a slight workaround to get compatibility between model and integrator.
+         Model is designed and trained to work on Torch tensors of size (num_samples, *), meanwhile 
+         integrator works on 1-D arrays. 
+
+         Returns: 1-D Torch Tensor of size (3)
+        '''
+
+        mean = 0
+        std = 1
+
+        if isinstance(label, np.ndarray):
+
+            with torch.no_grad():
+                label = torch.from_numpy(label).float()
+
+                # Extracting labels
+                if self.conditionedOn=="piri":
+                    r = label[3:]
+                    v = label[:3]
+                    label = torch.cat((r,v)).unsqueeze(0)
+                elif self.conditionedOn=="piririm":
+                    v = label[:3]
+                    r = label[3:6]
+                    r_prev = label[6:9]
+                    label = torch.cat((v, r, r_prev)).unsqueeze(0)
+
+                samples = torch.normal(mean, std, (num_samples, self.latentDims))
+                z_cond = torch.cat((samples, label), dim=1)
+                out = np.array(self.decoder(z_cond).squeeze(0))
+
+        else: 
+            
+            if label.dim()==1:
+                label = label.unsqueeze(0)
+
+            samples = torch.normal(mean, std, (num_samples, self.latentDims))
+            z_cond = torch.cat((samples, label), dim=1)
+            out = self.decoder(z_cond)
+
+        return out
+
+    def forward(self, x, y, returnLatent=False):
+        x_cond = torch.cat((x,y), dim=1)
+        x = self.encoder(x_cond)
+        mu = self.linear1(x)
+        logvar = self.linear2(x)
+        z = self.reparametrize(mu, logvar)
+        z_cond = torch.cat((z, y), dim=1)
+        output = self.decoder(z_cond)
+
+        if returnLatent==True:
+            return output, mu, logvar, z
+        
+        return output, mu, logvar
+    
+    def getConditionDims(self):
+        
+        if self.conditionedOn=="piri":
+            return 6
+        elif self.conditionedOn=="piririm":
+            return 9
+
+class defaultSamplingModel:
+    '''
+    Default sampler to be fed into noise sampler for testing cases
+    '''
+    def __init__(self, mean = [0,0,0], covariance = [[0.00001, 0, 0], [0, 0.00001, 0], [0, 0, 0.00001]]):
+        self.mean = mean
+        self.covariance = covariance
+
+
+    def sample(self, conditionedVariables):
+        if isinstance(self.mean, list) and isinstance(self.covariance, list):
+            return np.random.multivariate_normal(self.mean, self.covariance)
+        else:
+            return np.random.normal(self.mean, self.covariance)

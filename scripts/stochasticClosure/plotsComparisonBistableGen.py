@@ -16,7 +16,7 @@ matplotlib.rcParams['axes.prop_cycle'] = matplotlib.cycler(color=colorList3alt2)
 
 bsize = 5
 plotDistributions = True
-plotACFs = True
+plotACFs = False
 plotFPTs = False
 print('Starting plotting')
 # Benchmark data folder
@@ -82,7 +82,7 @@ if (plotDistributions):
             for j in range(numSimulations):
                 traj = trajectoryTools.loadTrajectory(redModelfnamebase[i], j)
                 iTraj.append(traj)
-                print("File ", i+1, " of ", numSimulations, " done.", end="\r")
+                print("File ", j+1, " of ", numSimulations, " done.", end="\r")
             allTrajs[i] = iTraj
         except:
             continue
@@ -91,7 +91,7 @@ if (plotDistributions):
 
 # Choose which reduced model to compare (just uncomment one)
 #conditionedList = ['ri', 'qiri', 'pi', 'piri'] #Possibilities 'qi', 'ri', 'qiri', 'qiririm'
-conditionedList = ['piri'] #['pi','piri','piririm'] #['pi', 'piri', 'piririm']
+conditionedList = ['piririm'] #['pi','piri','piririm'] #['pi', 'piri', 'piririm']
 trajIndexes = []
 if 'ri' in conditionedList:
     trajIndexes.append(0)
