@@ -76,7 +76,7 @@ class smoluchowski(diffusionIntegrator):
             particle = deepRD.particle(position, D = self.D)
             particleList.addParticle(particle)
 
-    def injectParticlesAlternative(self, particleList, deltat):
+    def injectParticlesExplicit(self, particleList, deltat):
         # Count number of reactions by explicitly checking if particles transition or not.
         # Not used, but can be called by harcoding into integratorOne.
         numInjectedParticles = 0
