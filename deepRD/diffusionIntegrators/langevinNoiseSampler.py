@@ -34,6 +34,7 @@ class langevinNoiseSampler(langevin):
             part.aux1 = np.zeros(particleList.dimension)
             part.aux2 = np.zeros(particleList.dimension)
             part.aux3 = np.zeros(particleList.dimension)
+            part.vel1 = np.zeros(particleList.dimension)
         self.currentOrNext = 'next'
         self.calculateForceField(particleList)
         self.firstRun = False
@@ -65,6 +66,8 @@ class langevinNoiseSampler(langevin):
             return np.concatenate((particle.nextPosition, particle.nextVelocity, particle.aux1))
         elif self.conditionedOn == 'qipiririm':
             return np.concatenate((particle.nextPosition, particle.nextVelocity, particle.aux1, particle.aux2))
+        elif self.conditionedOn == 'pipimri':
+            return np.concatenate((particle.nextVelocity, particle.vel1, particle.aux1))
         else:
             sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
 
@@ -98,6 +101,7 @@ class langevinNoiseSampler(langevin):
 
             particle.aux2 = 1.0 * particle.aux1
             particle.aux1 = 1.0 * interactionNoiseTerm
+            particle.vel1 = particle.nextVelocity
             particle.nextVelocity = frictionForceTerm + interactionNoiseTerm
 
     def propagate(self, particleList, showProgress = False, outputAux = False):

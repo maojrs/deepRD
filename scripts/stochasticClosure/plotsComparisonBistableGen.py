@@ -26,7 +26,7 @@ benchmarkfnamebase = parentDirectory + 'simMoriZwanzig_'
 # Reduced models data folders
 #localDataDirectory = '../../data/stochasticClosure/bistable/benchmarkReduced'
 localDataDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(bsize) + '/benchmarkReducedGen'
-numModels = 8
+numModels = 9
 redModelfnamebase = [localDataDirectory]*numModels
 redModelfnamebase[0] += '_ri/simMoriZwanzigReduced_'
 redModelfnamebase[1] += '_ririm/simMoriZwanzigReduced_'
@@ -36,6 +36,7 @@ redModelfnamebase[4] += '_qiririm/simMoriZwanzigReduced_'
 redModelfnamebase[5] += '_pi/simMoriZwanzigReduced_'
 redModelfnamebase[6] += '_piri/simMoriZwanzigReduced_'
 redModelfnamebase[7] += '_piririm/simMoriZwanzigReduced_'
+redModelfnamebase[8] += '_pipimri/simMoriZwanzigReduced_' # additional model
 
 # Create plot directory
 plotDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(bsize) + '/plotsGen/'
@@ -91,7 +92,7 @@ if (plotDistributions):
 
 # Choose which reduced model to compare (just uncomment one)
 #conditionedList = ['ri', 'qiri', 'pi', 'piri'] #Possibilities 'qi', 'ri', 'qiri', 'qiririm'
-conditionedList = ['piririm'] #['pi','piri','piririm'] #['pi', 'piri', 'piririm']
+conditionedList = ['piri']#, 'piririm', 'pipimri'] #['pi','piri','piririm'] #['pi', 'piri', 'piririm']
 trajIndexes = []
 if 'ri' in conditionedList:
     trajIndexes.append(0)
@@ -109,13 +110,16 @@ if 'piri' in conditionedList:
     trajIndexes.append(6)
 if 'piririm' in conditionedList:
     trajIndexes.append(7)
+if 'pipimri' in conditionedList:
+    trajIndexes.append(8)
 numConditions = len(trajIndexes)
 # Note in plot labels x = q and v = p
 labelList = [r'$\tilde{r}^{n+1}|\tilde{r}^n$', r'$\tilde{r}^{n+1}|\tilde{r}^n, \tilde{r}^{n-1}$',
              r'$\tilde{r}^{n+1}|\tilde{x}^n$', r'$\tilde{r}^{n+1}|\tilde{x}^n,\tilde{r}^n$',
              r'$\tilde{r}^{n+1}|\tilde{x}^n, \tilde{r}^n, \tilde{r}^{n-1}$',
              r'$\tilde{r}^{n+1}|\tilde{v}^n$', r'$\tilde{r}^{n+1}|\tilde{v}^n,\tilde{r}^n$',
-             r'$\tilde{r}^{n+1}|\tilde{v}^n, \tilde{r}^n, \tilde{r}^{n-1}$']
+             r'$\tilde{r}^{n+1}|\tilde{v}^n, \tilde{r}^n, \tilde{r}^{n-1}$', 
+             r'$\tilde{r}^{n+1}|\tilde{v}^n, \tilde{r}^n, \tilde{v}^{n-1}$']
 #lineTypeList = [':', '-.', '--', 'xk']*2
 #lwList = [4, 2, 2, 2]*2
 

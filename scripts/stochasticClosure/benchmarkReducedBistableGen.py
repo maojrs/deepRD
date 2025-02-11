@@ -49,7 +49,7 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
 numSimulations = 100
 bsize = 5 #5 #8 #10
-conditionedOn = 'piririm' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
+conditionedOn = 'piri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
 outputAux = True #False
 
 # Output data directory
@@ -78,15 +78,21 @@ KbT = parameters['KbT']
 boxsize = parameters['boxsize']
 boundaryType = parameters['boundaryType']
 
+print(mass)
+
 if bsize != boxsize:
     print('Requested boxsize does not match simulation')
 
 # Define noise sampler, n latent dims
 localModelDirectory = 'deepRD/noiseSampler/models/modelWeights/model_state_'
-loadPretrained = localModelDirectory + conditionedOn + '_T2.pt'
+loadPretrained = localModelDirectory + conditionedOn + '_E85.pt'
 
-#nSampler = cvaeSampler.cvaeSampler(2, loadPretrained, conditionedOn)
-nSampler = cvaeSampler.cvaeSampler(2, loadPretrained, conditionedOn)
+batch_norm=False
+dropout_rate=0
+
+hidden_dims = [128, 64, 32]
+nSampler = cvaeSampler.cvaeSampler(8, loadPretrained, conditionedOn, 'bistable', hidden_dims, batch_norm=batch_norm, dropout_rate=dropout_rate)
+nSampler.eval()
 #nSampler = cvaeSampler.defaultSamplingModel()
 
 
