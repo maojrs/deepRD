@@ -86,10 +86,10 @@ if bsize != boxsize:
 
 # Define noise sampler, n latent dims
 localModelDirectory = 'deepRD/noiseSampler/models/modelWeights/model_state_'
-loadPretrained = localModelDirectory + conditionedOn + '_256_2.pt'
+loadPretrained = localModelDirectory + conditionedOn + '_E81.pt'
 
 #nSampler = cvaeSampler.cvaeSampler(2, loadPretrained, conditionedOn)
-nSampler = cvaeSampler.cvaeSampler_256(2, loadPretrained, conditionedOn)
+nSampler = cvaeSampler.cvaeSampler_SE(8, loadPretrained, conditionedOn)
 #nSampler = cvaeSampler.defaultSamplingModel()
 
 # Parameters for external potential (will only acts on distinguished particles (type 1))
