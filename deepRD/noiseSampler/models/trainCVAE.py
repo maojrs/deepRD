@@ -11,15 +11,19 @@ from torch.utils.data import DataLoader
 from sklearn.neighbors import KernelDensity
 from annealing import Annealer
 
+# Use GPU if possible
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
 # Model Settings
 systemType = 'bistable' # 'bistable', 'dimer'
 conditionedOn = 'piri' # 'piri', 'piririm', 'pipimri' - TBImplemented
 latentDims = 8
-outputModelName = 'BN1'
+outputModelName = 'UN1'
 #hiddenDims = None
 hiddenDims = [128, 64, 32]
 
 # Training Settings
+normalize_data = False
 train_split = 0.8
 n_datasets = 1500
 num_epochs = 40
@@ -31,7 +35,7 @@ weight_decay = 0
 
 # Use either BN OR Dropout
 batch_norm = False # Data Pre-Processing AND Batch Normalisation
-dropout_rate = 0.3 # Dropout
+dropout_rate = 0 # Dropout
 
 # Penalizing mean of batch deviating from 0.
 alpha = 0 # set to 0 to not penalise mean
@@ -52,7 +56,7 @@ loss_1 = nn.MSELoss()
 def loss_2(mu, logvar):
     return torch.mean(-0.5 * torch.sum(1 + logvar - mu ** 2 - torch.exp(logvar), dim = 1), dim = 0).sum()
 
-def reform_dataset(dataset, systemType):
+def reform_dataset(dataset, systemType, normalize_data):
     """
     Function to reshape dataset, extracting the physical vectors depending on systemType
     systemType: 'bistable', 'dimer'
@@ -134,6 +138,14 @@ def reform_dataset(dataset, systemType):
 
         inputVars = torch.cat( (r_nxt1, r_nxt2), dim = 1)
 
+    # Normalizing whole data to mean 0, std 1.
+    if normalize_data:
+        mean_input, std_input = torch.mean(inputVars, dim=0), torch.std(inputVars, dim=0)
+        mean_cond, std_cond = torch.mean(conditionalVars, dim=0), torch.std(conditionalVars, dim=0)
+    else:
+        mean_input, std_input, mean_cond, std_cond = (torch.tensor(0), torch.tensor(1), torch.tensor(0), torch.tensor(1))
+
+    mean_input, std_input, mean_cond, std_cond = mean_input.to(device), std_input.to(device), mean_cond.to(device), std_cond.to(device)
 
     # Split data: first 20% test, remaining 80% test.
     split_ind = int(TT_split*len(inputVars))
@@ -142,7 +154,7 @@ def reform_dataset(dataset, systemType):
     test_data = torch.utils.data.TensorDataset(inputVars[:split_ind], conditionalVars[:split_ind])
     data = torch.utils.data.TensorDataset(inputVars[split_ind:], conditionalVars[split_ind:])
 
-    return test_data, data
+    return test_data, data, (mean_input, std_input, mean_cond, std_cond)
 
 
 
@@ -166,15 +178,13 @@ for f_num in fnums:
 
 print('Dataset loaded.')
 
-test_data, data = reform_dataset(dataset, systemType)
+test_data, data, norm_params = reform_dataset(dataset, systemType, normalize_data)
 
 data_loader = DataLoader(data, batch_size=batch_size, shuffle=True)
 test_data_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
 
 VAE = cvaeSampler.cvaeSampler(latentDims, loadPretrained, conditionedOn, systemType, 
-                                hidden_dims=hiddenDims, batch_norm=batch_norm, dropout_rate=dropout_rate)
-
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+                                hidden_dims=hiddenDims, batch_norm=batch_norm, dropout_rate=dropout_rate, norm_params=norm_params)
 VAE = VAE.to(device)
 optimizer = torch.optim.Adam(VAE.parameters(),
                              lr = learning_rate,
@@ -192,7 +202,7 @@ def trainingLoop(epochs, csvfile):
     writer = csv.writer(csvfile)
 
     annealing_period = 10 # annealing step done once every epoch
-    annealing_agent = Annealer(annealing_period, shape='logistic', baseline = 0, cyclical=True) # instantiating annealing agent
+    annealing_agent = cvaeSampler.Annealer(annealing_period, shape='logistic', baseline = 0, cyclical=True) # instantiating annealing agent
 
     for epoch in range(epochs):
         VAE.train()
@@ -251,7 +261,7 @@ def trainingLoop(epochs, csvfile):
         alpha_avg = total_alpha/bc
         writer.writerow(loss_avg)
 
-        print(f'E{epoch+1}:',round(loss_avg[0]*1000,4), round(loss_avg[1]*1000,4), round(loss_avg[2]*1000,4), round(loss_avg[3]*1000,4), round(alpha*alpha_avg*1000,4))
+        print(f'E{epoch+1}: {round(loss_avg[0]*1000,4)}, {round(loss_avg[1]*1000,4)}, {round(loss_avg[2]*1000,4)}, {round(loss_avg[3]*1000,4)}')
     return None
 
 # Writing loss file

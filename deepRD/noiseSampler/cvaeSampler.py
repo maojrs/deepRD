@@ -4,6 +4,7 @@ import torch
 import torchvision
 import deepRD.tools.trajectoryTools as trajectoryTools
 import os
+import math
 from torch import nn
 from collections import OrderedDict
 #from torch.utils.data import DataLoader
@@ -21,9 +22,11 @@ class cvaeSampler(nn.Module):
     conditionedOn (str): ['piri', 'pipimri', etc.] - set of the variables used for conditioning of the decoding/encoding
     systemType (str): ['bistable', 'dimer'] 
     hidden_dims (1-D array of int): e.g. [128, 64, 32] ; determines the encoder/decoder structure given as subsequent hidden layers
+    batch_norm (bool): use batch normalisation
+    dropout (0-1): dropout rate, disabled if 0
     """
 
-    def __init__(self, latentDims, loadPretrained, conditionedOn, systemType, hidden_dims=None, batch_norm=False, dropout_rate=0, fhl=20,):
+    def __init__(self, latentDims, loadPretrained, conditionedOn, systemType, hidden_dims=None, batch_norm=False, dropout_rate=0, norm_params=(0,1,0,1)):
         super().__init__()
         self.conditionedOn = conditionedOn
         self.systemType = systemType
@@ -35,7 +38,7 @@ class cvaeSampler(nn.Module):
 
         if hidden_dims==None:
             # Initialising template network architecture
-            self.fhl = fhl
+            fhl=20
 
             self.encoder = nn.Sequential(
                 nn.Linear(self.inputDims+self.conditionDims, 128),
@@ -62,11 +65,10 @@ class cvaeSampler(nn.Module):
 
         else:
             # Building custom network architecture
-
-            self.fhl = hidden_dims[-1]
+            fhl = hidden_dims[-1]
 
             if dropout_rate>0 and batch_norm==True:
-                print('Use either BN or Dropout.')
+                print('Use either BN or Dropout, not both.')
 
             elif batch_norm: # Using Batch Norm only 
                 self.encoder = nn.Sequential(
@@ -112,14 +114,16 @@ class cvaeSampler(nn.Module):
 
             self.decoder.append(nn.Linear(hidden_dims[0], self.inputDims))
 
-        self.linear1 = nn.Linear(self.fhl, self.latentDims)
-        self.linear2 = nn.Linear(self.fhl, self.latentDims)
+        self.linear1 = nn.Linear(fhl, self.latentDims)
+        self.linear2 = nn.Linear(fhl, self.latentDims)
         self.load_model()
+
+        self.mean_input, self.std_input, self.mean_cond, self.std_cond = norm_params
 
 
     def load_model(self):
         if self.loadPretrained==None:
-            print('Untrained model initialized. Conditioned on:', conditionedOn)
+            print('Untrained model initialized. Conditioned on:', self.conditionedOn)
         else:
             print('Loading pretrained model: ' + self.loadPretrained)
             self.load_state_dict(torch.load(self.loadPretrained))
@@ -129,17 +133,33 @@ class cvaeSampler(nn.Module):
         std = torch.exp(0.5*logvar)
         return mu + std*self.G.sample(mu.shape)
 
+    def normalize(self, x, mean, std):
+        """
+        Normalizes a tensor w.r.t a given mean and std.
+        """
+        return (x-mean)/std
+
+    def denormalize(self, x, mean, std):
+        """
+        Denormalizes a tensor w.r.t a given mean and std.
+        """
+        return x*std + mean
+
     def sample(self, label, num_samples=1):
         '''
          Here a slight workaround to get compatibility between model and integrator.
          Model is designed and trained to work on Torch tensors of size (num_samples, *), meanwhile 
          integrator works on 1-D arrays. 
 
-         Returns: 1-D Torch Tensor of size (3)
+         Returns: 1-D Torch Tensor: r_aux (3) if bistable, (r_aux1, r_aux2) if dimer
         '''
 
+        # Parameters for latent space sampling
         mean = 0
-        std = 1.2
+        std = 1
+
+        # Normalizing labels for inference
+        label = self.normalize(label, self.mean_cond, self.std_cond)
 
         if isinstance(label, np.ndarray):
 
@@ -187,9 +207,18 @@ class cvaeSampler(nn.Module):
             z_cond = torch.cat((samples, label), dim=1)
             out = self.decoder(z_cond)
 
+        # Denormalizing output
+        out = self.denormalize(out, self.mean_input, self.std_input)
+
         return out
 
     def forward(self, x, y, returnLatent=False):
+
+        # Preprocessing data
+        x = self.normalize(x, self.mean_input, self.std_input)
+        y = self.normalize(y, self.mean_cond, self.std_cond)
+
+        # Passing through network
         x_cond = torch.cat((x,y), dim=1)
         x = self.encoder(x_cond)
         mu = self.linear1(x)
@@ -197,6 +226,9 @@ class cvaeSampler(nn.Module):
         z = self.reparametrize(mu, logvar)
         z_cond = torch.cat((z, y), dim=1)
         output = self.decoder(z_cond)
+
+        # Denormalizing output to original form
+        output = self.denormalize(output, self.mean_input, self.std_input)
 
         if returnLatent==True:
             return output, mu, logvar, z
@@ -333,3 +365,71 @@ class defaultSamplingModel:
             return np.random.multivariate_normal(self.mean, self.covariance)
         else:
             return np.random.normal(self.mean, self.covariance)
+
+
+class Annealer:
+    """
+    This class is used to anneal the KL divergence loss over the course of training VAEs.
+    After each call, the step() function should be called to update the current epoch.
+    """
+
+    def __init__(self, total_steps, shape, baseline=0.0, cyclical=False, disable=False):
+        """
+        Parameters:
+            total_steps (int): Number of epochs to reach full KL divergence weight.
+            shape (str): Shape of the annealing function. Can be 'linear', 'cosine', or 'logistic'.
+            baseline (float): Starting value for the annealing function [0-1]. Default is 0.0.
+            cyclical (bool): Whether to repeat the annealing cycle after total_steps is reached.
+            disable (bool): If true, the __call__ method returns unchanged input (no annealing).
+        """
+        self.total_steps = total_steps
+        self.current_step = 0
+        self.cyclical = cyclical
+        self.shape = shape
+        self.baseline = baseline
+        if disable:
+            self.shape = 'none'
+            self.baseline = 0.0
+
+    def __call__(self, kld):
+        """
+        Args:
+            kld (torch.tensor): KL divergence loss
+        Returns:
+            out (torch.tensor): KL divergence loss multiplied by the value (slope) of the annealing function.
+        """
+        out = kld * self.slope()
+        return out
+
+    def slope(self):
+        if self.shape == 'linear':
+            y = (self.current_step / self.total_steps)
+        elif self.shape == 'cosine':
+            y = (math.cos(math.pi * (self.current_step / self.total_steps - 1)) + 1) / 2
+        elif self.shape == 'logistic':
+            exponent = ((self.total_steps / 2) - self.current_step)
+            y = 1 / (1 + math.exp(exponent))
+        elif self.shape == 'none':
+            y = 1.0
+        else:
+            raise ValueError('Invalid shape for annealing function. Must be linear, cosine, or logistic.')
+        y = self.add_baseline(y)
+        return y
+
+    def step(self):
+        if self.current_step < self.total_steps:
+            self.current_step += 1
+        if self.cyclical and self.current_step >= self.total_steps:
+            self.current_step = 0
+        return
+
+    def add_baseline(self, y):
+        y_out = y * (1 - self.baseline) + self.baseline
+        return y_out
+
+    def cyclical_setter(self, value):
+        if value is not bool:
+            raise ValueError('Cyclical_setter method requires boolean argument (True/False)')
+        else:
+            self.cyclical = value
+        return
