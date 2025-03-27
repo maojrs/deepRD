@@ -768,6 +768,8 @@ class langevinNoiseSamplerDimerGlobal(langevinNoiseSamplerDimer):
             return np.concatenate((self.rotatedVelocity[index], self.rotatedVelocity[index+1], particle1.aux1, particle2.aux1))
         elif self.conditionedOn == 'viririm':
             return np.concatenate((self.rotatedVelocity, particle1.aux1, particle2.aux1, particle1.aux2, particle2.aux2))
+        elif self.conditionedOn=='piridqi':
+            return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux1, particle2.aux1, np.array([self.relDistance[index]])))
         else:
             sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
 
@@ -799,7 +801,6 @@ class langevinNoiseSamplerDimerGlobal(langevinNoiseSamplerDimer):
             frictionForceTerm2 += (1 + expterm2) * self.forceField[2*i+1] * dt/(2*particle2.mass)
             # Calculate interaction and noise term from noise sampler
             conditionedVars = self.getConditionedVars(particle1, particle2, 0)
-
             # Sample interaction noisterm
             interactionNoiseTerm = self.noiseSampler.sample(conditionedVars)
             #rotatedInteractionNoiseTerm = self.noiseSampler.sample(conditionedVars)

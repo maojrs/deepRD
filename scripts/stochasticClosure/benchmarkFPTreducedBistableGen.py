@@ -47,7 +47,7 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 # Simulation parameters
 #localDataDirectory = '../../data/stochasticClosure/'
 localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
-numSimulations = 10000 #100
+numSimulations = 1000 #100
 bsize= 5
 conditionedOn = 'piri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
 
@@ -88,8 +88,11 @@ if bsize != boxsize:
 localModelDirectory = 'deepRD/noiseSampler/models/modelWeights/model_state_'
 loadPretrained = localModelDirectory + conditionedOn + '_E81.pt'
 
-#nSampler = cvaeSampler.cvaeSampler(2, loadPretrained, conditionedOn)
-nSampler = cvaeSampler.cvaeSampler_SE(8, loadPretrained, conditionedOn)
+norm_params = (0,1,0,1)
+
+hidden_dims = [128, 64, 32]
+nSampler = cvaeSampler.cvaeSampler(8, loadPretrained, conditionedOn, 'bistable', hidden_dims, norm_params=norm_params, sampling_width=1.2)
+nSampler.eval()
 #nSampler = cvaeSampler.defaultSamplingModel()
 
 # Parameters for external potential (will only acts on distinguished particles (type 1))

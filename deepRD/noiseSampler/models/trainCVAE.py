@@ -16,9 +16,9 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # Model Settings
 systemType = 'bistable' # 'bistable', 'dimer'
-conditionedOn = 'piri' # 'piri', 'piririm', 'pipimri' - TBImplemented
+conditionedOn = 'piri' # 'piri', 'piririm', 'pipimri'
 latentDims = 8
-outputModelName = 'UN1'
+outputModelName = 'M1'
 #hiddenDims = None
 hiddenDims = [128, 64, 32]
 
@@ -105,12 +105,14 @@ def reform_dataset(dataset, systemType, normalize_data):
     elif systemType=='dimer':
         # Extracting desired vectors from dataset
 
+        q1 = dataset[:, ::2, 1:4] # q_n
         r_aux1 = dataset[:, ::2, -3:] # r_n
         r_nxt1 = torch.roll(r_aux1, -1, 1) # r_n+1
         r_prev1 = torch.roll(r_aux1, 1, 1) # r_n-1
         v1 = dataset[:, ::2, 4:7] # v_n
         v_prev1 = torch.roll(v1, 1, 1) # v_n-1
 
+        q2 = dataset[:, 1::2, 1:4] # q_n
         r_aux2 = dataset[:, 1::2, -3:] # r_n
         r_nxt2 = torch.roll(r_aux2, -1, 1) # r_n+1
         r_prev2 = torch.roll(r_aux2, 1, 1) # r_n-1
@@ -118,21 +120,31 @@ def reform_dataset(dataset, systemType, normalize_data):
         v_prev2 = torch.roll(v2, 1, 1) # v_n-1
 
         # Cut out first & last datapoint for consistency
+        q1 = q1[:, 1:-1].flatten(end_dim=1)
         r_aux1 = r_aux1[:, 1:-1].flatten(end_dim=1)
         r_nxt1 = r_nxt1[:, 1:-1].flatten(end_dim=1)
         r_prev1 = r_prev1[:, 1:-1].flatten(end_dim=1)
         v1 = v1[:, 1:-1].flatten(end_dim=1)
         v_prev1 = v_prev1[:, 1:-1].flatten(end_dim=1)
 
+        q2 = q2[:, 1:-1].flatten(end_dim=1)
         r_aux2 = r_aux2[:, 1:-1].flatten(end_dim=1)
         r_nxt2 = r_nxt2[:, 1:-1].flatten(end_dim=1)
         r_prev2 = r_prev2[:, 1:-1].flatten(end_dim=1)
         v2 = v2[:, 1:-1].flatten(end_dim=1)
         v_prev2 = v_prev2[:, 1:-1].flatten(end_dim=1)
 
+        # Computing relative distance
+        dq = np.zeros(q1.shape)
+        for i in range(q1.shape[0]):
+            dq[i] = trajectoryTools.relativePosition(q1[i], q2[i], 'periodic', 5)
+        
+        dq = torch.from_numpy(np.linalg.norm(dq, axis=1)).unsqueeze(1).float()
 
         if conditionedOn == 'piri':
             conditionalVars = torch.cat((v1, v2, r_aux1, r_aux2), dim = 1) # pi1, pi2, ri1, ri2
+        elif conditionedOn == 'piridqi':
+            conditionalVars = torch.cat((v1, v2, r_aux1, r_aux2, dq), dim = 1) # pi1, pi2, ri1, ri2, dq
         else:
             print('Invalid model type')
 
@@ -140,8 +152,16 @@ def reform_dataset(dataset, systemType, normalize_data):
 
     # Normalizing whole data to mean 0, std 1.
     if normalize_data:
-        mean_input, std_input = torch.mean(inputVars, dim=0), torch.std(inputVars, dim=0)
-        mean_cond, std_cond = torch.mean(conditionalVars, dim=0), torch.std(conditionalVars, dim=0)
+        #mean_input, std_input = torch.mean(inputVars, dim=0), torch.std(inputVars, dim=0)
+        #mean_cond, std_cond = torch.mean(conditionalVars, dim=0), torch.std(conditionalVars, dim=0)
+
+        # Means of the distributions are on the order of e-6, so for simplicity I set 0.
+        mean_input = torch.tensor(0)
+        std_input = torch.tensor([0.0162, 0.0162, 0.0162])
+        mean_cond = torch.tensor(0)
+        if conditionedOn=='piri':
+            std_cond = torch.tensor([0.0162, 0.0162, 0.0162, 0.1425, 0.1425, 0.1426])
+        
     else:
         mean_input, std_input, mean_cond, std_cond = (torch.tensor(0), torch.tensor(1), torch.tensor(0), torch.tensor(1))
 
@@ -190,11 +210,6 @@ optimizer = torch.optim.Adam(VAE.parameters(),
                              lr = learning_rate,
                              weight_decay = weight_decay)
 
-#VAE2 = cvaeSampler.cvaeSampler(latentDims, loadPretrained, conditionedOn, systemType, 
-#                                hidden_dims=hiddenDims, batch_norm=False, dropout_rate=0.2)
-
-#print(VAE)
-#print(VAE2)
 
 def trainingLoop(epochs, csvfile):
 
@@ -233,7 +248,6 @@ def trainingLoop(epochs, csvfile):
             l2 = annealing_agent(l2)
 
             # Try to enforce mean of batch of reconstructed samples deviating from 0
-
             batch_mean = torch.mean(reconstruction)
             mean_penalty = batch_mean**2
             
@@ -274,3 +288,4 @@ with open(plotDirectory + 'losses_' + conditionedOn + '_' + outputModelName + '.
 # Saving model parameters
 torch.save(VAE.state_dict(), outputModelDirectory)
 print('Model parameters saved.')
+print(VAE.mean_input, VAE.std_input, VAE.mean_cond, VAE.std_cond)
