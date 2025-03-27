@@ -16,7 +16,7 @@ matplotlib.rcParams['axes.prop_cycle'] = matplotlib.cycler(color=colorList3alt2)
 
 bsize = 5
 plotDistributions = True
-plotACFs = False
+plotACFs = True
 plotFPTs = False
 print('Starting plotting')
 # Benchmark data folder
@@ -25,7 +25,7 @@ parentDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + st
 benchmarkfnamebase = parentDirectory + 'simMoriZwanzig_'
 # Reduced models data folders
 #localDataDirectory = '../../data/stochasticClosure/bistable/benchmarkReduced'
-localDataDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(bsize) + '/benchmarkReducedGen'
+localDataDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(bsize) + '/benchmarkReducedGen2'
 numModels = 9
 redModelfnamebase = [localDataDirectory]*numModels
 redModelfnamebase[0] += '_ri/simMoriZwanzigReduced_'
@@ -267,13 +267,14 @@ if(plotACFs):
 # ## Plot FPTs comparison
 if (plotFPTs):
     # Set loading data
-    numruns = 10000
+    numruns_1 = 10000
+    numruns_2 = 1000
     numbinsFPT = 30
     maxplotTime = 1500
     fname2 = [None]*len(conditionedList)
-    fname1 = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(boxsize) + '/benchmarkFPTcomparison/simMoriZwanzigFPTs_box' + str(boxsize) + '_nsims' + str(numruns) + '.xyz'
+    fname1 = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(boxsize) + '/benchmarkFPTcomparison/simMoriZwanzigFPTs_box' + str(boxsize) + '_nsims' + str(numruns_1) + '.xyz'
     for i in range(len(conditionedList)):
-        fname2[i] = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(boxsize) + '/benchmarkFPTreducedGen/simMoriZwanzigFPTs_' + conditionedList[i] + '_box' + str(boxsize) + '_nsims' + str(numruns) + '.xyz'
+        fname2[i] = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(boxsize) + '/benchmarkFPTreducedGen/simMoriZwanzigFPTs_' + conditionedList[i] + '_box' + str(boxsize) + '_nsims' + str(numruns_2) + '.xyz'
     file2 = [None]*len(conditionedList)
     file1 = open(fname1, "r")
     for i in range(len(conditionedList)):

@@ -53,7 +53,7 @@ bsize = 5 #5 #8 #10
 # Available conditionings: dqi, dpi, vi,  ri, dqiri, dpiri, dqiririm, dpiririm, etc...
 # dqi:=relative distance between dimer particles, dpi:= relative velocity along dimer axis,
 # vi:=center of mass velocity (first component norm along axis, second one norm of perpendicular part)
-conditionedOn = 'piri' #'pi'
+conditionedOn = 'piridqi' #'pi'
 outputAux = True #False
 nbins = 5
 
@@ -95,14 +95,16 @@ if bsize != boxsize:
 #numbins = parameters['numbins']
 #lagTimesteps = parameters['lagTimesteps']
 #nsigma = parameters['nsigma']
+norm_params = (0,1,0,1)
 
 # Define noise sampler, n latent dims
 localModelDirectory = 'deepRD/noiseSampler/models/modelWeights/model_state_'
-loadPretrained = localModelDirectory + conditionedOn + '_Dimer1.pt'
+loadPretrained = localModelDirectory + conditionedOn + '_Dimer3.pt'
 
 # Define noise sampler
 hidden_dims = [128,64,32]
-nSampler = cvaeSampler.cvaeSampler(8, loadPretrained, conditionedOn, 'dimer', hidden_dims)
+nSampler = cvaeSampler.cvaeSampler(8, loadPretrained, conditionedOn, 'dimer', hidden_dims,
+                                    norm_params=norm_params, sampling_width=1)
 nSampler.eval()
 
 # For testing

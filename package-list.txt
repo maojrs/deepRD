@@ -24,14 +24,6 @@ cffi=1.17.1=py312h1fdaa30_1
 charset-normalizer=3.3.2=pyhd3eb1b0_0
 comm=0.2.1=py312h06a4308_0
 contourpy=1.3.1=py312hdb19cb5_0
-cuda-cudart=12.4.127=0
-cuda-cupti=12.4.127=0
-cuda-libraries=12.4.1=0
-cuda-nvrtc=12.4.127=0
-cuda-nvtx=12.4.127=0
-cuda-opencl=12.8.55=0
-cuda-runtime=12.4.1=0
-cuda-version=12.8=3
 cycler=0.11.0=pyhd3eb1b0_0
 cyrus-sasl=2.1.28=h52b45da_1
 dbus=1.13.18=hb2f20db_0
@@ -188,9 +180,6 @@ python-dateutil=2.9.0post0=py312h06a4308_2
 python-fastjsonschema=2.20.0=py312h06a4308_0
 python-json-logger=3.2.1=py312h06a4308_0
 python-tzdata=2023.3=pyhd3eb1b0_0
-pytorch=2.5.1=py3.12_cuda12.4_cudnn9.1.0_0
-pytorch-cuda=12.4=hc786d27_7
-pytorch-mutex=1.0=cuda
 pytz=2024.1=py312h06a4308_0
 pyyaml=6.0.2=py312h5eee18b_0
 pyzmq=26.2.0=py312h6a678d5_0
