@@ -194,7 +194,7 @@ class cvaeSampler(nn.Module):
                 while True:
                     zi = torch.normal(mean, std, (1, self.latentDims))
                     ri =  torch.linalg.vector_norm(zi)
-                    if ri < 4:
+                    if ri < 5:
                         break
                         
                 samples[i] = zi[0]
