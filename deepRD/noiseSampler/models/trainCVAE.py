@@ -17,8 +17,8 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # Model Settings
 systemType = 'bistable' # 'bistable', 'dimer'
 conditionedOn = 'piri' # 'piri', 'piririm', 'pipimri'
-latentDims = 8
-outputModelName = 'M1'
+latentDims = 3
+outputModelNames = ['T1']
 #hiddenDims = None
 hiddenDims = [128, 64, 32]
 
@@ -44,7 +44,7 @@ alpha = 0 # set to 0 to not penalise mean
 localModelDirectory = 'deepRD/noiseSampler/models/modelWeights/'
 #loadPretrained = localModelDirectory + 'model_state_' + conditionedOn + '_EE61.pt'
 loadPretrained = None
-outputModelDirectory = localModelDirectory + 'model_state_' + conditionedOn + '_' + outputModelName + '.pt'
+outputModelDirectories = [localModelDirectory + 'model_state_' + conditionedOn + '_' + outputModelName + '.pt' for outputModelName in outputModelNames]
 
 
 # Plot Settings
@@ -203,14 +203,6 @@ test_data, data, norm_params = reform_dataset(dataset, systemType, normalize_dat
 data_loader = DataLoader(data, batch_size=batch_size, shuffle=True)
 test_data_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
 
-VAE = cvaeSampler.cvaeSampler(latentDims, loadPretrained, conditionedOn, systemType, 
-                                hidden_dims=hiddenDims, batch_norm=batch_norm, dropout_rate=dropout_rate, norm_params=norm_params)
-VAE = VAE.to(device)
-optimizer = torch.optim.Adam(VAE.parameters(),
-                             lr = learning_rate,
-                             weight_decay = weight_decay)
-
-
 def trainingLoop(epochs, csvfile):
 
     iteration_counter = 0
@@ -278,14 +270,23 @@ def trainingLoop(epochs, csvfile):
         print(f'E{epoch+1}: {round(loss_avg[0]*1000,4)}, {round(loss_avg[1]*1000,4)}, {round(loss_avg[2]*1000,4)}, {round(loss_avg[3]*1000,4)}')
     return None
 
-# Writing loss file
-with open(plotDirectory + 'losses_' + conditionedOn + '_' + outputModelName + '.csv', 'w', newline='') as csvfile:
 
-    print(f'Training "{outputModelName}" for {num_epochs} epochs...')
-    trainingLoop(num_epochs, csvfile)
-    print('Finished training.')
+for outputModelName, outputModelDirectory in zip(outputModelNames, outputModelDirectories):
+    VAE = cvaeSampler.cvaeSampler(latentDims, loadPretrained, conditionedOn, systemType, 
+                                    hidden_dims=hiddenDims, batch_norm=batch_norm, dropout_rate=dropout_rate, norm_params=norm_params)
+    VAE = VAE.to(device)
+    optimizer = torch.optim.Adam(VAE.parameters(),
+                                lr = learning_rate,
+                                weight_decay = weight_decay)
 
-# Saving model parameters
-torch.save(VAE.state_dict(), outputModelDirectory)
-print('Model parameters saved.')
-print(VAE.mean_input, VAE.std_input, VAE.mean_cond, VAE.std_cond)
+    # Writing loss file
+    with open(plotDirectory + 'losses_' + conditionedOn + '_' + outputModelName + '.csv', 'w', newline='') as csvfile:
+
+        print(f'Training "{outputModelName}" for {num_epochs} epochs...')
+        trainingLoop(num_epochs, csvfile)
+        print('Finished training.')
+
+    # Saving model parameters
+    torch.save(VAE.state_dict(), outputModelDirectory)
+    print('Model parameters saved.')
+    print(VAE.mean_input, VAE.std_input, VAE.mean_cond, VAE.std_cond)
