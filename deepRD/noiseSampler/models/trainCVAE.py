@@ -4,6 +4,7 @@ import torch
 import torchvision
 import deepRD.tools.trajectoryTools as trajectoryTools
 import csv
+import time
 from deepRD.noiseSampler import cvaeSampler
 from torchvision.transforms import ToTensor
 from torch import nn
@@ -14,54 +15,69 @@ from annealing import Annealer
 # Use GPU if possible
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
+# Default Model and Training settings.
+
 # Model Settings
 systemType = 'bistable' # 'bistable', 'dimer'
 conditionedOn = 'piri' # 'piri', 'piririm', 'pipimri'
 latentDims = 3
-outputModelNames = ['T1']
-#hiddenDims = None
-hiddenDims = [128, 64, 32]
-
-# Training Settings
-normalize_data = False
-train_split = 0.8
-n_datasets = 1500
-num_epochs = 40
-learning_rate = 1e-4
-batch_size = 32
-beta1 = 1
-beta2 = 1e-5
-weight_decay = 0
-
+hiddenDims = [128, 64, 32] # None
 # Use either BN OR Dropout
 batch_norm = False # Data Pre-Processing AND Batch Normalisation
 dropout_rate = 0 # Dropout
 
+# Provide path to model weights file or None to load untrained model.
+localModelDirectory = 'deepRD/noiseSampler/models/modelWeights/'
+loadPretrained = None # localModelDirectory + 'model_state_' + conditionedOn + '_modelName.pt'
+
+# Default Training Settings
+normalize_data = False
+train_split = 0.8
+n_datasets = 1500 #[40, 80, 160, 320, 640, 1260, 2500]
+num_epochs = 40
+learning_rate = 1e-4
+batch_size = 32
+weight_decay = 0
+
+# Loss coefficients
+beta1 = 1
+beta2 = 1e-5
 # Penalizing mean of batch deviating from 0.
 alpha = 0 # set to 0 to not penalise mean
 
-# Provide path to model weights file or None to load untrained model.
-localModelDirectory = 'deepRD/noiseSampler/models/modelWeights/'
-#loadPretrained = localModelDirectory + 'model_state_' + conditionedOn + '_EE61.pt'
-loadPretrained = None
-outputModelDirectories = [localModelDirectory + 'model_state_' + conditionedOn + '_' + outputModelName + '.pt' for outputModelName in outputModelNames]
+# Each model to be trained is represented by a dictionary which contains all the parameters which are to be changed.
+# Parameters which are unspecified in the dictionary will be set to default values as set above.
 
+modelsToTrain = [
+    {
+        'modelName': 'N2_2e2',
+        'latentDims': 3,
+        'n_datasets': 320,
+        'normalize_data': True,
+        'beta2': 2e-2
+    }
+]
 
-# Plot Settings
-n_points = 30000
 plotDirectory = 'deepRD/noiseSampler/models/modelLosses/'
 
 # Defining loss functions
 loss_1 = nn.MSELoss()
+
 def loss_2(mu, logvar):
     return torch.mean(-0.5 * torch.sum(1 + logvar - mu ** 2 - torch.exp(logvar), dim = 1), dim = 0).sum()
 
+def loss_3(reconstruction):
+    # Try to enforce mean of batch of reconstructed samples deviating from 0
+    return torch.mean(reconstruction)**2
+
+
 def reform_dataset(dataset, systemType, normalize_data):
     """
-    Function to reshape dataset, extracting the physical vectors depending on systemType
+    Function to reshape dataset, extracting the physical vectors depending on systemType 
     systemType: 'bistable', 'dimer'
+    normalize_data (bool): if True, mean and std of distributions are evaluated and returned. else mean 0, std 1
 
-    returns: test_data, data
+    returns: test_data, data, (mean_input, std_input, mean_cond, std_cond)
     (two tensors to be fed to DataLoader)
     """
     TT_split = 0.2 # set value for test-train split
@@ -156,12 +172,20 @@ def reform_dataset(dataset, systemType, normalize_data):
         #mean_cond, std_cond = torch.mean(conditionalVars, dim=0), torch.std(conditionalVars, dim=0)
 
         # Means of the distributions are on the order of e-6, so for simplicity I set 0.
-        mean_input = torch.tensor(0)
-        std_input = torch.tensor([0.0162, 0.0162, 0.0162])
-        mean_cond = torch.tensor(0)
-        if conditionedOn=='piri':
-            std_cond = torch.tensor([0.0162, 0.0162, 0.0162, 0.1425, 0.1425, 0.1426])
-        
+
+        if systemType=='bistable':
+            # Hard coded mean and std of the entire dataset
+            mean_input = torch.tensor([2.0080e-07,  6.3679e-06, -2.9733e-06])
+            std_input = torch.tensor([1.6200e-02, 1.6212e-02, 1.6207e-02])
+            if conditionedOn=='piri':
+                mean_cond = torch.tensor([2.0080e-07, 6.3679e-06, -2.9733e-06, -1.2232e-05, -7.2127e-05,  6.9702e-05])
+                std_cond = torch.tensor([1.6200e-02, 1.6212e-02, 1.6207e-02, 1.4253e-01, 1.4252e-01, 
+                            1.4256e-01])
+
+        # Normalizing the whole datasets to mean 0 and std 1 before training.
+        #inputVars = (inputVars - mean_input)/std_input
+        #conditionalVars = (conditionalVars - mean_cond)/std_cond
+
     else:
         mean_input, std_input, mean_cond, std_cond = (torch.tensor(0), torch.tensor(1), torch.tensor(0), torch.tensor(1))
 
@@ -176,32 +200,6 @@ def reform_dataset(dataset, systemType, normalize_data):
 
     return test_data, data, (mean_input, std_input, mean_cond, std_cond)
 
-
-
-print(f'Loading training data ({n_datasets} datasets)...')
-localDirectory = "/group/ag_cmb/scratch/maojrs/stochasticClosure/bistable/boxsize5/benchmark/"
-# Take random simulation files for training
-fnums = np.random.choice(2500, n_datasets, replace=False) # sample datasets without duplicates
-dataset = None
-
-for f_num in fnums:
-    try:
-        ds = torch.Tensor(trajectoryTools.loadTrajectory(localDirectory + "simMoriZwanzig_", f_num)).unsqueeze(0)
-    except FileNotFoundError:
-        print(f'File {f_num} not available.')
-        continue
-              
-    if dataset is None:
-        dataset = ds
-    else:
-        dataset = torch.cat((dataset, ds), dim=0)
-
-print('Dataset loaded.')
-
-test_data, data, norm_params = reform_dataset(dataset, systemType, normalize_data)
-
-data_loader = DataLoader(data, batch_size=batch_size, shuffle=True)
-test_data_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
 
 def trainingLoop(epochs, csvfile):
 
@@ -236,20 +234,16 @@ def trainingLoop(epochs, csvfile):
             reconstruction, mu, logvar = VAE(image, label)
             # Calculate loss function
             l1 = loss_1(reconstruction, image)
-            l2 = loss_2(mu, logvar)
-            l2 = annealing_agent(l2)
-
-            # Try to enforce mean of batch of reconstructed samples deviating from 0
-            batch_mean = torch.mean(reconstruction)
-            mean_penalty = batch_mean**2
+            l2 = annealing_agent(loss_2(mu, logvar))
+            l3 = loss_3(reconstruction)
             
-            loss = beta1*l1 + beta2*l2 + alpha*mean_penalty
+            loss = beta1*l1 + beta2*l2 + alpha*l3
             loss_line = [l1.item()*beta1, l2.item()*beta2, loss.item(), val_loss]
 
             total_loss += loss.item()
             total_l1 += l1.item()
             total_l2 += l2.item()
-            total_alpha += mean_penalty.item()
+            total_alpha += l3.item()
 
             optimizer.zero_grad()
             loss.backward()
@@ -271,7 +265,51 @@ def trainingLoop(epochs, csvfile):
     return None
 
 
-for outputModelName, outputModelDirectory in zip(outputModelNames, outputModelDirectories):
+for model in modelsToTrain:
+    start=time.perf_counter()
+
+    # Setting the variables specified in the model dictionary
+    for key, val in model.items():
+        print(key,' = ', val)
+        exec(key + '=val')
+
+    outputModelDirectory = localModelDirectory + 'model_state_' + conditionedOn + '_' + modelName + '.pt'
+    
+    print(f'Loading training data ({n_datasets} datasets)...')
+    localDirectory = "/group/ag_cmb/scratch/maojrs/stochasticClosure/bistable/boxsize5/benchmark/"
+    #   Take random simulation files for training
+    fnums = np.random.choice(2500, n_datasets, replace=False) # sample datasets without duplicates
+    dataset = None
+
+    for f_num in fnums:
+        try:
+            ds = torch.Tensor(trajectoryTools.loadTrajectory(localDirectory + "simMoriZwanzig_", f_num)).unsqueeze(0)
+        except FileNotFoundError:
+            print(f'File {f_num} not available.')
+            continue
+              
+        if dataset is None:
+            dataset = ds
+        else:
+            dataset = torch.cat((dataset, ds), dim=0)
+
+    print('Dataset loaded.')
+
+    if normalize_data:
+        if systemType=='bistable':
+        
+            mean = torch.tensor([ 4.9998e+02, -1.6760e-02,  3.3266e-03, -1.7140e-03, -1.2232e-05, 
+                                 -7.2127e-05,  6.9702e-05,  1.0000e+00,  2.0080e-07,  6.3679e-06, -2.9733e-06])
+            std = torch.tensor([1.4434e+02, 1.3641e+00, 7.3784e-01, 7.3927e-01, 1.4253e-01, 1.4252e-01, 
+                                1.4256e-01, 0.0000e+00, 1.6200e-02, 1.6212e-02, 1.6207e-02])
+        
+        dataset = (dataset-mean)/std
+
+    test_data, data, norm_params = reform_dataset(dataset, systemType, normalize_data)
+
+    data_loader = DataLoader(data, batch_size=batch_size, shuffle=True)
+    test_data_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
+
     VAE = cvaeSampler.cvaeSampler(latentDims, loadPretrained, conditionedOn, systemType, 
                                     hidden_dims=hiddenDims, batch_norm=batch_norm, dropout_rate=dropout_rate, norm_params=norm_params)
     VAE = VAE.to(device)
@@ -280,13 +318,21 @@ for outputModelName, outputModelDirectory in zip(outputModelNames, outputModelDi
                                 weight_decay = weight_decay)
 
     # Writing loss file
-    with open(plotDirectory + 'losses_' + conditionedOn + '_' + outputModelName + '.csv', 'w', newline='') as csvfile:
+    with open(plotDirectory + 'losses_' + conditionedOn + '_' + modelName + '.csv', 'w', newline='') as csvfile:
 
-        print(f'Training "{outputModelName}" for {num_epochs} epochs...')
+        print(f'Training "{modelName}" for {num_epochs} epochs...')
         trainingLoop(num_epochs, csvfile)
         print('Finished training.')
 
     # Saving model parameters
     torch.save(VAE.state_dict(), outputModelDirectory)
     print('Model parameters saved.')
-    print(VAE.mean_input, VAE.std_input, VAE.mean_cond, VAE.std_cond)
+    #print(VAE.mean_input, VAE.std_input, VAE.mean_cond, VAE.std_cond)
+
+    end = time.perf_counter()
+    training_time = end-start
+
+    print('Training time:', int(training_time//3600), 'hours',  int(training_time%60), 'minutes', int(training_time%60), 'seconds')
+
+    del modelName
+

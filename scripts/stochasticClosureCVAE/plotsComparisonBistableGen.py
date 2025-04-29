@@ -16,7 +16,7 @@ matplotlib.rcParams['axes.prop_cycle'] = matplotlib.cycler(color=colorList3alt2)
 
 bsize = 5
 plotDistributions = True
-plotACFs = True
+plotACFs = False
 plotFPTs = False
 print('Starting plotting')
 # Benchmark data folder
@@ -25,7 +25,7 @@ parentDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + st
 benchmarkfnamebase = parentDirectory + 'simMoriZwanzig_'
 # Reduced models data folders
 #localDataDirectory = '../../data/stochasticClosure/bistable/benchmarkReduced'
-localDataDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(bsize) + '/benchmarkReducedGen2'
+localDataDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(bsize) + '/benchmarkReducedGen'
 numModels = 9
 redModelfnamebase = [localDataDirectory]*numModels
 redModelfnamebase[0] += '_ri/simMoriZwanzigReduced_'
@@ -76,14 +76,15 @@ if (plotDistributions):
 
     # Load reduced model trajectory data from h5 files (only of distinguished particle)
     allTrajs = [None]*numModels
+    numReducedSimulations = 100
     print("Loading reduced models data ...")
     for i in range(numModels):
         try:
             iTraj = []
-            for j in range(numSimulations):
+            for j in range(numReducedSimulations):
                 traj = trajectoryTools.loadTrajectory(redModelfnamebase[i], j)
                 iTraj.append(traj)
-                print("File ", j+1, " of ", numSimulations, " done.", end="\r")
+                print("File ", j+1, " of ", numReducedSimulations, " done.", end="\r")
             allTrajs[i] = iTraj
         except:
             continue
@@ -125,7 +126,6 @@ labelList = [r'$\tilde{r}^{n+1}|\tilde{r}^n$', r'$\tilde{r}^{n+1}|\tilde{r}^n, \
 
 lineTypeList = ['-.', '--', 'xk']*2
 lwList = [2, 2, 2]*2
-
 if (plotDistributions):
     # Extract variables to plot from trajectories (x components)
     #varIndex = 1 # 1=x, 2=y, 3=z
