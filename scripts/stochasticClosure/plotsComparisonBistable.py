@@ -15,9 +15,9 @@ colorList3alt2 = ['A50026', '0077BB', '009988', '33BBEE', 'BBBBBB', 'EE7733']
 matplotlib.rcParams['axes.prop_cycle'] = matplotlib.cycler(color=colorList3alt2)
 
 bsize = 5
-plotDistributions = False
-plotACFs = False
-plotFPTs = True
+plotDistributions = True
+plotACFs = True
+plotFPTs = False
 
 # Benchmark data folder
 #parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/bistable/benchmarkComparison/'
@@ -25,7 +25,7 @@ parentDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + st
 benchmarkfnamebase = parentDirectory + 'simMoriZwanzig_'
 # Reduced models data folders
 #localDataDirectory = '../../data/stochasticClosure/bistable/benchmarkReduced'
-localDataDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(bsize) + '/benchmarkReduced'
+localDataDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(bsize) + '/benchmarkReduced2'
 numModels = 8
 redModelfnamebase = [localDataDirectory]*numModels
 redModelfnamebase[0] += '_ri/simMoriZwanzigReduced_'
@@ -38,7 +38,7 @@ redModelfnamebase[6] += '_piri/simMoriZwanzigReduced_'
 redModelfnamebase[7] += '_piririm/simMoriZwanzigReduced_'
 
 # Create plot directory
-plotDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(bsize) + '/plots2/'
+plotDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(bsize) + '/plots22/'
 try:
     os.makedirs(plotDirectory)
 except OSError as error:
@@ -91,7 +91,7 @@ if (plotDistributions):
 
 # Choose which reduced model to compare (just uncomment one)
 #conditionedList = ['ri', 'qiri', 'pi', 'piri'] #Possibilities 'qi', 'ri', 'qiri', 'qiririm'
-conditionedList = ['pi','piri','piririm'] #['pi', 'piri', 'piririm']
+conditionedList = ['pi', 'piri'] #['pi', 'piri', 'piririm']
 trajIndexes = []
 if 'ri' in conditionedList:
     trajIndexes.append(0)

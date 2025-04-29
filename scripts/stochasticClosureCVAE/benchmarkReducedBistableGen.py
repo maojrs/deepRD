@@ -50,7 +50,7 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
 numSimulations = 100
 bsize = 5 #5 #8 #10
-conditionedOn = 'piririm' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
+conditionedOn = 'piri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
 outputAux = True #False
 
 # Output data directory
@@ -84,11 +84,13 @@ if bsize != boxsize:
 
 # Define noise sampler, n latent dims
 localModelDirectory = 'deepRD/noiseSampler/models/modelWeights/model_state_'
-loadPretrained = localModelDirectory + conditionedOn + '_E81.pt'
+loadPretrained = localModelDirectory + conditionedOn + '_b2n_1e7.pt'
 
+latentDims = 3
 batch_norm=False
 dropout_rate=0
 cutoff=False # only sample up to a certain radius in latent space
+sampling_width=1.2
 normalize_data=True
 
 if normalize_data:
@@ -96,9 +98,9 @@ if normalize_data:
     std_input = np.array([0.0162, 0.0162, 0.0162])
     mean_cond = 0
     if conditionedOn=='piri':
-        std_cond = np.array([0.0162, 0.0162, 0.0162, 0.1425, 0.1425, 0.1426])
+        std_cond = np.array([0.0162, 0.0162, 0.0162, 0.1425, 0.1425, 0.1425])
 
-    norm_params = 
+    norm_params = (mean_input, std_input, mean_cond, std_cond)
 else:
     norm_params = (0,1,0,1)
 
@@ -113,8 +115,8 @@ else:
 #         4.0647e-05]) tensor([0.0162, 0.0162, 0.0162, 0.1427, 0.1425, 0.1424])
 
 hidden_dims = [128, 64, 32]
-nSampler = cvaeSampler.cvaeSampler(8, loadPretrained, conditionedOn, 'bistable', hidden_dims, batch_norm=batch_norm, 
-                                        dropout_rate=dropout_rate, norm_params=norm_params, sampling_width=1.5, cutoff=cutoff)
+nSampler = cvaeSampler.cvaeSampler(latentDims, loadPretrained, conditionedOn, 'bistable', hidden_dims, batch_norm=batch_norm, 
+                                        dropout_rate=dropout_rate, norm_params=norm_params, sampling_width=sampling_width, cutoff=cutoff)
 nSampler.eval()
 #nSampler = cvaeSampler.defaultSamplingModel()
 

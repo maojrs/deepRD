@@ -25,9 +25,11 @@ class cvaeSampler(nn.Module):
     batch_norm (bool): use batch normalisation
     dropout (0-1): dropout rate, disabled if 0
     norm_params: (mean_input, std_input, mean_cond, std_cond) - model will normalize and denormalize during training or sampling
+    sampling_width (float, default=1): sets the std for generating samples in latent space
+    cutoff (float, default=0): cutoff radius for latent space sampling, inactive if 0
     """
 
-    def __init__(self, latentDims, loadPretrained, conditionedOn, systemType, hidden_dims=None, batch_norm=False, dropout_rate=0, norm_params=(0,1,0,1), sampling_width=1, cutoff=False):
+    def __init__(self, latentDims, loadPretrained, conditionedOn, systemType, hidden_dims=None, batch_norm=False, dropout_rate=0, norm_params=(0,1,0,1), sampling_width=1, cutoff=False, sampling_scale=1):
         super().__init__()
         self.conditionedOn = conditionedOn
         self.systemType = systemType
@@ -37,7 +39,9 @@ class cvaeSampler(nn.Module):
         self.inputDims = self.getInputDims()
         self.G = torch.distributions.Normal(0, 1)
         self.sampling_width = sampling_width
-        self.cutoff= cutoff
+        self.sampling_scale = sampling_scale
+        self.cutoff = cutoff
+        
 
         if hidden_dims==None:
             # Initialising template network architecture
@@ -122,6 +126,7 @@ class cvaeSampler(nn.Module):
         self.load_model()
 
         self.mean_input, self.std_input, self.mean_cond, self.std_cond = norm_params
+        print('Model loaded.')
 
 
     def load_model(self):
@@ -130,7 +135,7 @@ class cvaeSampler(nn.Module):
         else:
             print('Loading pretrained model: ' + self.loadPretrained)
             self.load_state_dict(torch.load(self.loadPretrained))
-            print('Model parameters loaded.')
+            print('Model weights loaded.')
 
     def reparametrize(self, mu, logvar):
         std = torch.exp(0.5*logvar)
@@ -140,23 +145,24 @@ class cvaeSampler(nn.Module):
         """
         Normalizes a tensor w.r.t a given mean and std.
         """
+        #print('norm')
         return (x-mean)/std
 
     def denormalize(self, x, mean, std):
         """
         Denormalizes a tensor w.r.t a given mean and std.
         """
+        #print('denorm')
         return x*std + mean
 
     def sample(self, label, num_samples=1):
         '''
-         Here a slight workaround to get compatibility between model and integrator.
-         Model is designed and trained to work on Torch tensors of size (num_samples, *), meanwhile 
+         Method to generate samples given a label of conditioning variables.
+         Model is trained on Torch tensors of size (num_samples, *), meanwhile 
          integrator works on 1-D arrays. 
          
          parameters:
          label (Torch Tensor or Numpy Array): conditioning variables.
-         sampling_cutoff (bool): if True, any point sampled outside a pre-determined radius will be resampled
 
          Returns: 1-D Torch Tensor of size (input_dims)
         '''
@@ -165,12 +171,12 @@ class cvaeSampler(nn.Module):
         mean = 0
         std = self.sampling_width
         
-        # Normalizing labels for inference
-        label = self.normalize(label, self.mean_cond, self.std_cond)
-
         sim_sampling = True if isinstance(label, np.ndarray) else False
 
         if sim_sampling:
+            
+            # Normalizing label for inference, since model was trained on normalized data.
+            label = self.normalize(label, self.mean_cond, self.std_cond)
 
             with torch.no_grad():
                 label = torch.from_numpy(label).float()
@@ -184,34 +190,33 @@ class cvaeSampler(nn.Module):
         if label.dim()==1:
             label = label.unsqueeze(0)
             
-        # Sampling latent space and decoding
+        # Generating latent space samples
         if not self.cutoff:
             samples = torch.normal(mean, std, (num_samples, self.latentDims))
             
-        else:    
+        else:   
+            # If using cutoff radius, resample if radius is exceeded. 
             samples = torch.zeros((num_samples, self.latentDims))
             for i in range(num_samples):
                 while True:
                     zi = torch.normal(mean, std, (1, self.latentDims))
                     ri =  torch.linalg.vector_norm(zi)
-                    if ri < 5:
+                    if ri < self.cutoff:
                         break
                         
                 samples[i] = zi[0]
 
+        # Decoding from latent space and generating output
         z_cond = torch.cat((samples, label), dim=1)
         out = self.decoder(z_cond).squeeze(0).detach().numpy() if sim_sampling else self.decoder(z_cond)
-            
-        # Denormalizing output
-        out = self.denormalize(out, self.mean_input, self.std_input)
 
-        return out
+        if sim_sampling:   
+            # Denormalizing output
+            out = self.denormalize(out, self.mean_input, self.std_input)
+
+        return self.sampling_scale*out
 
     def forward(self, x, y, returnLatent=False):
-
-        # Preprocessing data
-        x = self.normalize(x, self.mean_input, self.std_input)
-        y = self.normalize(y, self.mean_cond, self.std_cond)
 
         # Passing through network
         x_cond = torch.cat((x,y), dim=1)
@@ -221,9 +226,6 @@ class cvaeSampler(nn.Module):
         z = self.reparametrize(mu, logvar)
         z_cond = torch.cat((z, y), dim=1)
         output = self.decoder(z_cond)
-
-        # Denormalizing output to original form
-        output = self.denormalize(output, self.mean_input, self.std_input)
 
         if returnLatent==True:
             return output, mu, logvar, z
