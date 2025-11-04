@@ -10,28 +10,66 @@ from torchvision.transforms import ToTensor
 from torch import nn
 from torch.utils.data import DataLoader
 from sklearn.neighbors import KernelDensity
+from sklearn.preprocessing import RobustScaler
 from annealing import Annealer
 
 # Use GPU if possible
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-# Default Model and Training settings.
+"""
+Default Model and Training parameters to be set:
+
+systemType (str) - determines the dataset to be loaded - 'bistable', 'dimer', etc. 
+conditionedOn (str) - set of conditioning variables. 'piri' - v_n, r_n, 'piririm' - v_n, r_n, r_n-1, etc..
+
+latentDims (int) - number of dimensions of the latent space. 
+hiddenDims (list of ints) - architecture of the Neural Network. e.g. [128,64,32] means an encoder with three subsequent layers
+                             containing 128, 64, 32 neurons each, and a symmetrical decoder. 
+                             [inputDim - 128 - 64 - 32 - latentDim - 32 - 64 - 128 - outputDim]
+
+loadPretrained (str) - path to pre-trained model weights to be used for network initialisation
+
+batch_norm, dropout_rate - [DOES NOT WORK]
+normalize_data (bool) - if True, data is normalized before being fed to the network. [DOES NOT WORK WELL RIGHT NOW]
+
+annealing_shape (str) - shape of the annealing curve - 'logistic', 'linear', 'cosine'
+annealing_period (int) - annealing period
+
+train_split (0-1) - fraction of data used for training (the rest is set aside as a test dataset)
+n_datasets (int: 0-2500) - number of benchmark datasets to be loaded
+num_epochs (int) - number of epochs for model training
+
+learning_rate (float) - gradient descent learning rate
+batch_size (int) - number of samples fed through the network as one batch (gradient descent is executed in batch-wise steps)
+weight_decay (float) - a normalising feature [DOESN'T REALLY HELP TOO MUCH...]
+
+Loss coefficients:
+beta1 - standard MSE Loss between Input and Output. Normally kept at 1.
+beta2 - KL divergence term. ranges from 0 to 1.
+alpha - loss 3, in the current state is a batch mean loss [optional, normally set to 0]
+
+modelsToTrain - dictionary containing names of models to be trained by the script with the corresponding parameters (unspecified will be set to default vals)
+
+"""
 
 # Model Settings
 systemType = 'bistable' # 'bistable', 'dimer'
 conditionedOn = 'piri' # 'piri', 'piririm', 'pipimri'
 latentDims = 3
 hiddenDims = [128, 64, 32] # None
-# Use either BN OR Dropout
-batch_norm = False # Data Pre-Processing AND Batch Normalisation
-dropout_rate = 0 # Dropout
 
 # Provide path to model weights file or None to load untrained model.
 localModelDirectory = 'deepRD/noiseSampler/models/modelWeights/'
 loadPretrained = None # localModelDirectory + 'model_state_' + conditionedOn + '_modelName.pt'
 
+# Use either BN OR Dropout
+batch_norm = False # Data Pre-Processing AND Batch Normalisation
+dropout_rate = 0 # Dropout
+
 # Default Training Settings
 normalize_data = False
+annealing_shape = 'logistic'
+annealing_period = 5
 train_split = 0.8
 n_datasets = 1500 #[40, 80, 160, 320, 640, 1260, 2500]
 num_epochs = 40
@@ -50,32 +88,57 @@ alpha = 0 # set to 0 to not penalise mean
 
 modelsToTrain = [
     {
-        'modelName': 'N2_2e2',
+        'modelName': 'E81_10ep',
+        'latentDims': 8,
+        'n_datasets': 1500,
+        'num_epochs': 10
+    },
+    {
+        'modelName': 'D81_10ep',
+        'latentDims': 8,
+        'n_datasets': 2500,
+        'num_epochs': 10
+    },
+    {
+        'modelName': 'T1',
         'latentDims': 3,
-        'n_datasets': 320,
-        'normalize_data': True,
-        'beta2': 2e-2
-    }
+        'n_datasets': 1500,
+        'num_epochs': 40,
+        'annealing_period': 10
+    },
 ]
 
+# Directory to save loss values for plotting.
 plotDirectory = 'deepRD/noiseSampler/models/modelLosses/'
 
 # Defining loss functions
+
+# RECONSTRUCTION LOSS
 loss_1 = nn.MSELoss()
 
+# KL DIVERGENCE LOSS
 def loss_2(mu, logvar):
     return torch.mean(-0.5 * torch.sum(1 + logvar - mu ** 2 - torch.exp(logvar), dim = 1), dim = 0).sum()
 
-def loss_3(reconstruction):
-    # Try to enforce mean of batch of reconstructed samples deviating from 0
-    return torch.mean(reconstruction)**2
+#def loss_3(reconstruction):
+#    # Try to enforce mean of batch of reconstructed samples deviating from 0
+#    return torch.mean(reconstruction)**2
 
+loss_3 = nn.MSELoss()
 
-def reform_dataset(dataset, systemType, normalize_data):
+def compute_variance(reconstruction, image):
+    """
+    Penalizes the difference in variance between the input and the reconstruction.
+    Assumes input and reconstruction are batched (B x D or B x C x H x W).
+    """
+    input_var = torch.mean(torch.var(image, dim=0, unbiased=False))
+    recon_var = torch.mean(torch.var(reconstruction, dim=0, unbiased=False))
+    return recon_var, input_var
+
+def reform_dataset(dataset, systemType):
     """
     Function to reshape dataset, extracting the physical vectors depending on systemType 
     systemType: 'bistable', 'dimer'
-    normalize_data (bool): if True, mean and std of distributions are evaluated and returned. else mean 0, std 1
 
     returns: test_data, data, (mean_input, std_input, mean_cond, std_cond)
     (two tensors to be fed to DataLoader)
@@ -166,31 +229,6 @@ def reform_dataset(dataset, systemType, normalize_data):
 
         inputVars = torch.cat( (r_nxt1, r_nxt2), dim = 1)
 
-    # Normalizing whole data to mean 0, std 1.
-    if normalize_data:
-        #mean_input, std_input = torch.mean(inputVars, dim=0), torch.std(inputVars, dim=0)
-        #mean_cond, std_cond = torch.mean(conditionalVars, dim=0), torch.std(conditionalVars, dim=0)
-
-        # Means of the distributions are on the order of e-6, so for simplicity I set 0.
-
-        if systemType=='bistable':
-            # Hard coded mean and std of the entire dataset
-            mean_input = torch.tensor([2.0080e-07,  6.3679e-06, -2.9733e-06])
-            std_input = torch.tensor([1.6200e-02, 1.6212e-02, 1.6207e-02])
-            if conditionedOn=='piri':
-                mean_cond = torch.tensor([2.0080e-07, 6.3679e-06, -2.9733e-06, -1.2232e-05, -7.2127e-05,  6.9702e-05])
-                std_cond = torch.tensor([1.6200e-02, 1.6212e-02, 1.6207e-02, 1.4253e-01, 1.4252e-01, 
-                            1.4256e-01])
-
-        # Normalizing the whole datasets to mean 0 and std 1 before training.
-        #inputVars = (inputVars - mean_input)/std_input
-        #conditionalVars = (conditionalVars - mean_cond)/std_cond
-
-    else:
-        mean_input, std_input, mean_cond, std_cond = (torch.tensor(0), torch.tensor(1), torch.tensor(0), torch.tensor(1))
-
-    mean_input, std_input, mean_cond, std_cond = mean_input.to(device), std_input.to(device), mean_cond.to(device), std_cond.to(device)
-
     # Split data: first 20% test, remaining 80% test.
     split_ind = int(TT_split*len(inputVars))
 
@@ -198,19 +236,18 @@ def reform_dataset(dataset, systemType, normalize_data):
     test_data = torch.utils.data.TensorDataset(inputVars[:split_ind], conditionalVars[:split_ind])
     data = torch.utils.data.TensorDataset(inputVars[split_ind:], conditionalVars[split_ind:])
 
-    return test_data, data, (mean_input, std_input, mean_cond, std_cond)
+    return test_data, data
 
 
-def trainingLoop(epochs, csvfile):
+def trainingLoop(data_loader, test_data_loader, epochs, csvfile, annealing_shape='logistic', annealing_period=10):
 
     iteration_counter = 0
     writer = csv.writer(csvfile)
 
-    annealing_period = 10 # annealing step done once every epoch
-    annealing_agent = cvaeSampler.Annealer(annealing_period, shape='logistic', baseline = 0, cyclical=True) # instantiating annealing agent
+    #annealing_period = 10 # annealing step done once every epoch
+    annealing_agent = cvaeSampler.Annealer(annealing_period, shape=annealing_shape, baseline = 0, cyclical=True) # instantiating annealing agent
 
     for epoch in range(epochs):
-        VAE.train()
 
         total_loss = 0
         total_l1 = 0
@@ -220,23 +257,29 @@ def trainingLoop(epochs, csvfile):
         bc = 0
 
         # At the start of epoch, evaluate validation error.
-        for (image_t, label_t) in test_data_loader:
-            bc += 1
-            reconstruction_t, mu_t, logvar_t = VAE(image_t, label_t)
-            val_loss += loss_1(reconstruction_t, image_t).item() # MSE loss only on validation set
+        with torch.no_grad():
+            VAE.eval()
+            for (image_t, label_t) in test_data_loader:
+                bc += 1
+                reconstruction_t, mu_t, logvar_t = VAE(image_t, label_t)
+                val_loss += loss_1(reconstruction_t, image_t).item() # MSE loss only on validation set
 
-        val_loss /= bc # computing average per-batch loss
-        bc=0
+            val_loss /= bc # computing average per-batch loss
+            bc=0
 
+        VAE.train()
         for (image, label) in data_loader:
             bc += 1
             # Feed through the network
             reconstruction, mu, logvar = VAE(image, label)
+
             # Calculate loss function
             l1 = loss_1(reconstruction, image)
             l2 = annealing_agent(loss_2(mu, logvar))
-            l3 = loss_3(reconstruction)
-            
+
+            recon_var, image_var = compute_variance(reconstruction, image)
+            l3 = loss_3(recon_var, image_var)
+
             loss = beta1*l1 + beta2*l2 + alpha*l3
             loss_line = [l1.item()*beta1, l2.item()*beta2, loss.item(), val_loss]
 
@@ -279,6 +322,7 @@ for model in modelsToTrain:
     localDirectory = "/group/ag_cmb/scratch/maojrs/stochasticClosure/bistable/boxsize5/benchmark/"
     #   Take random simulation files for training
     fnums = np.random.choice(2500, n_datasets, replace=False) # sample datasets without duplicates
+
     dataset = None
 
     for f_num in fnums:
@@ -302,10 +346,31 @@ for model in modelsToTrain:
                                  -7.2127e-05,  6.9702e-05,  1.0000e+00,  2.0080e-07,  6.3679e-06, -2.9733e-06])
             std = torch.tensor([1.4434e+02, 1.3641e+00, 7.3784e-01, 7.3927e-01, 1.4253e-01, 1.4252e-01, 
                                 1.4256e-01, 0.0000e+00, 1.6200e-02, 1.6212e-02, 1.6207e-02])
+
+            # Hard coded mean and std of the entire dataset
+            mean_input = torch.tensor([2.0080e-07,  6.3679e-06, -2.9733e-06])
+            std_input = torch.tensor([1.6200e-02, 1.6212e-02, 1.6207e-02])
+
+            if conditionedOn=='piri':
+                mean_cond = torch.tensor([2.0080e-07, 6.3679e-06, -2.9733e-06, -1.2232e-05, -7.2127e-05,  6.9702e-05])
+                std_cond = torch.tensor([1.6200e-02, 1.6212e-02, 1.6207e-02, 1.4253e-01, 1.4252e-01, 
+                            1.4256e-01])
         
+        # Normalizing data
         dataset = (dataset-mean)/std
 
-    test_data, data, norm_params = reform_dataset(dataset, systemType, normalize_data)
+        # Robust Scaler
+        #dataset = torch.flatten(dataset, end_dim=1)
+        #scaler = RobustScaler().fit(dataset)
+        #dataset = torch.tensor(scaler.transform(dataset))
+        #dataset = torch.reshape(dataset, (n_datasets, 10000, 11)).float()
+
+    else:
+        mean_input, std_input, mean_cond, std_cond = (torch.tensor(0), torch.tensor(1), torch.tensor(0), torch.tensor(1))
+
+    # Tuple of normalization constants to pass onto CVAE 
+    norm_params = (mean_input, std_input, mean_cond, std_cond)
+    test_data, data = reform_dataset(dataset, systemType)
 
     data_loader = DataLoader(data, batch_size=batch_size, shuffle=True)
     test_data_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
@@ -321,13 +386,13 @@ for model in modelsToTrain:
     with open(plotDirectory + 'losses_' + conditionedOn + '_' + modelName + '.csv', 'w', newline='') as csvfile:
 
         print(f'Training "{modelName}" for {num_epochs} epochs...')
-        trainingLoop(num_epochs, csvfile)
+        trainingLoop(data_loader, test_data_loader, num_epochs, csvfile, annealing_shape, annealing_period)
         print('Finished training.')
 
     # Saving model parameters
     torch.save(VAE.state_dict(), outputModelDirectory)
     print('Model parameters saved.')
-    #print(VAE.mean_input, VAE.std_input, VAE.mean_cond, VAE.std_cond)
+    print(VAE.mean_input, VAE.std_input, VAE.mean_cond, VAE.std_cond)
 
     end = time.perf_counter()
     training_time = end-start
