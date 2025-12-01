@@ -16,9 +16,9 @@ deepRD/diffusionIntegrators/overdampedLangevin.py
 deepRD/diffusionIntegrators/smoluchowski.py
 deepRD/noiseSampler/__init__.py
 deepRD/noiseSampler/binning.py
-deepRD/noiseSampler/copycopy.py
 deepRD/noiseSampler/cvaeSampler.py
 deepRD/noiseSampler/deepSampler.py
+deepRD/noiseSampler/newCvae.py
 deepRD/noiseSampler/noiseSampler.py
 deepRD/potentials/__init__.py
 deepRD/potentials/bistable.py
