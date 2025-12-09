@@ -49,7 +49,7 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 # Simulation parameters
 #localDataDirectory = '../../data/stochasticClosure/'
 localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
-numSimulations = 1000 #100
+numSimulations = 10000 #100
 bsize= 5
 conditionedOn = 'piririm' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
 
@@ -86,17 +86,12 @@ boundaryType = parameters['boundaryType']
 if bsize != boxsize:
     print('Requested boxsize does not match simulation')
 
-# Define noise sampler, n latent dims
-localModelDirectory = 'deepRD/noiseSampler/models/modelWeights/model_state_'
+# Define noise sampler
+localModelDirectory = 'notebooks/stochasticClosureCVAE/newCvae/'
 
-#loadPretrained = localModelDirectory + conditionedOn + '_E81.pt'
-loadPretrained = 'notebooks/stochasticClosureCVAE/newCvae/checkpoints/cvae_checkpoint_'+conditionedOn+'.pt'
-
-norm_params = (0,1,0,1)
-
-hidden_dims = [128, 64, 32]
-#nSampler = cvaeSampler.cvaeSampler(8, loadPretrained, conditionedOn, 'bistable', hidden_dims, norm_params=norm_params, sampling_width=1.2)
-
+# Model weights and scaler filepath
+model_state_path = localModelDirectory + "ckpts/cvae_checkpoint_"+conditionedOn+".pt"
+normalizers_path = localModelDirectory + "normalizers/normalizers_"+conditionedOn+".pkl"
 #nSampler = cvaeSampler.defaultSamplingModel()
 
 # Parameters for external potential (will only acts on distinguished particles (type 1))
@@ -138,14 +133,15 @@ def runParallelSims(simnumber):
     particle = deepRD.particle(position, velocity = velocity, mass=mass)
     particleList = deepRD.particleList([particle])
 
-    nSampler = newCvae.CVAE(cond_type=conditionedOn)
-
-    ckpt = torch.load(loadPretrained, map_location="cpu", weights_only=True)
-    nSampler.load_state_dict(ckpt['model_state'])
-    scalers = joblib.load("notebooks/stochasticClosureCVAE/newCvae/normalizers/normalizers_"+conditionedOn+".pkl")
-    nSampler.attach_normalizers(**scalers)
-
+    # Loading Sampling Model
+    zdim = 3
+    nSampler = cvaeSampler.CVAE(zdim=zdim, cond_type=conditionedOn)
     nSampler.eval()
+    ckpt = torch.load(model_state_path, map_location="cpu", weights_only=True)
+    nSampler.load_state_dict(ckpt['model_state'])
+    scalers = joblib.load(normalizers_path)
+    nSampler.attach_normalizers(**scalers)
+    nSampler.set_temps(Tr=1, Tz=1)
 
     # Define external potential
     bistablePotential = bistable(minimaDist, kconstants, scalefactor)

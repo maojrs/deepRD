@@ -5,6 +5,7 @@ import sys
 import pickle
 import deepRD
 import torch
+import joblib
 from deepRD.diffusionIntegrators import langevinNoiseSampler
 #from deepRD.diffusionIntegrators import langevinInteractionSampler
 from deepRD.potentials import bistable
@@ -50,12 +51,12 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
 numSimulations = 100
 bsize = 5 #5 #8 #10
-conditionedOn = 'piri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
+conditionedOn = 'piririm' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
 outputAux = True #False
 
 # Output data directory
 #foldername = 'bistable/boxsize' + str(bsize) + '/benchmarkReduced_' + conditionedOn
-foldername = 'bistable/boxsize' + str(bsize) + '/benchmarkReducedGen_' + conditionedOn
+foldername = 'bistable/boxsize' + str(bsize) + '/benchmarkReducedGen3_' + conditionedOn
 outputDataDirectory = os.path.join(localDataDirectory, foldername)
 # Create folder for data
 try:
@@ -82,44 +83,14 @@ boundaryType = parameters['boundaryType']
 if bsize != boxsize:
     print('Requested boxsize does not match simulation')
 
-# Define noise sampler, n latent dims
-localModelDirectory = 'deepRD/noiseSampler/models/modelWeights/model_state_'
-loadPretrained = localModelDirectory + conditionedOn + '_b2n_1e7.pt'
+# Define noise sampler
+localModelDirectory = 'notebooks/stochasticClosureCVAE/newCvae/'
+systemType='bistable'
 
-latentDims = 3
-batch_norm=False
-dropout_rate=0
-cutoff=False # only sample up to a certain radius in latent space
-sampling_width=1.2
-normalize_data=True
-
-if normalize_data:
-    mean_input = 0
-    std_input = np.array([0.0162, 0.0162, 0.0162])
-    mean_cond = 0
-    if conditionedOn=='piri':
-        std_cond = np.array([0.0162, 0.0162, 0.0162, 0.1425, 0.1425, 0.1425])
-
-    norm_params = (mean_input, std_input, mean_cond, std_cond)
-else:
-    norm_params = (0,1,0,1)
-
-#norm_params_m2 = (np.array([4.9424e-05, 1.1248e-05, 7.7914e-05]), np.array([0.0163, 0.0163, 0.0162]), 
-#                np.array([ 4.9414e-05,  1.1577e-05,  7.7847e-05,  5.8293e-04, -1.0487e-04, -2.5263e-04]),
-#                np.array([0.0163, 0.0163, 0.0162, 0.1413, 0.1438, 0.1410]))
-#norm_params_N1 = (np.array([ 5.2723e-06,  3.6534e-06, -4.3195e-06]), np.array([0.0162, 0.0162, 0.0162]), np.array([ 5.1132e-06,  3.7120e-06, -4.3634e-06,  1.0060e-04, -9.1961e-05,
-#         1.0791e-05]), np.array([0.0162, 0.0162, 0.0162, 0.1425, 0.1426, 0.1425]))
-#norm_params_N2 = (np.array([-2.1970e-06,  5.2476e-06, -2.8618e-06]), np.array([0.0162, 0.0162, 0.0162]), np.array([-2.2653e-06,  5.3580e-06, -2.9306e-06,  2.5850e-05, -4.7011e-05,
-#         3.8208e-05]), np.array([0.0162, 0.0162, 0.0162, 0.1425, 0.1425, 0.1427]))
-#N3 tensor([-4.5942e-07, -1.3397e-06, -5.2720e-07]) tensor([0.0162, 0.0162, 0.0162]) tensor([-5.1237e-07, -1.3432e-06, -6.0386e-07,  2.7447e-05, -1.2348e-04,
-#         4.0647e-05]) tensor([0.0162, 0.0162, 0.0162, 0.1427, 0.1425, 0.1424])
-
-hidden_dims = [128, 64, 32]
-nSampler = cvaeSampler.cvaeSampler(latentDims, loadPretrained, conditionedOn, 'bistable', hidden_dims, batch_norm=batch_norm, 
-                                        dropout_rate=dropout_rate, norm_params=norm_params, sampling_width=sampling_width, cutoff=cutoff)
-nSampler.eval()
+# Model weights and scaler filepath
+model_state_path = localModelDirectory + f"ckpts/cvae_checkpoint_{systemType}_{conditionedOn}_stride10.pt"
+normalizers_path = localModelDirectory + f"normalizers/normalizers_{systemType}_{conditionedOn}_stride10.pkl"
 #nSampler = cvaeSampler.defaultSamplingModel()
-
 
 # Parameters for external potential (will only acts on distinguished particles (type 1)
 minimaDist = 1.5
@@ -129,7 +100,11 @@ scalefactor = 1
 # Integrator parameters
 integratorStride = 1 #50
 tfinal = 10000
-equilibrationSteps = 10000
+equilibrationSteps = 1000
+
+# Coarse-grain trajectory integration
+k = 10
+dt = k*dt
 
 # Create parameter dictionary to write to parameters reference file
 parameterfilename = os.path.join(outputDataDirectory, "parameters")
@@ -148,6 +123,16 @@ def runParallelSims(simnumber):
     #    sign = 1
     #else:
     #    sign= -1
+    
+    # Loading Sampling Model
+    zdim = 3
+    nSampler = cvaeSampler.CVAE(zdim=zdim, cond_type=conditionedOn)
+    nSampler.eval()
+    ckpt = torch.load(model_state_path, map_location="cpu", weights_only=True)
+    nSampler.load_state_dict(ckpt['model_state'])
+    scalers = joblib.load(normalizers_path)
+    nSampler.attach_normalizers(**scalers)
+    nSampler.set_temps(Tr=2, Tz=1)
 
     # Define particle list
     seed = int(simnumber)

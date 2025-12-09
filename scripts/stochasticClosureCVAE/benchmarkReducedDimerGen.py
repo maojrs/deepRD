@@ -69,11 +69,13 @@ except OSError as error:
     if proceed != 'y':
         sys.exit()
 
-# Load binning sampling models
-#print("Loading binned data ...")
-#binnedDataFilename = localDataDirectory + 'dimerGlobal/boxsize' + str(bsize) + '/binnedData/' + conditionedOn + 'BinnedData_' + str(nbins) + 'bins.pickle'
-#dataOnBins = pickle.load(open(binnedDataFilename, "rb" ))
-#parameters = dataOnBins.parameterDictionary
+# Define noise sampler
+localModelDirectory = 'notebooks/stochasticClosureCVAE/newCvae/'
+systemType='dimer'
+
+# Model weights and scaler filepath
+model_state_path = localModelDirectory + f"ckpts/cvae_checkpoint_{systemType}_{conditionedOn}_stride1.pt"
+normalizers_path = localModelDirectory + f"normalizers/normalizers_{systemType}_{conditionedOn}_stride1.pkl"
 
 # Loading parameter dictionary
 parentDirectory = os.environ['DATA'] + 'stochasticClosure/dimer/boxsize' + str(bsize)+ '/benchmark/'
@@ -98,14 +100,6 @@ if bsize != boxsize:
 norm_params = (0,1,0,1)
 
 # Define noise sampler, n latent dims
-localModelDirectory = 'deepRD/noiseSampler/models/modelWeights/model_state_'
-loadPretrained = localModelDirectory + conditionedOn + '_Dimer3.pt'
-
-# Define noise sampler
-hidden_dims = [128,64,32]
-nSampler = cvaeSampler.cvaeSampler(8, loadPretrained, conditionedOn, 'dimer', hidden_dims,
-                                    norm_params=norm_params, sampling_width=1)
-nSampler.eval()
 
 # For testing
 #defaultSampler = defaultSamplingModel(mean=0, covariance=0.005)
@@ -141,6 +135,16 @@ def runParallelSims(simnumber):
     #else:
     #    sign= -1
 
+    # Loading Sampling Model
+    zdim = 3
+    nSampler = cvaeSampler.CVAE(zdim=zdim, cond_type=conditionedOn)
+    nSampler.eval()
+    ckpt = torch.load(model_state_path, map_location="cpu", weights_only=True)
+    nSampler.load_state_dict(ckpt['model_state'])
+    scalers = joblib.load(normalizers_path)
+    nSampler.attach_normalizers(**scalers)
+    nSampler.set_temps(Tr=1, Tz=1)
+
     # Define particle list
     seed = int(simnumber)
     random.seed(seed)
@@ -157,14 +161,14 @@ def runParallelSims(simnumber):
 
     #diffIntegrator = langevinNoiseSampler(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
     #                                      boundaryType, equilibrationSteps, conditionedOn)
-    #diffIntegrator = langevinNoiseSamplerDimer(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
-    #                                      boundaryType, equilibrationSteps, conditionedOn)
+    diffIntegrator = langevinNoiseSamplerDimer(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
+                                          boundaryType, equilibrationSteps, conditionedOn)
     #diffIntegrator = langevinNoiseSamplerDimer2(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
     #                                      boundaryType, equilibrationSteps, conditionedOn)
     #diffIntegrator = langevinNoiseSamplerDimer3(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
     #                                            boundaryType, equilibrationSteps, conditionedOn)
-    diffIntegrator = langevinNoiseSamplerDimerGlobal(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
-                                          boundaryType, equilibrationSteps, conditionedOn)
+    #diffIntegrator = langevinNoiseSamplerDimerGlobal(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
+    #                                      boundaryType, equilibrationSteps, conditionedOn)
 
     diffIntegrator.setPairPotential(pairBistablePotential)
 
