@@ -67,7 +67,7 @@ class CVAE(nn.Module):
         self.scaler_r = scaler_r
         self.scaler_c = scaler_c
 
-    def set_temps(self, Tr=None, Tz=None, alpha=None):
+    def set_temps(self, Tr=None, Tz=None):
         """Set global sampling temperatures. Call with no args to unset."""
         if Tr is None and Tz is None:
             # remove attributes if they exist

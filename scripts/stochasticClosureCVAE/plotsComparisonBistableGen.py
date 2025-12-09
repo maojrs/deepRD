@@ -15,9 +15,9 @@ colorList3alt2 = ['A50026', '0077BB', '009988', '33BBEE', 'BBBBBB', 'EE7733']
 matplotlib.rcParams['axes.prop_cycle'] = matplotlib.cycler(color=colorList3alt2)
 
 bsize = 5
-plotDistributions = True
+plotDistributions = False
 plotACFs = False
-plotFPTs = False
+plotFPTs = True
 print('Starting plotting')
 # Benchmark data folder
 #parentDirectory = os.environ.get('MSMRD') + '/data/MoriZwanzig/bistable/benchmarkComparison/'
@@ -93,7 +93,7 @@ if (plotDistributions):
 
 # Choose which reduced model to compare (just uncomment one)
 #conditionedList = ['ri', 'qiri', 'pi', 'piri'] #Possibilities 'qi', 'ri', 'qiri', 'qiririm'
-conditionedList = ['piri']#, 'piririm', 'pipimri'] #['pi','piri','piririm'] #['pi', 'piri', 'piririm']
+conditionedList = ['piri', 'piririm']#, 'pipimri']#, 'piririm', 'pipimri'] #['pi','piri','piririm'] #['pi', 'piri', 'piririm']
 trajIndexes = []
 if 'ri' in conditionedList:
     trajIndexes.append(0)
@@ -120,7 +120,7 @@ labelList = [r'$\tilde{r}^{n+1}|\tilde{r}^n$', r'$\tilde{r}^{n+1}|\tilde{r}^n, \
              r'$\tilde{r}^{n+1}|\tilde{x}^n, \tilde{r}^n, \tilde{r}^{n-1}$',
              r'$\tilde{r}^{n+1}|\tilde{v}^n$', r'$\tilde{r}^{n+1}|\tilde{v}^n,\tilde{r}^n$',
              r'$\tilde{r}^{n+1}|\tilde{v}^n, \tilde{r}^n, \tilde{r}^{n-1}$', 
-             r'$\tilde{r}^{n+1}|\tilde{v}^n, \tilde{r}^n, \tilde{v}^{n-1}$']
+             r'$\tilde{r}^{n+1}|\tilde{v}^n, \tilde{v}^{n-1}$, \tilde{r}^n']
 #lineTypeList = [':', '-.', '--', 'xk']*2
 #lwList = [4, 2, 2, 2]*2
 
@@ -268,7 +268,7 @@ if(plotACFs):
 if (plotFPTs):
     # Set loading data
     numruns_1 = 10000
-    numruns_2 = 1000
+    numruns_2 = 10000
     numbinsFPT = 30
     maxplotTime = 1500
     fname2 = [None]*len(conditionedList)
