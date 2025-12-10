@@ -33,30 +33,48 @@ class DiagGaussianHead(nn.Module):
     """Outputs (mu, log_sigma) for R^3."""
     def __init__(self, in_dim, out_dim):
         super().__init__()
+        assert out_dim % 2 == 0, "out_dim must be even: 2 * D"
+        self.D = out_dim//2
         self.mlp = MLP(in_dim, out_dim, hidden=(128,128))
     def forward(self, x):
         out = self.mlp(x)
-        mu, log_sig = out[..., :3], out[..., 3:]
+        mu, log_sig = out[..., :self.D], out[..., self.D:]
         return mu, log_sig
 
 # ---------- CVAE ----------
 class CVAE(nn.Module):
-    def __init__(self, idim=3, zdim=3, cond_type="piri"):
+    def __init__(self, zdim=3, system_type="bistable", cond_type="piri"):
         super().__init__()
         
-        assert cond_type in ("piri", "piririm", "pipimri")
+        assert system_type in ("bistable", "dimer")
+        self.system_type = system_type
         self.cond_type = cond_type
-        self.idim, self.zdim = idim, zdim
+        self.zdim = zdim
         
-        if cond_type == "piri":
-            self.cdim = 6
-        elif cond_type in ("piririm", "pipimri"):
-            self.cdim = 9
+        if system_type=="bistable":
+            assert cond_type in ("piri", "piririm", "pipimri")
+            self.idim = 3
+            if cond_type == "piri":
+                self.cdim = 6
+            elif cond_type in ("piririm", "pipimri"):
+                self.cdim = 9
+                
+        elif system_type=="dimer":
+            assert cond_type in ("pidqiri", "dqidpiri", "dqidpiririm")
+            self.idim = 6
+            if cond_type == "piri":
+                self.cdim = 12
+            elif cond_type == "pidqiri":
+                self.cdim = 13 
+            elif cond_type == "dqidpiri":
+                self.cdim = 8
+            elif cond_type == "dqidpiririm":
+                self.cdim = 14
         
         # networks
-        self.encoder = MLP(idim + self.cdim, out_dim=2*zdim, hidden=(128,128))
+        self.encoder = MLP(self.idim + self.cdim, out_dim=2*zdim, hidden=(128,128))
         self.prior   = MLP(self.cdim, out_dim=2*zdim, hidden=(128,128))
-        self.decoder = DiagGaussianHead(zdim + self.cdim, 2*idim)
+        self.decoder = DiagGaussianHead(zdim + self.cdim, 2*self.idim)
         
         # normalisers
         self.scaler_r = None
@@ -67,7 +85,7 @@ class CVAE(nn.Module):
         self.scaler_r = scaler_r
         self.scaler_c = scaler_c
 
-    def set_temps(self, Tr=None, Tz=None, alpha=None):
+    def set_temps(self, Tr=None, Tz=None):
         """Set global sampling temperatures. Call with no args to unset."""
         if Tr is None and Tz is None:
             # remove attributes if they exist
