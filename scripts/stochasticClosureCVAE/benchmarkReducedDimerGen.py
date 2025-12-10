@@ -4,6 +4,8 @@ import os
 import sys
 import pickle
 import deepRD
+import torch
+import joblib
 #from deepRD.diffusionIntegrators import langevinNoiseSampler, langevinNoiseSamplerDimer, \
 #from deepRD.diffusionIntegrators import langevinNoiseSamplerDimer2, langevinNoiseSamplerDimer3
 from deepRD.diffusionIntegrators import langevinNoiseSamplerDimerGlobal #langevinNoiseSamplerDimerConstrained1DGlobal #, langevinNoiseSamplerDimerConstrained1D
@@ -53,7 +55,7 @@ bsize = 5 #5 #8 #10
 # Available conditionings: dqi, dpi, vi,  ri, dqiri, dpiri, dqiririm, dpiririm, etc...
 # dqi:=relative distance between dimer particles, dpi:= relative velocity along dimer axis,
 # vi:=center of mass velocity (first component norm along axis, second one norm of perpendicular part)
-conditionedOn = 'piridqi' #'pi'
+conditionedOn = 'dqidpiririm' #'pi'
 outputAux = True #False
 nbins = 5
 
@@ -137,7 +139,7 @@ def runParallelSims(simnumber):
 
     # Loading Sampling Model
     zdim = 3
-    nSampler = cvaeSampler.CVAE(zdim=zdim, cond_type=conditionedOn)
+    nSampler = cvaeSampler.CVAE(zdim=zdim, system_type=systemType, cond_type=conditionedOn)
     nSampler.eval()
     ckpt = torch.load(model_state_path, map_location="cpu", weights_only=True)
     nSampler.load_state_dict(ckpt['model_state'])
@@ -161,14 +163,14 @@ def runParallelSims(simnumber):
 
     #diffIntegrator = langevinNoiseSampler(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
     #                                      boundaryType, equilibrationSteps, conditionedOn)
-    diffIntegrator = langevinNoiseSamplerDimer(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
-                                          boundaryType, equilibrationSteps, conditionedOn)
+    #diffIntegrator = langevinNoiseSamplerDimer(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
+    #                                      boundaryType, equilibrationSteps, conditionedOn)
     #diffIntegrator = langevinNoiseSamplerDimer2(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
     #                                      boundaryType, equilibrationSteps, conditionedOn)
     #diffIntegrator = langevinNoiseSamplerDimer3(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
     #                                            boundaryType, equilibrationSteps, conditionedOn)
-    #diffIntegrator = langevinNoiseSamplerDimerGlobal(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
-    #                                      boundaryType, equilibrationSteps, conditionedOn)
+    diffIntegrator = langevinNoiseSamplerDimerGlobal(dt, integratorStride, tfinal, Gamma, nSampler, KbT, boxsize,
+                                          boundaryType, equilibrationSteps, conditionedOn)
 
     diffIntegrator.setPairPotential(pairBistablePotential)
 

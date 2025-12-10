@@ -87,24 +87,26 @@ if bsize != boxsize:
 localModelDirectory = 'notebooks/stochasticClosureCVAE/newCvae/'
 systemType='bistable'
 
-# Model weights and scaler filepath
-model_state_path = localModelDirectory + f"ckpts/cvae_checkpoint_{systemType}_{conditionedOn}_stride10.pt"
-normalizers_path = localModelDirectory + f"normalizers/normalizers_{systemType}_{conditionedOn}_stride10.pkl"
-#nSampler = cvaeSampler.defaultSamplingModel()
-
 # Parameters for external potential (will only acts on distinguished particles (type 1)
 minimaDist = 1.5
 kconstants = np.array([1.0, 1.0, 1.0])
 scalefactor = 1
 
+
+# Coarse-grain trajectory integration
+k = 2
 # Integrator parameters
 integratorStride = 1 #50
 tfinal = 10000
-equilibrationSteps = 1000
+equilibrationSteps = 10000//k
 
-# Coarse-grain trajectory integration
-k = 10
 dt = k*dt
+
+#Model weights and scaler filepath
+model_state_path = localModelDirectory + f"ckpts/cvae_checkpoint_{systemType}_{conditionedOn}_stride{k}.pt"
+normalizers_path = localModelDirectory + f"normalizers/normalizers_{systemType}_{conditionedOn}_stride{k}.pkl"
+#nSampler = cvaeSampler.defaultSamplingModel()
+
 
 # Create parameter dictionary to write to parameters reference file
 parameterfilename = os.path.join(outputDataDirectory, "parameters")
@@ -132,7 +134,7 @@ def runParallelSims(simnumber):
     nSampler.load_state_dict(ckpt['model_state'])
     scalers = joblib.load(normalizers_path)
     nSampler.attach_normalizers(**scalers)
-    nSampler.set_temps(Tr=2, Tz=1)
+    nSampler.set_temps(Tr=1, Tz=1)
 
     # Define particle list
     seed = int(simnumber)
