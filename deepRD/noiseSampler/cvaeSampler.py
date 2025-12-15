@@ -60,7 +60,7 @@ class CVAE(nn.Module):
                 self.cdim = 9
                 
         elif system_type=="dimer":
-            assert cond_type in ("pidqiri", "dqidpiri", "dqidpiririm", "pipimdqiririm")
+            assert cond_type in ("pidqiri", "dqidpiri", "dqidpiririm", "pipimdqiririm", "pipimdpiririm", "pipimdqidpiririm")
             self.idim = 6
             if cond_type == "piri":
                 self.cdim = 12
@@ -70,8 +70,10 @@ class CVAE(nn.Module):
                 self.cdim = 8
             elif cond_type == "dqidpiririm":
                 self.cdim = 14
-            elif cond_type == "pipimdqiririm":
+            elif cond_type in ("pipimdqiririm", "pipimdpiririm"):
                 self.cdim = 25
+            elif cond_type == "pipimdqidpiririm":
+                self.cdim = 26
         
         # networks
         self.encoder = MLP(self.idim + self.cdim, out_dim=2*zdim, hidden=(128,128))
