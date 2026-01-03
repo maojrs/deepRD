@@ -52,15 +52,17 @@ class CVAE(nn.Module):
         self.zdim = zdim
         
         if system_type=="bistable":
-            assert cond_type in ("piri", "piririm", "pipimri")
+            assert cond_type in ("piri", "piririm", "piririmrimm", "pipimri", "pipimririm")
             self.idim = 3
             if cond_type == "piri":
                 self.cdim = 6
             elif cond_type in ("piririm", "pipimri"):
                 self.cdim = 9
+            elif cond_type in ("piririmrimm", "pipimririm"):
+                self.cdim = 12
                 
         elif system_type=="dimer":
-            assert cond_type in ("pidqiri", "dqidpiri", "dqidpiririm", "pipimdqiririm", "pipimdpiririm", "pipimdqidpiririm")
+            assert cond_type in ("pidqiri", "dqidpiri", "dqidpiririm", "pipimririm", "pipimdqiririm", "pipimdpiririm", "pipimdqidpiririm")
             self.idim = 6
             if cond_type == "piri":
                 self.cdim = 12
@@ -70,6 +72,8 @@ class CVAE(nn.Module):
                 self.cdim = 8
             elif cond_type == "dqidpiririm":
                 self.cdim = 14
+            elif cond_type == "pipimririm":
+                self.cdim = 24
             elif cond_type in ("pipimdqiririm", "pipimdpiririm"):
                 self.cdim = 25
             elif cond_type == "pipimdqidpiririm":
