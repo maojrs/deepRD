@@ -60,6 +60,8 @@ class langevinNoiseSampler(langevin):
             return np.concatenate((particle.nextVelocity, particle.aux1))
         elif self.conditionedOn == 'piririm':
             return np.concatenate((particle.nextVelocity, particle.aux1, particle.aux2))
+        elif self.conditionedOn == 'piririmrimm':
+            return np.concatenate((particle.nextVelocity, particle.aux1, particle.aux2, particle.aux3))
         elif self.conditionedOn == 'qipi':
             return ((particle.nextPosition, particle.nextVelocity))
         elif self.conditionedOn == 'qipiri':
@@ -68,6 +70,8 @@ class langevinNoiseSampler(langevin):
             return np.concatenate((particle.nextPosition, particle.nextVelocity, particle.aux1, particle.aux2))
         elif self.conditionedOn == 'pipimri':
             return np.concatenate((particle.nextVelocity, particle.vel1, particle.aux1))
+        elif self.conditionedOn == 'pipimririm':
+            return np.concatenate((particle.nextVelocity, particle.vel1, particle.aux1, particle.aux2))           
         else:
             sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
 
@@ -99,6 +103,7 @@ class langevinNoiseSampler(langevin):
             #xi = np.sqrt(self.kBT * particle.mass * (1 - np.exp(-2 * self.Gamma * dt / particle.mass)))
             #interactionNoiseTerm = xi / particle.mass * np.random.normal(0., 1, particle.dimension)
 
+            particle.aux3 = 1.0 * particle.aux2
             particle.aux2 = 1.0 * particle.aux1
             particle.aux1 = 1.0 * interactionNoiseTerm
             particle.vel1 = particle.nextVelocity
@@ -749,13 +754,17 @@ class langevinNoiseSamplerDimerGlobal(langevinNoiseSamplerDimer):
         elif self.conditionedOn == 'pipimri':
             return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, particle1.aux1, particle2.aux1))
         elif self.conditionedOn == 'pipimririm':
-            return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, particle1.aux1, particle2.aux1,particle1.aux2, particle2.aux2))
+            return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, particle1.aux1, particle2.aux1, particle1.aux2, particle2.aux2))
         elif self.conditionedOn == 'pipimdqi':
             return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, np.array([self.axisRelVelocity[index]])))
         elif self.conditionedOn == 'pipimdqiri':
             return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, np.array([self.axisRelVelocity[index]]), particle1.aux1, particle2.aux1))
         elif self.conditionedOn == 'pipimdqiririm':
             return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, np.array([self.axisRelVelocity[index]]), particle1.aux1, particle2.aux1, particle1.aux2, particle2.aux2))
+        elif self.conditionedOn == 'pipimdpiririm':
+            return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, np.array([self.relDistance[index]]), particle1.aux1, particle2.aux1, particle1.aux2, particle2.aux2))
+        elif self.conditionedOn == 'pipimdqidpiririm':
+            return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, np.array([self.axisRelVelocity[index]]), np.array([self.relDistance[index]]), particle1.aux1, particle2.aux1, particle1.aux2, particle2.aux2))
         elif self.conditionedOn == 'qipi':
             return np.concatenate((particle1.nextPosition, particle2.nextPosition, particle1.nextVelocity, particle2.nextVelocity))
         elif self.conditionedOn == 'qipiri':
