@@ -62,7 +62,7 @@ class CVAE(nn.Module):
                 self.cdim = 12
                 
         elif system_type=="dimer":
-            assert cond_type in ("pidqiri", "dqidpiri", "dqidpiririm", "pipimririm", "pipimdqiririm", "pipimdpiririm", "pipimdqidpiririm")
+            assert cond_type in ("pidqiri", "dqidpiri", "dqidpiririm", "pipimririm", "pipimririmrimm", "pipimdqiririm", "pipimdpiririm", "pipimdqidpiririm")
             self.idim = 6
             if cond_type == "piri":
                 self.cdim = 12
@@ -74,6 +74,8 @@ class CVAE(nn.Module):
                 self.cdim = 14
             elif cond_type == "pipimririm":
                 self.cdim = 24
+            elif cond_type == "pipimririmrimm":
+                self.cdim = 30
             elif cond_type in ("pipimdqiririm", "pipimdpiririm"):
                 self.cdim = 25
             elif cond_type == "pipimdqidpiririm":

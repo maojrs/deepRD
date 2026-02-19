@@ -51,7 +51,7 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
 numSimulations = 100
 bsize = 5 #5 #8 #10
-conditionedOn = 'piririm' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
+conditionedOn = 'pipimririm' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
 outputAux = True #False
 
 # Output data directory
@@ -68,7 +68,7 @@ except OSError as error:
         sys.exit()
 
 # Loading parameter dictionary
-parentDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(bsize)+ '/benchmark/'
+parentDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(bsize)+ '/benchmark_half_dt/'
 parameters = analysisTools.readParameters(parentDirectory + "parameters")
 #print(parameters)
 
@@ -103,8 +103,8 @@ equilibrationSteps = 10000//k
 dt = k*dt
 
 #Model weights and scaler filepath
-model_state_path = localModelDirectory + f"ckpts/cvae_checkpoint_{systemType}_{conditionedOn}_stride{k}.pt"
-normalizers_path = localModelDirectory + f"normalizers/normalizers_{systemType}_{conditionedOn}_stride{k}.pkl"
+model_state_path = localModelDirectory + f"ckpts/cvae_checkpoint_half_{systemType}_{conditionedOn}_stride{k}.pt"
+normalizers_path = localModelDirectory + f"normalizers/normalizers_half_{systemType}_{conditionedOn}_stride{k}.pkl"
 #nSampler = cvaeSampler.defaultSamplingModel()
 
 

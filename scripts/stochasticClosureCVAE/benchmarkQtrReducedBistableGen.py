@@ -51,12 +51,12 @@ Runs reduced model by stochastic closure with same parameters as benchmark for c
 localDataDirectory = os.environ['DATA'] + 'stochasticClosure/'
 numSimulations = 100
 bsize = 5 #5 #8 #10
-conditionedOn = 'piririm' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
+conditionedOn = 'piri' # Available conditionings: qi, pi, ri, qiri, piri, qiririm, piririm
 outputAux = True #False
 
 # Output data directory
 #foldername = 'bistable/boxsize' + str(bsize) + '/benchmarkReduced_' + conditionedOn
-foldername = 'bistable/boxsize' + str(bsize) + '/benchmark_half_ReducedGen_' + conditionedOn
+foldername = 'bistable/boxsize' + str(bsize) + '/benchmark_quarter_ReducedGen_' + conditionedOn
 outputDataDirectory = os.path.join(localDataDirectory, foldername)
 # Create folder for data
 try:
@@ -68,7 +68,7 @@ except OSError as error:
         sys.exit()
 
 # Loading parameter dictionary
-parentDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(bsize)+ '/benchmark/'
+parentDirectory = os.environ['DATA'] + 'stochasticClosure/bistable/boxsize' + str(bsize)+ '/benchmark_quarter_dt/'
 parameters = analysisTools.readParameters(parentDirectory + "parameters")
 #print(parameters)
 
@@ -101,10 +101,11 @@ tfinal = 10000
 equilibrationSteps = 10000//k
 
 dt = k*dt
+print(dt)
 
 #Model weights and scaler filepath
-model_state_path = localModelDirectory + f"ckpts/cvae_checkpoint_{systemType}_{conditionedOn}_stride{k}.pt"
-normalizers_path = localModelDirectory + f"normalizers/normalizers_{systemType}_{conditionedOn}_stride{k}.pkl"
+model_state_path = localModelDirectory + f"ckpts/cvae_checkpoint_qtr_{systemType}_{conditionedOn}_stride{k}.pt"
+normalizers_path = localModelDirectory + f"normalizers/normalizers_qtr_{systemType}_{conditionedOn}_stride{k}.pkl"
 #nSampler = cvaeSampler.defaultSamplingModel()
 
 
