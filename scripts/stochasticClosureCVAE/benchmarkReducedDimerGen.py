@@ -18,6 +18,7 @@ import deepRD.tools.analysisTools as analysisTools
 import multiprocessing
 from multiprocessing import Pool
 from functools import partial
+import hashlib
 
 '''
 Runs reduced model by stochastic closure with same parameters as benchmark for comparison.
@@ -55,12 +56,12 @@ bsize = 5 #5 #8 #10
 # Available conditionings: dqi, dpi, vi,  ri, dqiri, dpiri, dqiririm, dpiririm, etc...
 # dqi:=relative distance between dimer particles, dpi:= relative velocity along dimer axis,
 # vi:=center of mass velocity (first component norm along axis, second one norm of perpendicular part)
-conditionedOn = 'dqidpiririm' #'pi'
+conditionedOn = 'pipimririm' #'pi'
 outputAux = True #False
 nbins = 5
 
 # Output data directory
-foldername = 'dimerGlobal/boxsize' + str(bsize) + '/benchmarkReducedGen_' + conditionedOn
+foldername = 'dimerGlobal/boxsize' + str(bsize) + '/benchmarkReducedGen2_' + conditionedOn
 outputDataDirectory = os.path.join(localDataDirectory, foldername)
 # Create folder for data
 try:
@@ -145,7 +146,7 @@ def runParallelSims(simnumber):
     nSampler.load_state_dict(ckpt['model_state'])
     scalers = joblib.load(normalizers_path)
     nSampler.attach_normalizers(**scalers)
-    nSampler.set_temps(Tr=1, Tz=1)
+    nSampler.set_temps(Tr=1, Tz=0)
 
     # Define particle list
     seed = int(simnumber)
@@ -180,8 +181,8 @@ def runParallelSims(simnumber):
 
 
     # Write dynamics into trjactory
-    traj = trajectoryTools.convert2trajectory(t, [X, V])
-    #traj = trajectoryTools.convert2trajectory(t, [X, V, Raux])
+    #traj = trajectoryTools.convert2trajectory(t, [X, V])
+    traj = trajectoryTools.convert2trajectory(t, [X, V, Raux])
     trajectoryTools.writeTrajectory(traj,basefilename,simnumber)
 
     print("Simulation " + str(simnumber) + ", done.")
