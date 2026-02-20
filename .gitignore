@@ -1,6 +1,0 @@
-.ipynb_checkpoints
-*__pycache__*
-build
-deepRD.egg-info
-dist
-notebooks/stochasticClosureCVAE/dev
