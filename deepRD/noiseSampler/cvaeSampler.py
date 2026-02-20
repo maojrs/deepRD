@@ -191,7 +191,7 @@ class CVAE(nn.Module):
             c_n_np = c_n_np.reshape(1, -1)
             single_sample = True
             
-        c_norm = self.scaler_c.transform(c_n_np)
+        c_norm = self.scaler_c.transform(c_n_np).astype(np.float32)
 
         # --- Convert to torch tensor ---
         c_t = torch.from_numpy(c_norm).to(device=device)

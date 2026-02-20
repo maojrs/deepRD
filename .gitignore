@@ -1,6 +1,3 @@
-deepRD/noiseSampler/models/modelLosses
-deepRD/noiseSampler/models/modelWeights
 .ipynb_checkpoints
 __pycache__
-notebooks/stochasticClosureCVAE/newCvae/ckpts
-notebooks/stochasticClosureCVAE/newCvae/normalizers
+notebooks/stochasticClosureCVAE/dev
