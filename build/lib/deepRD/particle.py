@@ -18,7 +18,7 @@ class particle:
         self.aux1 = None
         self.aux2 = None
         self.aux3 = None
-        self.aux4 = None 
+        self.aux4 = None
         self.vel1 = None
 
 
