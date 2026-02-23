@@ -56,7 +56,7 @@ outputAux = True #False
 
 # Output data directory
 #foldername = 'bistable/boxsize' + str(bsize) + '/benchmarkReduced_' + conditionedOn
-foldername = 'bistable/boxsize' + str(bsize) + '/benchmark_half_ReducedGen_' + conditionedOn
+foldername = 'bistable/boxsize' + str(bsize) + '/benchmarkReducedGen_' + conditionedOn
 outputDataDirectory = os.path.join(localDataDirectory, foldername)
 # Create folder for data
 try:
@@ -84,7 +84,7 @@ if bsize != boxsize:
     print('Requested boxsize does not match simulation')
 
 # Define noise sampler
-localModelDirectory = 'notebooks/stochasticClosureCVAE/'
+localModelDirectory = 'notebooks/stochasticClosureCVAE/dev/'
 systemType='bistable'
 
 # Parameters for external potential (will only acts on distinguished particles (type 1)

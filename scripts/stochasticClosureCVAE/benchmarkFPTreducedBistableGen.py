@@ -87,7 +87,7 @@ if bsize != boxsize:
     print('Requested boxsize does not match simulation')
 
 # Define noise sampler
-localModelDirectory = 'notebooks/stochasticClosureCVAE/'
+localModelDirectory = 'notebooks/stochasticClosureCVAE/dev/'
 
 # Model weights and scaler filepath
 model_state_path = localModelDirectory + f"ckpts/cvae_checkpoint_{systemType}_{conditionedOn}_stride{k}.pt"

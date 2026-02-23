@@ -84,7 +84,7 @@ if bsize != boxsize:
     print('Requested boxsize does not match simulation')
 
 # Define noise sampler
-localModelDirectory = 'notebooks/stochasticClosureCVAE/'
+localModelDirectory = 'notebooks/stochasticClosureCVAE/dev/'
 systemType='bistable'
 
 # Parameters for external potential (will only acts on distinguished particles (type 1)
