@@ -34,6 +34,7 @@ class langevinNoiseSampler(langevin):
             part.aux1 = np.zeros(particleList.dimension)
             part.aux2 = np.zeros(particleList.dimension)
             part.aux3 = np.zeros(particleList.dimension)
+            part.aux4 = np.zeros(particleList.dimension)
         self.currentOrNext = 'next'
         self.calculateForceField(particleList)
         self.firstRun = False
@@ -59,12 +60,18 @@ class langevinNoiseSampler(langevin):
             return np.concatenate((particle.nextVelocity, particle.aux1))
         elif self.conditionedOn == 'piririm':
             return np.concatenate((particle.nextVelocity, particle.aux1, particle.aux2))
+        elif self.conditionedOn == 'piririmrimm':
+            return np.concatenate((particle.nextVelocity, particle.aux1, particle.aux2, particle.aux4))
         elif self.conditionedOn == 'qipi':
             return ((particle.nextPosition, particle.nextVelocity))
         elif self.conditionedOn == 'qipiri':
             return np.concatenate((particle.nextPosition, particle.nextVelocity, particle.aux1))
         elif self.conditionedOn == 'qipiririm':
             return np.concatenate((particle.nextPosition, particle.nextVelocity, particle.aux1, particle.aux2))
+        elif self.conditionedOn == 'pipimri':
+            return np.concatenate((particle.nextVelocity, particle.aux3, particle.aux1))
+        elif self.conditionedOn == 'pipimririm':
+            return np.concatenate((particle.nextVelocity, particle.aux3, particle.aux1, particle.aux2))           
         else:
             sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
 
@@ -96,8 +103,11 @@ class langevinNoiseSampler(langevin):
             #xi = np.sqrt(self.kBT * particle.mass * (1 - np.exp(-2 * self.Gamma * dt / particle.mass)))
             #interactionNoiseTerm = xi / particle.mass * np.random.normal(0., 1, particle.dimension)
 
+            particle.aux4 = 1.0 * particle.aux2
+            particle.aux3 = 1.0 * particle.nextVelocity
             particle.aux2 = 1.0 * particle.aux1
             particle.aux1 = 1.0 * interactionNoiseTerm
+
             particle.nextVelocity = frictionForceTerm + interactionNoiseTerm
 
     def propagate(self, particleList, showProgress = False, outputAux = False):
@@ -745,13 +755,19 @@ class langevinNoiseSamplerDimerGlobal(langevinNoiseSamplerDimer):
         elif self.conditionedOn == 'pipimri':
             return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, particle1.aux1, particle2.aux1))
         elif self.conditionedOn == 'pipimririm':
-            return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, particle1.aux1, particle2.aux1,particle1.aux2, particle2.aux2))
+            return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, particle1.aux1, particle2.aux1, particle1.aux2, particle2.aux2))
+        elif self.conditionedOn == 'pipimririmrimm':
+            return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, particle1.aux1, particle2.aux1, particle1.aux2, particle2.aux2, particle1.aux4, particle2.aux4))
         elif self.conditionedOn == 'pipimdqi':
             return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, np.array([self.axisRelVelocity[index]])))
         elif self.conditionedOn == 'pipimdqiri':
             return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, np.array([self.axisRelVelocity[index]]), particle1.aux1, particle2.aux1))
         elif self.conditionedOn == 'pipimdqiririm':
             return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, np.array([self.axisRelVelocity[index]]), particle1.aux1, particle2.aux1, particle1.aux2, particle2.aux2))
+        elif self.conditionedOn == 'pipimdpiririm':
+            return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, np.array([self.relDistance[index]]), particle1.aux1, particle2.aux1, particle1.aux2, particle2.aux2))
+        elif self.conditionedOn == 'pipimdqidpiririm':
+            return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux3, particle2.aux3, np.array([self.axisRelVelocity[index]]), np.array([self.relDistance[index]]), particle1.aux1, particle2.aux1, particle1.aux2, particle2.aux2))
         elif self.conditionedOn == 'qipi':
             return np.concatenate((particle1.nextPosition, particle2.nextPosition, particle1.nextVelocity, particle2.nextVelocity))
         elif self.conditionedOn == 'qipiri':
@@ -764,6 +780,8 @@ class langevinNoiseSamplerDimerGlobal(langevinNoiseSamplerDimer):
             return np.concatenate((self.rotatedVelocity[index], self.rotatedVelocity[index+1], particle1.aux1, particle2.aux1))
         elif self.conditionedOn == 'viririm':
             return np.concatenate((self.rotatedVelocity, particle1.aux1, particle2.aux1, particle1.aux2, particle2.aux2))
+        elif self.conditionedOn=='piridqi':
+            return np.concatenate((particle1.nextVelocity, particle2.nextVelocity, particle1.aux1, particle2.aux1, np.array([self.relDistance[index]])))
         else:
             sys.stdout.write("Unknown conditioned variables, check getConditionedVars in langevinNoiseSampler.\r")
 
@@ -795,7 +813,6 @@ class langevinNoiseSamplerDimerGlobal(langevinNoiseSamplerDimer):
             frictionForceTerm2 += (1 + expterm2) * self.forceField[2*i+1] * dt/(2*particle2.mass)
             # Calculate interaction and noise term from noise sampler
             conditionedVars = self.getConditionedVars(particle1, particle2, 0)
-
             # Sample interaction noisterm
             interactionNoiseTerm = self.noiseSampler.sample(conditionedVars)
             #rotatedInteractionNoiseTerm = self.noiseSampler.sample(conditionedVars)
@@ -810,8 +827,13 @@ class langevinNoiseSamplerDimerGlobal(langevinNoiseSamplerDimer):
             #xi = np.sqrt(self.kBT * particle.mass * (1 - np.exp(-2 * self.Gamma * dt / particle.mass)))
             #interactionNoiseTerm = xi / particle.mass * np.random.normal(0., 1, particle.dimension)
 
+            # Additional r^(n-2) term
+            particleList[2*i].aux4 = 1.0 * particleList[2*i].aux2
+            particleList[2*i+1].aux4 = 1.0 * particleList[2*i+1].aux2
+
             particleList[2 * i].aux3 = 1.0 * particleList[2*i].nextVelocity
             particleList[2 * i + 1].aux3 = 1.0 * particleList[2*i+1].nextVelocity
+
             particleList[2*i].aux2 = 1.0 * particleList[2*i].aux1
             particleList[2*i+1].aux2 = 1.0 * particleList[2*i+1].aux1
             particleList[2*i].aux1 = interactionNoiseTerm1
