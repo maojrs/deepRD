@@ -1,0 +1,6 @@
+# macOS metadata
+.DS_Store
+**/.DS_Store
+
+# Model checkpoints (keep outside repo)
+deepRD/noiseSampler/Diffusion_checkpoints/
